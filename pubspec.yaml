@@ -1,0 +1,39 @@
+name: plant_disease_detector
+description: "AI-powered crop disease identification app for Sri Lankan farmers."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # Camera & Image Handling
+  image_picker: ^1.1.2
+  image_cropper: ^9.1.0
+
+  # Animations
+  lottie: ^3.3.1
+
+  # UI Components
+  percent_indicator: ^4.2.4
+
+  # Fonts
+  google_fonts: ^6.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/animations/
+    - assets/images/
