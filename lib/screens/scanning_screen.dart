@@ -357,7 +357,7 @@ class _ScanningScreenState extends State<ScanningScreen>
           const SizedBox(height: 48),
           // Sinhala subtitle
           Text(
-            'Ã Â·ÂÃ Â·ÂÃ Â¶Å¡Ã Â¶ÂºÃ Â·Å¡ Ã Â¶Â»Ã Â·ÂÃ Â¶Å“Ã Â¶Âº Ã Â·â€žÃ Â¶Â³Ã Â·â€Ã Â¶Â±Ã Â·Â Ã Â¶Å“Ã Â¶Â±Ã Â·â€™Ã Â¶Â¸Ã Â·â€™Ã Â¶Â±Ã Â·Å  Ã Â¶Â´Ã Â·â‚¬Ã Â¶Â­Ã Â·â€œ...',
+            'ශාකයේ රෝගය හඳුනා ගනිමින් පවතී...',
             style: AppTextStyles.sinhala.copyWith(color: Colors.white38),
           ),
           const SizedBox(height: 32),

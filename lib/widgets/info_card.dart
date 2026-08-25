@@ -44,6 +44,7 @@ class _InfoCardState extends State<InfoCard>
       CurvedAnimation(parent: _rotateCtrl, curve: Curves.easeInOut),
     );
     if (_isExpanded) _rotateCtrl.value = 1.0;
+
   }
 
   @override

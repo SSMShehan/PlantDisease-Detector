@@ -5,7 +5,7 @@ import '../theme/app_theme.dart';
 import '../models/disease_result.dart';
 import '../widgets/app_buttons.dart';
 import '../widgets/info_card.dart';
-import 'home_screen.dart';
+
 
 /// ─────────────────────────────────────────────────────────────────────────────
 /// DiagnosticResultScreen — Light theme results page
@@ -26,6 +26,7 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
   late Animation<double> _fadeAnim;
   late Animation<Offset> _slideAnim;
   late Animation<double> _circleAnim;
+  bool _bookmarked = false;
 
   @override
   void initState() {
@@ -73,14 +74,58 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
   }
 
   void _scanAnother() {
-    Navigator.of(context).pushAndRemoveUntil(
-      PageRouteBuilder(
-        pageBuilder: (_, animation, _) => const HomeScreen(),
-        transitionsBuilder: (_, animation, _, child) =>
-            FadeTransition(opacity: animation, child: child),
-        transitionDuration: const Duration(milliseconds: 400),
+    Navigator.of(context).popUntil((route) => route.isFirst);
+  }
+
+  void _toggleBookmark() {
+    setState(() => _bookmarked = !_bookmarked);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              _bookmarked
+                  ? Icons.bookmark_rounded
+                  : Icons.bookmark_remove_rounded,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Text(
+              _bookmarked
+                  ? 'Result saved to your history!'
+                  : 'Result removed from history.',
+            ),
+          ],
+        ),
+        backgroundColor:
+            _bookmarked ? AppColors.success : AppColors.textSecondary,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 2),
       ),
-      (route) => false,
+    );
+  }
+
+  void _shareResult() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Row(
+          children: [
+            Icon(Icons.share_rounded, color: Colors.white, size: 20),
+            SizedBox(width: 10),
+            Text('Share feature coming soon!'),
+          ],
+        ),
+        backgroundColor: AppColors.primary,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 2),
+      ),
     );
   }
 
@@ -136,7 +181,7 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
                       label: 'Share Results',
                       icon: Icons.share_rounded,
                       borderColor: AppColors.primary,
-                      onTap: () {},
+                      onTap: _shareResult,
                     ),
                     const SizedBox(height: 40),
                   ]),
@@ -176,9 +221,14 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
             borderRadius: BorderRadius.circular(12),
           ),
           child: IconButton(
-            icon: const Icon(Icons.bookmark_outline_rounded,
-                color: Colors.white, size: 20),
-            onPressed: () {},
+            icon: Icon(
+              _bookmarked
+                  ? Icons.bookmark_rounded
+                  : Icons.bookmark_outline_rounded,
+              color: _bookmarked ? AppColors.goldLight : Colors.white,
+              size: 20,
+            ),
+            onPressed: _toggleBookmark,
           ),
         ),
       ],
