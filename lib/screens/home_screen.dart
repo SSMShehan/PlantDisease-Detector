@@ -95,6 +95,175 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     ));
   }
 
+  void _showNotifications() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        padding: const EdgeInsets.fromLTRB(24, 8, 24, 40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 24),
+              decoration: BoxDecoration(
+                color: AppColors.cardBorder,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+            const Icon(Icons.notifications_none_rounded,
+                color: AppColors.textHint, size: 48),
+            const SizedBox(height: 12),
+            Text('No New Notifications',
+                style: AppTextStyles.titleLarge),
+            const SizedBox(height: 6),
+            Text('You\'re all caught up! We\'ll notify you about new disease alerts in your region.',
+                textAlign: TextAlign.center,
+                style: AppTextStyles.bodySmall),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showDiseaseDetail(String emoji, String name, String risk) {
+    final isHigh = risk == 'High Risk';
+    final color = isHigh
+        ? AppColors.error
+        : risk == 'Medium'
+            ? AppColors.warning
+            : AppColors.primary;
+    final bg = isHigh
+        ? AppColors.errorLight
+        : risk == 'Medium'
+            ? AppColors.warningLight
+            : AppColors.primaryPale;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        padding: const EdgeInsets.fromLTRB(24, 8, 24, 40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: AppColors.cardBorder,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ),
+            Row(
+              children: [
+                Text(emoji, style: const TextStyle(fontSize: 36)),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(name, style: AppTextStyles.headlineMedium),
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: bg,
+                          borderRadius: BorderRadius.circular(50),
+                        ),
+                        child: Text(
+                          risk,
+                          style: AppTextStyles.caption.copyWith(
+                            color: color,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: bg,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline_rounded, color: color, size: 20),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Scan your plant leaves to check for $name infection.',
+                      style: AppTextStyles.bodySmall
+                          .copyWith(color: color, height: 1.5),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            GestureDetector(
+              onTap: () {
+                Navigator.pop(context);
+                _goToCamera();
+              },
+              child: Container(
+                width: double.infinity,
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: AppGradients.gold,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.gold.withValues(alpha: 0.35),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.camera_alt_rounded,
+                        color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Scan for $name',
+                      style: AppTextStyles.labelLarge.copyWith(
+                        color: AppColors.textOnGold,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -170,8 +339,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             // Notification bell
             _iconBtn(
               icon: Icons.notifications_outlined,
-              onTap: () {},
-              badge: true,
+              onTap: _showNotifications,
+              badge: false,
             ),
             const SizedBox(width: 10),
             // Avatar
@@ -608,68 +777,71 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               itemBuilder: (_, i) {
                 final (emoji, name, risk) = diseases[i];
                 final isHigh = risk == 'High Risk';
-                return Container(
-                  width: 140,
-                  margin: const EdgeInsets.only(right: 12),
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: isHigh
-                          ? AppColors.error.withValues(alpha: 0.2)
-                          : AppColors.cardBorder,
+                return GestureDetector(
+                  onTap: () => _showDiseaseDetail(emoji, name, risk),
+                  child: Container(
+                    width: 140,
+                    margin: const EdgeInsets.only(right: 12),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isHigh
+                            ? AppColors.error.withValues(alpha: 0.2)
+                            : AppColors.cardBorder,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                            color: AppColors.shadow,
+                            blurRadius: 10,
+                            offset: const Offset(0, 3)),
+                      ],
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                          color: AppColors.shadow,
-                          blurRadius: 10,
-                          offset: const Offset(0, 3)),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Text(emoji,
-                              style: const TextStyle(fontSize: 22)),
-                          const Spacer(),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: isHigh
-                                  ? AppColors.errorLight
-                                  : risk == 'Medium'
-                                      ? AppColors.warningLight
-                                      : AppColors.primaryPale,
-                              borderRadius: BorderRadius.circular(50),
-                            ),
-                            child: Text(
-                              risk,
-                              style: AppTextStyles.bodySmall.copyWith(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(emoji,
+                                style: const TextStyle(fontSize: 22)),
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
                                 color: isHigh
-                                    ? AppColors.error
+                                    ? AppColors.errorLight
                                     : risk == 'Medium'
-                                        ? AppColors.warning
-                                        : AppColors.primary,
-                                fontSize: 9,
-                                fontWeight: FontWeight.w700,
+                                        ? AppColors.warningLight
+                                        : AppColors.primaryPale,
+                                borderRadius: BorderRadius.circular(50),
+                              ),
+                              child: Text(
+                                risk,
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  color: isHigh
+                                      ? AppColors.error
+                                      : risk == 'Medium'
+                                          ? AppColors.warning
+                                          : AppColors.primary,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const Spacer(),
-                      Text(
-                        name,
-                        style: AppTextStyles.titleMedium
-                            .copyWith(fontSize: 12),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                          ],
+                        ),
+                        const Spacer(),
+                        Text(
+                          name,
+                          style: AppTextStyles.titleMedium
+                              .copyWith(fontSize: 12),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
@@ -701,49 +873,70 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ...tips.map(
             (t) => Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(18),
-                  border: const Border.fromBorderSide(
-                      BorderSide(color: AppColors.cardBorder)),
-                  boxShadow: [
-                    BoxShadow(
-                        color: AppColors.shadow,
-                        blurRadius: 10,
-                        offset: const Offset(0, 3)),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: t.$2.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Icon(t.$1, color: t.$2, size: 22),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+              child: GestureDetector(
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Row(
                         children: [
-                          Text(t.$3,
-                              style: AppTextStyles.titleMedium
-                                  .copyWith(fontSize: 13)),
-                          const SizedBox(height: 3),
-                          Text(t.$4,
-                              style: AppTextStyles.bodySmall
-                                  .copyWith(height: 1.45)),
+                          Icon(t.$1, color: Colors.white, size: 18),
+                          const SizedBox(width: 10),
+                          Expanded(child: Text(t.$4)),
                         ],
                       ),
+                      backgroundColor: t.$2,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      margin: const EdgeInsets.all(16),
+                      duration: const Duration(seconds: 3),
                     ),
-                    Icon(Icons.chevron_right_rounded,
-                        color: AppColors.textHint, size: 20),
-                  ],
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(18),
+                    border: const Border.fromBorderSide(
+                        BorderSide(color: AppColors.cardBorder)),
+                    boxShadow: [
+                      BoxShadow(
+                          color: AppColors.shadow,
+                          blurRadius: 10,
+                          offset: const Offset(0, 3)),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: t.$2.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Icon(t.$1, color: t.$2, size: 22),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(t.$3,
+                                style: AppTextStyles.titleMedium
+                                    .copyWith(fontSize: 13)),
+                            const SizedBox(height: 3),
+                            Text(t.$4,
+                                style: AppTextStyles.bodySmall
+                                    .copyWith(height: 1.45)),
+                          ],
+                        ),
+                      ),
+                      Icon(Icons.chevron_right_rounded,
+                          color: AppColors.textHint, size: 20),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -799,7 +992,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ),
                 const SizedBox(width: 6),
                 const Icon(Icons.arrow_forward_rounded,
-                    color: Color(0xFF1A1A00), size: 18),
+                    color: Colors.white, size: 18),
               ],
             ),
           ),

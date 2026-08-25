@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import '../theme/app_theme.dart';
+import '../utils/app_utils.dart';
 import '../widgets/app_buttons.dart';
 import 'scanning_screen.dart';
 
@@ -80,8 +81,22 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
             toolbarColor: AppColors.primary,
             toolbarWidgetColor: Colors.white,
             activeControlsWidgetColor: AppColors.gold,
+            aspectRatioPresets: [
+              CropAspectRatioPreset.square,
+              CropAspectRatioPreset.ratio4x3,
+              CropAspectRatioPreset.original,
+            ],
+            initAspectRatio: CropAspectRatioPreset.square,
+            lockAspectRatio: false,
           ),
-          IOSUiSettings(title: 'Crop Leaf'),
+          IOSUiSettings(
+            title: 'Crop Leaf',
+            aspectRatioPresets: [
+              CropAspectRatioPreset.square,
+              CropAspectRatioPreset.ratio4x3,
+              CropAspectRatioPreset.original,
+            ],
+          ),
         ],
       );
 
@@ -89,7 +104,12 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
       setState(() => _isProcessing = false);
       if (cropped != null) _navigateToScanning(cropped.path);
     } catch (e) {
-      if (mounted) setState(() => _isProcessing = false);
+      if (!mounted) return;
+      setState(() => _isProcessing = false);
+      AppUtils.showError(
+        context,
+        'Could not load image. Please check permissions and try again.',
+      );
     }
   }
 
