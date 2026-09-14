@@ -1,22 +1,31 @@
 import 'dart:math';
+import 'package:flutter/material.dart';
 
 /// Disease model for holding AI diagnosis result data.
 class DiseaseResult {
   final String diseaseName;
+  final String latinName;
   final double confidenceScore; // 0.0 – 1.0
   final String cropType;
   final List<String> symptoms;
   final List<String> treatments;
-  final String severity; // 'low' | 'medium' | 'high'
+  final String severity; // 'none' | 'low' | 'medium' | 'high'
+  final String fieldLocation;
+  final bool treatable;
+  final DateTime scannedAt;
   final String imagePath;
 
   const DiseaseResult({
     required this.diseaseName,
+    required this.latinName,
     required this.confidenceScore,
     required this.cropType,
     required this.symptoms,
     required this.treatments,
     required this.severity,
+    required this.fieldLocation,
+    required this.treatable,
+    required this.scannedAt,
     required this.imagePath,
   });
 
@@ -30,9 +39,13 @@ class DiseaseResult {
   static List<DiseaseResult> _mockDataset(String imagePath) => [
         DiseaseResult(
           diseaseName: 'Tomato Early Blight',
+          latinName: 'Alternaria solani',
           confidenceScore: 0.85,
           cropType: 'Tomato',
           severity: 'medium',
+          fieldLocation: 'Field Block A · Row 12',
+          treatable: true,
+          scannedAt: DateTime.now().subtract(const Duration(hours: 2)),
           imagePath: imagePath,
           symptoms: [
             'Dark brown circular spots with concentric rings on older leaves',
@@ -52,9 +65,13 @@ class DiseaseResult {
         ),
         DiseaseResult(
           diseaseName: 'Powdery Mildew',
+          latinName: 'Erysiphe cichoracearum',
           confidenceScore: 0.91,
           cropType: 'Cucumber',
           severity: 'low',
+          fieldLocation: 'Field Block B · Row 4',
+          treatable: true,
+          scannedAt: DateTime.now().subtract(const Duration(days: 1)),
           imagePath: imagePath,
           symptoms: [
             'White powdery patches on upper leaf surfaces',
@@ -72,9 +89,13 @@ class DiseaseResult {
         ),
         DiseaseResult(
           diseaseName: 'Bacterial Leaf Blight',
+          latinName: 'Xanthomonas oryzae',
           confidenceScore: 0.78,
           cropType: 'Rice',
           severity: 'high',
+          fieldLocation: 'Field Block C · Row 2',
+          treatable: true,
+          scannedAt: DateTime.now().subtract(const Duration(days: 2)),
           imagePath: imagePath,
           symptoms: [
             'Water-soaked lesions along leaf margins that turn yellow then brown',
@@ -94,9 +115,13 @@ class DiseaseResult {
         ),
         DiseaseResult(
           diseaseName: 'Anthracnose',
+          latinName: 'Colletotrichum gloeosporioides',
           confidenceScore: 0.82,
           cropType: 'Mango',
           severity: 'medium',
+          fieldLocation: 'Field Block D · Row 8',
+          treatable: true,
+          scannedAt: DateTime.now().subtract(const Duration(days: 3)),
           imagePath: imagePath,
           symptoms: [
             'Dark, water-soaked lesions on leaves, flowers, and fruit',
@@ -114,9 +139,13 @@ class DiseaseResult {
         ),
         DiseaseResult(
           diseaseName: 'Downy Mildew',
+          latinName: 'Plasmopara viticola',
           confidenceScore: 0.74,
           cropType: 'Grape',
           severity: 'high',
+          fieldLocation: 'Field Block A · Row 7',
+          treatable: true,
+          scannedAt: DateTime.now().subtract(const Duration(days: 4)),
           imagePath: imagePath,
           symptoms: [
             'Oil-spot-like yellow patches on upper leaf surface',
@@ -136,3 +165,148 @@ class DiseaseResult {
         ),
       ];
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ScanRecord — History item (wraps scan metadata + display helpers)
+// ─────────────────────────────────────────────────────────────────────────────
+class ScanRecord {
+  final int id;
+  final String diseaseName;
+  final String latinName;
+  final String cropType;
+  final double confidenceScore;
+  final String severity; // 'none' | 'low' | 'medium' | 'high'
+  final String fieldLocation;
+  final bool treatable;
+  final DateTime scannedAt;
+  final String imageUrl;
+
+  const ScanRecord({
+    required this.id,
+    required this.diseaseName,
+    required this.latinName,
+    required this.cropType,
+    required this.confidenceScore,
+    required this.severity,
+    required this.fieldLocation,
+    required this.treatable,
+    required this.scannedAt,
+    required this.imageUrl,
+  });
+
+  Color get severityColor {
+    switch (severity) {
+      case 'high':   return const Color(0xFFE07A5F);
+      case 'medium': return const Color(0xFFF5A623);
+      case 'low':    return const Color(0xFFA8B4C0);
+      default:       return const Color(0xFF81B29A);
+    }
+  }
+
+  String get severityLabel {
+    switch (severity) {
+      case 'high':   return 'High';
+      case 'medium': return 'Medium';
+      case 'low':    return 'Low';
+      default:       return 'Healthy';
+    }
+  }
+
+  String get dateLabel {
+    final now = DateTime.now();
+    final diff = now.difference(scannedAt).inDays;
+    if (diff == 0) return 'Today';
+    if (diff == 1) return 'Yesterday';
+    const months = [
+      'Jan','Feb','Mar','Apr','May','Jun',
+      'Jul','Aug','Sep','Oct','Nov','Dec'
+    ];
+    return '${scannedAt.day} ${months[scannedAt.month - 1]}';
+  }
+
+  String get timeLabel {
+    final h = scannedAt.hour;
+    final m = scannedAt.minute.toString().padLeft(2, '0');
+    final period = h >= 12 ? 'PM' : 'AM';
+    final hour12 = h > 12 ? h - 12 : (h == 0 ? 12 : h);
+    return '$hour12:$m $period';
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared mock scan history — used by HomeScreen + HistoryScreen
+// ─────────────────────────────────────────────────────────────────────────────
+final List<ScanRecord> mockScanHistory = [
+  ScanRecord(
+    id: 1,
+    diseaseName: 'Tomato Early Blight',
+    latinName: 'Alternaria solani',
+    cropType: 'Tomato',
+    confidenceScore: 0.88,
+    severity: 'high',
+    fieldLocation: 'Field Block A · Row 12',
+    treatable: true,
+    scannedAt: DateTime.now().subtract(const Duration(hours: 2)),
+    imageUrl: 'https://images.unsplash.com/photo-1606321620984-201c81c23e69?w=400&h=400&fit=crop&auto=format',
+  ),
+  ScanRecord(
+    id: 2,
+    diseaseName: 'Leaf Curl Virus',
+    latinName: 'Begomovirus spp.',
+    cropType: 'Tomato',
+    confidenceScore: 0.76,
+    severity: 'medium',
+    fieldLocation: 'Field Block B · Row 4',
+    treatable: true,
+    scannedAt: DateTime.now().subtract(const Duration(days: 1, hours: 8)),
+    imageUrl: 'https://images.unsplash.com/photo-1603442506725-80c47a1a3aaf?w=400&h=400&fit=crop&auto=format',
+  ),
+  ScanRecord(
+    id: 3,
+    diseaseName: 'Healthy Crop',
+    latinName: 'No pathogen detected',
+    cropType: 'Cucumber',
+    confidenceScore: 0.97,
+    severity: 'none',
+    fieldLocation: 'Field Block C · Row 2',
+    treatable: false,
+    scannedAt: DateTime.now().subtract(const Duration(days: 3)),
+    imageUrl: 'https://images.unsplash.com/photo-1690553563186-ea46190f1465?w=400&h=400&fit=crop&auto=format',
+  ),
+  ScanRecord(
+    id: 4,
+    diseaseName: 'Powdery Mildew',
+    latinName: 'Erysiphe cichoracearum',
+    cropType: 'Grape',
+    confidenceScore: 0.82,
+    severity: 'low',
+    fieldLocation: 'Field Block A · Row 7',
+    treatable: true,
+    scannedAt: DateTime.now().subtract(const Duration(days: 5)),
+    imageUrl: 'https://images.unsplash.com/photo-1621499420841-397ba9372883?w=400&h=400&fit=crop&auto=format',
+  ),
+  ScanRecord(
+    id: 5,
+    diseaseName: 'Bacterial Leaf Spot',
+    latinName: 'Xanthomonas campestris',
+    cropType: 'Bell Pepper',
+    confidenceScore: 0.71,
+    severity: 'medium',
+    fieldLocation: 'Field Block D · Row 9',
+    treatable: true,
+    scannedAt: DateTime.now().subtract(const Duration(days: 7)),
+    imageUrl: 'https://images.unsplash.com/photo-1674337265830-1f87b06dbc0c?w=400&h=400&fit=crop&auto=format',
+  ),
+  ScanRecord(
+    id: 6,
+    diseaseName: 'Healthy Crop',
+    latinName: 'No pathogen detected',
+    cropType: 'Tomato',
+    confidenceScore: 0.95,
+    severity: 'none',
+    fieldLocation: 'Field Block B · Row 1',
+    treatable: false,
+    scannedAt: DateTime.now().subtract(const Duration(days: 9)),
+    imageUrl: 'https://images.unsplash.com/photo-1642307321395-b72347cbe944?w=400&h=400&fit=crop&auto=format',
+  ),
+];

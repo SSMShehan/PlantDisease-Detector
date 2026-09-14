@@ -74,7 +74,7 @@ class _InfoCardState extends State<InfoCard>
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadow,
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -106,7 +106,7 @@ class _InfoCardState extends State<InfoCard>
                     Expanded(
                       child: Text(
                         widget.title,
-                        style: AppTextStyles.titleLarge,
+                        style: AppTextStyles.headlineMedium,
                       ),
                     ),
                     RotationTransition(
@@ -190,9 +190,9 @@ class SeverityBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, color, bg) = switch (severity.toLowerCase()) {
-      'high' => ('High Risk', AppColors.error, AppColors.errorLight),
-      'medium' => ('Medium Risk', AppColors.warning, AppColors.warningLight),
-      _ => ('Low Risk', AppColors.success, AppColors.successLight),
+      'high' => ('High Risk', AppColors.error, AppColors.error.withOpacity(0.1)),
+      'medium' => ('Medium Risk', AppColors.warning, AppColors.warning.withOpacity(0.1)),
+      _ => ('Low Risk', AppColors.success, AppColors.success.withOpacity(0.1)),
     };
 
     return Container(
