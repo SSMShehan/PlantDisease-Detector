@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'settings_screen.dart';
+import 'edit_profile_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ProfileScreen — Matches Figma ProfileScreen.tsx
@@ -44,13 +46,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Profile', style: AppTextStyles.headlineMedium.copyWith(letterSpacing: -0.5, fontSize: 24)),
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [
-                      BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
-                    ]),
-                    child: const Icon(Icons.settings_outlined, color: Color(0xFF9AA5B4), size: 20),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
+                    },
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [
+                        BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
+                      ]),
+                      child: const Icon(Icons.settings_outlined, color: Color(0xFF9AA5B4), size: 20),
+                    ),
                   ),
                 ],
               ),
@@ -102,73 +109,79 @@ class _ProfileScreenState extends State<ProfileScreen> {
           BoxShadow(color: const Color(0xFFE07A5F).withOpacity(0.35), blurRadius: 24, offset: const Offset(0, 12)),
         ],
       ),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned(
-            top: -50,
-            right: -50,
-            child: Container(
-              width: 144,
-              height: 144,
-              decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(0.15)),
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfileScreen()));
+        },
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned(
+              top: -50,
+              right: -50,
+              child: Container(
+                width: 144,
+                height: 144,
+                decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(0.15)),
+              ),
             ),
-          ),
-          Column(
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.white.withOpacity(0.4), width: 3),
-                      borderRadius: BorderRadius.circular(16),
+            Column(
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.white.withOpacity(0.4), width: 3),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(13),
+                        child: Image.network('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=144&h=144&fit=crop&auto=format', fit: BoxFit.cover),
+                      ),
                     ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(13),
-                      child: Image.network('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=144&h=144&fit=crop&auto=format', fit: BoxFit.cover),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Sunil Bandara', style: AppTextStyles.headlineMedium.copyWith(color: Colors.white, fontSize: 20)),
+                          const SizedBox(height: 2),
+                          Text('Premium Farmer · Zone 4', style: AppTextStyles.bodySmall.copyWith(color: Colors.white.withOpacity(0.75))),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Container(
+                                width: 16,
+                                height: 16,
+                                decoration: BoxDecoration(color: Colors.white.withOpacity(0.25), shape: BoxShape.circle),
+                                child: const Icon(Icons.star_rounded, color: Colors.white, size: 10),
+                              ),
+                              const SizedBox(width: 4),
+                              Text('Premium Member since 2023', style: AppTextStyles.bodySmall.copyWith(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 10)),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Sunil Bandara', style: AppTextStyles.headlineMedium.copyWith(color: Colors.white, fontSize: 20)),
-                        const SizedBox(height: 2),
-                        Text('Premium Farmer · Zone 4', style: AppTextStyles.bodySmall.copyWith(color: Colors.white.withOpacity(0.75))),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Container(
-                              width: 16,
-                              height: 16,
-                              decoration: BoxDecoration(color: Colors.white.withOpacity(0.25), shape: BoxShape.circle),
-                              child: const Icon(Icons.star_rounded, color: Colors.white, size: 10),
-                            ),
-                            const SizedBox(width: 4),
-                            Text('Premium Member since 2023', style: AppTextStyles.bodySmall.copyWith(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 10)),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(child: _buildProfileStat('64', 'Total Scans')),
-                  const SizedBox(width: 12),
-                  Expanded(child: _buildProfileStat('8.5', 'Acres Managed')),
-                  const SizedBox(width: 12),
-                  Expanded(child: _buildProfileStat('4.8', 'Accuracy Score')),
-                ],
-              ),
-            ],
-          ),
-        ],
+                    const Icon(Icons.edit_rounded, color: Colors.white, size: 20),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(child: _buildProfileStat('64', 'Total Scans')),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildProfileStat('8.5', 'Acres Managed')),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildProfileStat('4.8', 'Accuracy Score')),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

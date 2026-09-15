@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'theme/app_theme.dart';
-import 'screens/main_screen.dart';
+import 'screens/onboarding_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,7 +32,7 @@ class AgroLuxApp extends StatelessWidget {
           ),
         );
       },
-      home: const MainScreen(),
+      home: const OnboardingScreen(),
     );
   }
 }

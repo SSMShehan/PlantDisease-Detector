@@ -3,6 +3,9 @@ import '../theme/app_theme.dart';
 import '../models/disease_result.dart';
 import 'diagnostic_result_screen.dart';
 import 'camera_capture_screen.dart';
+import 'weather_forecast_screen.dart';
+import 'disease_catalogue_screen.dart';
+import 'saved_items_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HomeScreen — Matches Figma HomeScreen.tsx
@@ -74,24 +77,29 @@ class HomeScreen extends StatelessWidget {
               ),
 
               // Weather strip
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.6),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildWeatherStat('💧', '72%', 'Humidity'),
-                      _buildWeatherStat('🌡️', '28°C', 'Temp'),
-                      _buildWeatherStat('🌬️', '12 km/h', 'Wind'),
-                    ],
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const WeatherForecastScreen()));
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.6),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildWeatherStat('💧', '72%', 'Humidity'),
+                        _buildWeatherStat('🌡️', '28°C', 'Temp'),
+                        _buildWeatherStat('🌬️', '12 km/h', 'Wind'),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -182,14 +190,16 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
 
-              // Quick Stats
+              // Quick Stats (Navigate to Catalogue and Saved Items)
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
                 child: Row(
                   children: [
                     Expanded(
                       child: GestureDetector(
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => const DiseaseCatalogueScreen()));
+                        },
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -200,11 +210,11 @@ class HomeScreen extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('12', style: AppTextStyles.headlineMedium.copyWith(color: AppColors.textPrimary)),
-                              const SizedBox(height: 4),
-                              Text('Scans This Week', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+                              const Icon(Icons.menu_book_rounded, color: AppColors.primary, size: 28),
+                              const SizedBox(height: 8),
+                              Text('Disease', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
                               const SizedBox(height: 2),
-                              Text('+3 from last week', style: AppTextStyles.bodySmall.copyWith(fontSize: 10)),
+                              Text('Catalogue', style: AppTextStyles.bodySmall.copyWith(fontSize: 10)),
                             ],
                           ),
                         ),
@@ -213,7 +223,9 @@ class HomeScreen extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: GestureDetector(
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => const SavedItemsScreen()));
+                        },
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -224,11 +236,11 @@ class HomeScreen extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('3', style: AppTextStyles.headlineMedium.copyWith(color: AppColors.textPrimary)),
-                              const SizedBox(height: 4),
-                              Text('Diseases Found', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+                              const Icon(Icons.bookmark_rounded, color: AppColors.primary, size: 28),
+                              const SizedBox(height: 8),
+                              Text('Saved Items', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
                               const SizedBox(height: 2),
-                              Text('2 treated, 1 pending', style: AppTextStyles.bodySmall.copyWith(fontSize: 10)),
+                              Text('View bookmarks', style: AppTextStyles.bodySmall.copyWith(fontSize: 10)),
                             ],
                           ),
                         ),
