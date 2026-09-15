@@ -3,14 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/models/agri_officer.dart';
 
-class NearestOfficerScreen extends StatefulWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:plant_disease_detector/core/providers/location_provider.dart';
+
+class NearestOfficerScreen extends ConsumerStatefulWidget {
   const NearestOfficerScreen({super.key});
 
   @override
-  State<NearestOfficerScreen> createState() => _NearestOfficerScreenState();
+  ConsumerState<NearestOfficerScreen> createState() => _NearestOfficerScreenState();
 }
 
-class _NearestOfficerScreenState extends State<NearestOfficerScreen>
+class _NearestOfficerScreenState extends ConsumerState<NearestOfficerScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _ctrl;
   late Animation<double> _slideAnim;
@@ -42,7 +45,8 @@ class _NearestOfficerScreenState extends State<NearestOfficerScreen>
 
   @override
   Widget build(BuildContext context) {
-    final officer = nearestOfficer;
+    final locationState = ref.watch(locationProvider);
+    final officer = getNearestOfficer(locationState.address);
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Stack(

@@ -8,6 +8,7 @@ import 'package:plant_disease_detector/models/market_price.dart';
 import 'package:plant_disease_detector/features/home/presentation/screens/main_screen.dart';
 import 'package:plant_disease_detector/features/treatment/presentation/screens/treatment_detail_screen.dart';
 import 'package:plant_disease_detector/features/treatment/presentation/screens/nearest_officer_screen.dart';
+import 'package:plant_disease_detector/models/agri_officer.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DiagnosticResultScreen — Matches Figma ResultsScreen.tsx
@@ -729,22 +730,29 @@ class _DiagnosticResultScreenState extends ConsumerState<DiagnosticResultScreen>
                   ],
                 ),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.phone_rounded, color: Colors.white, size: 18),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        locationState.isLoading
-                            ? 'Call Nearest Officer'
-                            : 'Officer Perera · 2.5km',
-                        textAlign: TextAlign.center,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700),
-                      ),
+                    Builder(
+                      builder: (context) {
+                        final officer = getNearestOfficer(locationState.address);
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.phone_rounded, color: Colors.white, size: 18),
+                            const SizedBox(width: 10),
+                            Flexible(
+                              child: Text(
+                                locationState.isLoading
+                                    ? 'Call Nearest Officer'
+                                    : 'Officer ${officer.name.split(' ').first} · ${officer.distanceKm}km',
+                                textAlign: TextAlign.center,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700),
+                              ),
+                            ),
+                          ],
+                        );
+                      }
                     ),
-                  ],
-                ),
+                  ),
               ),
             ),
           ),
