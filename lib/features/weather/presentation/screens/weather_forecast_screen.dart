@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
+import 'package:plant_disease_detector/core/providers/location_provider.dart';
+import 'package:plant_disease_detector/features/weather/presentation/providers/weather_provider.dart';
 import 'dart:ui';
 
-class WeatherForecastScreen extends StatelessWidget {
+class WeatherForecastScreen extends ConsumerWidget {
   const WeatherForecastScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final locationState = ref.watch(locationProvider);
+    final weatherState = ref.watch(weatherProvider);
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Stack(
@@ -53,7 +58,7 @@ class WeatherForecastScreen extends StatelessWidget {
                       const Icon(Icons.location_on_rounded, color: Colors.white, size: 20),
                       const SizedBox(width: 8),
                       Text(
-                        'COLOMBO, LK',
+                        locationState.isLoading ? 'LOCATING...' : locationState.address.toUpperCase(),
                         style: AppTextStyles.titleMedium.copyWith(color: Colors.white, letterSpacing: 1.2),
                       ),
                       const Spacer(),
@@ -79,14 +84,14 @@ class WeatherForecastScreen extends StatelessWidget {
                             const Icon(Icons.wb_sunny_rounded, color: Colors.amber, size: 90),
                             const SizedBox(width: 16),
                             Text(
-                              '24°C',
+                              weatherState.isLoading ? '--°C' : '${weatherState.weather?.temperature.round() ?? 24}°C',
                               style: AppTextStyles.headlineLarge.copyWith(color: Colors.white, fontSize: 80, fontWeight: FontWeight.w300),
                             ),
                           ],
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'CURRENTLY, SUNNY',
+                          weatherState.isLoading ? 'LOADING...' : 'CURRENTLY, ${weatherState.weather?.condition.toUpperCase() ?? "SUNNY"}',
                           textAlign: TextAlign.center,
                           style: AppTextStyles.titleMedium.copyWith(color: Colors.white, letterSpacing: 2),
                         ),

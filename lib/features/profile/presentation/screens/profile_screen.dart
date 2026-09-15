@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/features/profile/presentation/screens/settings_screen.dart';
 import 'package:plant_disease_detector/features/profile/presentation/screens/edit_profile_screen.dart';
+import 'package:plant_disease_detector/core/providers/location_provider.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ProfileScreen — Matches Figma ProfileScreen.tsx
 // ─────────────────────────────────────────────────────────────────────────────
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   final List<_Achievement> _achievements = const [
     _Achievement(icon: "🌾", label: "50 Scans", earned: true),
     _Achievement(icon: "🔬", label: "Disease Expert", earned: true),
@@ -34,6 +36,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final locationState = ref.watch(locationProvider);
+    
+    // Update the location setting dynamically based on real data
+    _settings[1] = _Setting(
+      icon: "📍", 
+      label: "Location", 
+      sub: locationState.isLoading ? "Locating..." : locationState.address, 
+      toggle: true, 
+      on: _settings[1].on,
+    );
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(

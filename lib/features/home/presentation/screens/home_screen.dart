@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/models/disease_result.dart';
 import 'package:plant_disease_detector/features/diagnosis/application/scan_history_provider.dart';
+import 'package:plant_disease_detector/core/providers/location_provider.dart';
+import 'package:plant_disease_detector/features/weather/presentation/providers/weather_provider.dart';
 import 'package:plant_disease_detector/features/diagnosis/presentation/screens/diagnostic_result_screen.dart';
 import 'package:plant_disease_detector/features/diagnosis/presentation/screens/camera_capture_screen.dart';
 import 'package:plant_disease_detector/features/weather/presentation/screens/weather_forecast_screen.dart';
@@ -20,6 +22,8 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scanHistory = ref.watch(scanHistoryProvider);
+    final locationState = ref.watch(locationProvider);
+    final weatherState = ref.watch(weatherProvider);
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -36,9 +40,19 @@ class HomeScreen extends ConsumerWidget {
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
                         Text('Good Morning,', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w500)),
                         Text('Sunil 👋', style: AppTextStyles.headlineMedium.copyWith(letterSpacing: -0.5)),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(Icons.location_on_rounded, size: 14, color: AppColors.primary),
+                            const SizedBox(width: 4),
+                            Text(
+                              locationState.isLoading ? 'Locating...' : locationState.address,
+                              style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                     Stack(
@@ -100,9 +114,9 @@ class HomeScreen extends ConsumerWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _buildWeatherStat('💧', '72%', 'Humidity'),
-                        _buildWeatherStat('🌡️', '28°C', 'Temp'),
-                        _buildWeatherStat('🌬️', '12 km/h', 'Wind'),
+                        _buildWeatherStat('💧', weatherState.isLoading ? '--' : '${weatherState.weather?.humidity ?? 72}%', 'Humidity'),
+                        _buildWeatherStat('🌡️', weatherState.isLoading ? '--' : '${weatherState.weather?.temperature.toStringAsFixed(1) ?? 28.5}°C', 'Temp'),
+                        _buildWeatherStat('🌬️', weatherState.isLoading ? '--' : '${weatherState.weather?.windSpeed.toStringAsFixed(1) ?? 12.0} km/h', 'Wind'),
                       ],
                     ),
                   ),
