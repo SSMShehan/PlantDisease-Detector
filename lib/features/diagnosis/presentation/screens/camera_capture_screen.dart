@@ -1,70 +1,152 @@
 import 'dart:ui';
+import 'dart:math';
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/features/diagnosis/presentation/screens/scanning_screen.dart';
+import 'package:plant_disease_detector/core/providers/camera_provider.dart';
 
-class CameraCaptureScreen extends StatefulWidget {
+class CameraCaptureScreen extends ConsumerStatefulWidget {
   const CameraCaptureScreen({super.key});
 
   @override
-  State<CameraCaptureScreen> createState() => _CameraCaptureScreenState();
+  ConsumerState<CameraCaptureScreen> createState() => _CameraCaptureScreenState();
 }
 
-class _CameraCaptureScreenState extends State<CameraCaptureScreen> with SingleTickerProviderStateMixin {
+class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen> with TickerProviderStateMixin {
   int _selectedMode = 0;
   final List<String> _modes = ['Leaf Spot', 'Pest', 'Soil'];
   
   late AnimationController _scanController;
+  late AnimationController _boxController;
+  
+  final Random _random = Random();
+  final List<Rect> _aiBoxes = [];
+  bool _flashOn = false;
 
   @override
   void initState() {
     super.initState();
+    
+    // Initialize Camera
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(cameraProvider.notifier).initializeCamera();
+    });
+
     _scanController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
+    
+    _boxController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..repeat(reverse: true);
+    
+    _generateRandomBoxes();
+    _boxController.addListener(() {
+      if (_boxController.value > 0.9 && _random.nextDouble() > 0.8) {
+        _generateRandomBoxes();
+      }
+    });
+  }
+  
+  void _generateRandomBoxes() {
+    _aiBoxes.clear();
+    int count = _random.nextInt(3) + 1;
+    for (int i = 0; i < count; i++) {
+      double x = _random.nextDouble() * 200 - 100;
+      double y = _random.nextDouble() * 200 - 100;
+      double size = _random.nextDouble() * 50 + 30;
+      _aiBoxes.add(Rect.fromCenter(center: Offset(x, y), width: size, height: size));
+    }
   }
 
   @override
   void dispose() {
     _scanController.dispose();
+    _boxController.dispose();
+    // Intentionally not disposing the camera provider here to allow fast re-opening,
+    // but in a real massive app, you'd call ref.read(cameraProvider.notifier).disposeCamera() 
     super.dispose();
   }
 
-  void _onCapture() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const ScanningScreen()),
-    );
+  void _onCapture() async {
+    HapticFeedback.heavyImpact();
+    
+    final cameraState = ref.read(cameraProvider);
+    if (cameraState.isInitialized && cameraState.controller != null) {
+      try {
+        // Flash animation effect
+        setState(() => _flashOn = true);
+        await Future.delayed(const Duration(milliseconds: 100));
+        setState(() => _flashOn = false);
+        
+        // In a real app we'd capture the image here:
+        // final XFile imageFile = await cameraState.controller!.takePicture();
+      } catch (e) {
+        debugPrint('Error taking picture: $e');
+      }
+    }
+    
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const ScanningScreen()),
+      );
+    }
   }
 
-  void _onGallery() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const ScanningScreen()),
-    );
+  Future<void> _onGallery() async {
+    HapticFeedback.lightImpact();
+    final ImagePicker picker = ImagePicker();
+    try {
+      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+      if (image != null && mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const ScanningScreen()),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+    }
+  }
+
+  void _toggleFlash() {
+    HapticFeedback.selectionClick();
+    final controller = ref.read(cameraProvider).controller;
+    if (controller != null) {
+      // Toggle flash logic here
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final cameraState = ref.watch(cameraProvider);
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Full-screen viewfinder background with error builder
+          // Camera Live Feed Background
           Positioned.fill(
-            child: Image.network(
-              'https://images.unsplash.com/photo-1508175688576-0c076b47b5b5?w=800&h=1200&fit=crop&auto=format',
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(
-                color: Colors.grey.shade900,
-                child: const Center(child: Icon(Icons.camera_alt, color: Colors.white24, size: 100)),
-              ),
-            ),
+            child: cameraState.isInitialized && cameraState.controller != null
+                ? CameraPreview(cameraState.controller!)
+                : _buildMockOrLoadingFeed(cameraState),
           ),
+          
+          // Flash effect
+          if (_flashOn)
+            Positioned.fill(
+              child: Container(color: Colors.white),
+            ),
 
-          // Scanning Reticle with Animation
+          // Scanning Reticle with Animation & AI Boxes
           Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -102,10 +184,14 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen> with SingleTi
                   width: 260,
                   height: 260,
                   child: AnimatedBuilder(
-                    animation: _scanController,
+                    animation: Listenable.merge([_scanController, _boxController]),
                     builder: (context, child) {
                       return CustomPaint(
-                        painter: _ModernReticlePainter(scanProgress: _scanController.value),
+                        painter: _ModernReticlePainter(
+                          scanProgress: _scanController.value,
+                          boxOpacity: _boxController.value,
+                          aiBoxes: _aiBoxes,
+                        ),
                       );
                     },
                   ),
@@ -128,33 +214,39 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen> with SingleTi
                   children: [
                     _buildTopGlassButton(
                       icon: Icons.close_rounded, 
-                      onTap: () => Navigator.pop(context),
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        Navigator.pop(context);
+                      },
                     ),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(30),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.3),
-                            borderRadius: BorderRadius.circular(30),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.flash_auto_rounded, color: Colors.amber, size: 20),
-                              const SizedBox(width: 8),
-                              Text('AUTO', style: AppTextStyles.titleSmall.copyWith(color: Colors.white, letterSpacing: 1.2)),
-                            ],
+                    GestureDetector(
+                      onTap: _toggleFlash,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(30),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.3),
+                              borderRadius: BorderRadius.circular(30),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.flash_auto_rounded, color: Colors.amber, size: 20),
+                                const SizedBox(width: 8),
+                                Text('AUTO', style: AppTextStyles.titleSmall.copyWith(color: Colors.white, letterSpacing: 1.2)),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
                     _buildTopGlassButton(
                       icon: Icons.grid_view_rounded, 
-                      onTap: () {},
+                      onTap: () => HapticFeedback.selectionClick(),
                     ),
                   ],
                 ),
@@ -201,7 +293,10 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen> with SingleTi
                           children: List.generate(_modes.length, (index) {
                             final isSelected = _selectedMode == index;
                             return GestureDetector(
-                              onTap: () => setState(() => _selectedMode = index),
+                              onTap: () {
+                                HapticFeedback.selectionClick();
+                                setState(() => _selectedMode = index);
+                              },
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 250),
                                 curve: Curves.easeInOut,
@@ -278,7 +373,7 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen> with SingleTi
 
                           // Advice Button
                           GestureDetector(
-                            onTap: () {},
+                            onTap: () => HapticFeedback.selectionClick(),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -331,15 +426,67 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen> with SingleTi
       ),
     );
   }
+  
+  Widget _buildMockOrLoadingFeed(CameraState state) {
+    if (state.errorMessage != null) {
+      // Fallback if camera fails
+      return Image.network(
+        'https://images.unsplash.com/photo-1508175688576-0c076b47b5b5?w=800&h=1200&fit=crop&auto=format',
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Container(
+          color: Colors.grey.shade900,
+          child: const Center(child: Icon(Icons.camera_alt, color: Colors.white24, size: 100)),
+        ),
+      );
+    }
+    
+    // Loading indicator while camera initializes
+    return Container(
+      color: Colors.black,
+      child: const Center(
+        child: CircularProgressIndicator(color: AppColors.secondary),
+      ),
+    );
+  }
 }
 
 class _ModernReticlePainter extends CustomPainter {
   final double scanProgress;
+  final double boxOpacity;
+  final List<Rect> aiBoxes;
   
-  _ModernReticlePainter({required this.scanProgress});
+  _ModernReticlePainter({
+    required this.scanProgress, 
+    required this.boxOpacity,
+    required this.aiBoxes,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+    
+    // Draw Simulated AI Bounding Boxes
+    final boxPaint = Paint()
+      ..color = AppColors.secondary.withValues(alpha: boxOpacity * 0.8)
+      ..strokeWidth = 1.0
+      ..style = PaintingStyle.stroke;
+      
+    final fillPaint = Paint()
+      ..color = AppColors.secondary.withValues(alpha: boxOpacity * 0.1)
+      ..style = PaintingStyle.fill;
+      
+    for (var rect in aiBoxes) {
+      canvas.drawRect(rect, boxPaint);
+      canvas.drawRect(rect, fillPaint);
+      // Small target cross inside the box
+      canvas.drawLine(Offset(rect.center.dx - 4, rect.center.dy), Offset(rect.center.dx + 4, rect.center.dy), boxPaint);
+      canvas.drawLine(Offset(rect.center.dx, rect.center.dy - 4), Offset(rect.center.dx, rect.center.dy + 4), boxPaint);
+    }
+    
+    canvas.restore();
+
     final framePaint = Paint()
       ..color = Colors.white.withValues(alpha: 0.8)
       ..strokeWidth = 2.0
@@ -348,19 +495,15 @@ class _ModernReticlePainter extends CustomPainter {
     final cornerLength = 30.0;
     
     // Draw 4 corners (modern scanner look)
-    // Top Left
     canvas.drawLine(const Offset(0, 0), Offset(cornerLength, 0), framePaint);
     canvas.drawLine(const Offset(0, 0), Offset(0, cornerLength), framePaint);
     
-    // Top Right
     canvas.drawLine(Offset(size.width, 0), Offset(size.width - cornerLength, 0), framePaint);
     canvas.drawLine(Offset(size.width, 0), Offset(size.width, cornerLength), framePaint);
     
-    // Bottom Left
     canvas.drawLine(Offset(0, size.height), Offset(cornerLength, size.height), framePaint);
     canvas.drawLine(Offset(0, size.height), Offset(0, size.height - cornerLength), framePaint);
     
-    // Bottom Right
     canvas.drawLine(Offset(size.width, size.height), Offset(size.width - cornerLength, size.height), framePaint);
     canvas.drawLine(Offset(size.width, size.height), Offset(size.width, size.height - cornerLength), framePaint);
 
@@ -391,6 +534,6 @@ class _ModernReticlePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _ModernReticlePainter oldDelegate) {
-    return oldDelegate.scanProgress != scanProgress;
+    return oldDelegate.scanProgress != scanProgress || oldDelegate.boxOpacity != boxOpacity;
   }
 }

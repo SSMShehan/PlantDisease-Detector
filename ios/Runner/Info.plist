@@ -68,5 +68,9 @@
 	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app needs access to location to provide localized weather and disease alerts.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs access to the camera to scan crops for diseases and pests.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app needs access to the microphone when recording video for pest analysis.</string>
 </dict>
 </plist>
