@@ -4,6 +4,9 @@ import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/features/profile/presentation/screens/settings_screen.dart';
 import 'package:plant_disease_detector/features/profile/presentation/screens/edit_profile_screen.dart';
 import 'package:plant_disease_detector/core/providers/location_provider.dart';
+import 'package:plant_disease_detector/core/providers/user_provider.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:io';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ProfileScreen — Matches Figma ProfileScreen.tsx
@@ -83,9 +86,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildProfileCard(),
+                    _buildProfileCard(ref),
                     _buildAchievements(),
-                    _buildFarmDetails(),
+                    _buildFarmDetails(ref),
                     _buildSettings(),
                     
                     // Sign out
@@ -111,7 +114,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildProfileCard() {
+  Widget _buildProfileCard(WidgetRef ref) {
+    final userData = ref.watch(userProvider);
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
@@ -151,7 +155,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(13),
-                        child: Image.network('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=144&h=144&fit=crop&auto=format', fit: BoxFit.cover),
+                        child: userData.imagePath != null
+                            ? (kIsWeb
+                                ? Image.network(userData.imagePath!, fit: BoxFit.cover)
+                                : Image.file(File(userData.imagePath!), fit: BoxFit.cover))
+                            : Image.network(
+                                'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=144&h=144&fit=crop&auto=format',
+                                fit: BoxFit.cover,
+                              ),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -159,7 +170,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Sunil Bandara', style: AppTextStyles.headlineMedium.copyWith(color: Colors.white, fontSize: 20)),
+                          Text(userData.fullName, style: AppTextStyles.headlineMedium.copyWith(color: Colors.white, fontSize: 20)),
                           const SizedBox(height: 2),
                           Text('Premium Farmer · Zone 4', style: AppTextStyles.bodySmall.copyWith(color: Colors.white.withOpacity(0.75))),
                           const SizedBox(height: 8),
@@ -267,7 +278,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildFarmDetails() {
+  Widget _buildFarmDetails(WidgetRef ref) {
+    final userData = ref.watch(userProvider);
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
       child: Container(
@@ -284,11 +296,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               child: Text('Farm Details', style: AppTextStyles.titleSmall),
             ),
             const Divider(color: Color(0x0F2D3748), height: 1),
-            _buildDetailRow('Farm Name', 'Bandara Organic Farm'),
+            _buildDetailRow('Farm Name', userData.farmName),
             const Divider(color: Color(0x0F2D3748), height: 1),
-            _buildDetailRow('Location', 'Kandy, Central Province'),
+            _buildDetailRow('Location', userData.district),
             const Divider(color: Color(0x0F2D3748), height: 1),
-            _buildDetailRow('Main Crops', 'Tomatoes, Peppers, Cucumbers'),
+            _buildDetailRow('Main Crops', userData.primaryCrops.join(', ')),
             const Divider(color: Color(0x0F2D3748), height: 1),
             _buildDetailRow('Soil Type', 'Red-Yellow Podzolic'),
           ],

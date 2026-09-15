@@ -12,6 +12,9 @@ import 'package:plant_disease_detector/features/home/presentation/screens/saved_
 import 'package:plant_disease_detector/features/expert_consult/presentation/screens/expert_consult_screen.dart';
 import 'package:plant_disease_detector/features/community/presentation/screens/community_feed_screen.dart';
 import 'package:plant_disease_detector/features/community/presentation/screens/disease_radar_screen.dart';
+import 'package:plant_disease_detector/core/providers/user_provider.dart';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HomeScreen — Matches Figma HomeScreen.tsx
@@ -24,6 +27,16 @@ class HomeScreen extends ConsumerWidget {
     final scanHistory = ref.watch(scanHistoryProvider);
     final locationState = ref.watch(locationProvider);
     final weatherState = ref.watch(weatherProvider);
+    final userData = ref.watch(userProvider);
+    
+    // Dynamic greeting based on time of day
+    final hour = DateTime.now().hour;
+    String greeting = 'Good Evening,';
+    if (hour < 12) {
+      greeting = 'Good Morning,';
+    } else if (hour < 17) {
+      greeting = 'Good Afternoon,';
+    }
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -41,8 +54,8 @@ class HomeScreen extends ConsumerWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Good Morning,', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w500)),
-                        Text('Sunil 👋', style: AppTextStyles.headlineMedium.copyWith(letterSpacing: -0.5)),
+                        Text(greeting, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w500)),
+                        Text('${userData.fullName.split(' ').first} 👋', style: AppTextStyles.headlineMedium.copyWith(letterSpacing: -0.5)),
                         const SizedBox(height: 4),
                         Row(
                           children: [
@@ -71,10 +84,14 @@ class HomeScreen extends ConsumerWidget {
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(14),
-                            child: Image.network(
-                              'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&auto=format',
-                              fit: BoxFit.cover,
-                            ),
+                            child: userData.imagePath != null
+                                ? (kIsWeb
+                                    ? Image.network(userData.imagePath!, fit: BoxFit.cover)
+                                    : Image.file(File(userData.imagePath!), fit: BoxFit.cover))
+                                : Image.network(
+                                    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&auto=format',
+                                    fit: BoxFit.cover,
+                                  ),
                           ),
                         ),
                         Positioned(

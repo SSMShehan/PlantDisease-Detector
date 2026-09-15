@@ -4,14 +4,17 @@ import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 
-class EditProfileScreen extends StatefulWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:plant_disease_detector/core/providers/user_provider.dart';
+
+class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
 
   @override
-  State<EditProfileScreen> createState() => _EditProfileScreenState();
+  ConsumerState<EditProfileScreen> createState() => _EditProfileScreenState();
 }
 
-class _EditProfileScreenState extends State<EditProfileScreen> {
+class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   // Form Key for validation
   final _formKey = GlobalKey<FormState>();
 
@@ -38,13 +41,31 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize with mock data
-    _nameController = TextEditingController(text: 'Sunil Perera');
-    _phoneController = TextEditingController(text: '+94 77 123 4567');
-    _emailController = TextEditingController(text: 'sunil.p@farmmail.com');
-    _farmNameController = TextEditingController(text: 'Sunil Organic Farm');
-    _farmSizeController = TextEditingController(text: '12.5');
-    _bioController = TextEditingController(text: 'Passionate organic farmer with 15 years of experience in sustainable agriculture.');
+    // Controllers will be initialized in didChangeDependencies
+    _nameController = TextEditingController();
+    _phoneController = TextEditingController();
+    _emailController = TextEditingController();
+    _farmNameController = TextEditingController();
+    _farmSizeController = TextEditingController();
+    _bioController = TextEditingController();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final userData = ref.read(userProvider);
+    _nameController.text = userData.fullName;
+    _phoneController.text = userData.phoneNumber;
+    _emailController.text = userData.email;
+    _farmNameController.text = userData.farmName;
+    _farmSizeController.text = userData.farmSize;
+    _bioController.text = userData.bio;
+    _selectedDistrict = userData.district;
+    _selectedCrops.clear();
+    _selectedCrops.addAll(userData.primaryCrops);
+    if (userData.imagePath != null) {
+      _imageFile = XFile(userData.imagePath!);
+    }
   }
 
   @override
@@ -132,6 +153,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   void _saveProfile() {
     if (_formKey.currentState!.validate()) {
+      final updatedUser = UserData(
+        fullName: _nameController.text,
+        phoneNumber: _phoneController.text,
+        email: _emailController.text,
+        district: _selectedDistrict,
+        farmName: _farmNameController.text,
+        farmSize: _farmSizeController.text,
+        bio: _bioController.text,
+        primaryCrops: List.from(_selectedCrops),
+        imagePath: _imageFile?.path,
+      );
+
+      ref.read(userProvider.notifier).saveUserData(updatedUser);
+
       // Show success snackbar and pop
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
