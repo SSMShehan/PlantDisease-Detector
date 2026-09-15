@@ -41,6 +41,9 @@ class _TreatmentDetailScreenState extends State<TreatmentDetailScreen> {
                       Image.network(
                         'https://images.unsplash.com/photo-1592424001815-32e6040ea468?q=80&w=800&auto=format&fit=crop', // Lush healthy tomato field
                         fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          color: AppColors.primary,
+                        ),
                       ),
                       // Dark gradient overlay for text readability
                       DecoratedBox(
@@ -334,6 +337,12 @@ class _TreatmentDetailScreenState extends State<TreatmentDetailScreen> {
               width: 70,
               height: 70,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                width: 70,
+                height: 70,
+                color: Colors.grey.shade100,
+                child: Icon(Icons.image_rounded, color: Colors.grey.shade300, size: 30),
+              ),
             ),
           ),
           const SizedBox(width: 14),
