@@ -12,6 +12,7 @@ import 'package:plant_disease_detector/features/treatment/presentation/screens/d
 import 'package:plant_disease_detector/features/home/presentation/screens/saved_items_screen.dart';
 import 'package:plant_disease_detector/features/expert_consult/presentation/screens/expert_consult_screen.dart';
 import 'package:plant_disease_detector/features/community/presentation/screens/community_feed_screen.dart';
+import 'package:plant_disease_detector/features/community/presentation/screens/disease_radar_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HomeScreen — Matches Figma HomeScreen.tsx
@@ -62,10 +63,10 @@ class HomeScreen extends ConsumerWidget {
                           width: 48,
                           height: 48,
                           decoration: BoxDecoration(
-                            border: Border.all(color: const Color(0xFFE07A5F).withOpacity(0.3), width: 2.5),
+                            border: Border.all(color: const Color(0xFFE07A5F).withValues(alpha: 0.3), width: 2.5),
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
-                              BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
+                              BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
                             ],
                           ),
                           child: ClipRRect(
@@ -105,10 +106,10 @@ class HomeScreen extends ConsumerWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.6),
+                      color: Colors.white.withValues(alpha: 0.6),
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
-                        BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
+                        BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
                       ],
                     ),
                     child: Row(
@@ -119,6 +120,58 @@ class HomeScreen extends ConsumerWidget {
                         _buildWeatherStat('🌬️', weatherState.isLoading ? '--' : '${weatherState.weather?.windSpeed.toStringAsFixed(1) ?? 12.0} km/h', 'Wind'),
                       ],
                     ),
+                  ),
+                ),
+              ),
+
+              // Disease Radar Banner
+              GestureDetector(
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DiseaseRadarScreen())),
+                child: Container(
+                  margin: const EdgeInsets.fromLTRB(24, 8, 24, 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFF1A3A2A), Color(0xFF0D2518)],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(color: const Color(0xFF81B29A).withValues(alpha: 0.25), blurRadius: 16, offset: const Offset(0, 4)),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF81B29A).withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Center(child: Icon(Icons.radar_rounded, color: Color(0xFF81B29A), size: 20)),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Community Disease Radar', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
+                            Text('⚠️ 14 Blight reports within 2.3km', style: TextStyle(color: Colors.red.shade300, fontSize: 11, fontWeight: FontWeight.w500)),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE07A5F).withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(50),
+                          border: Border.all(color: const Color(0xFFE07A5F).withValues(alpha: 0.5)),
+                        ),
+                        child: const Text('LIVE', style: TextStyle(color: Color(0xFFE07A5F), fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 1)),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -140,8 +193,8 @@ class HomeScreen extends ConsumerWidget {
                     ),
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
-                      BoxShadow(color: const Color(0xFFE07A5F).withOpacity(0.4), blurRadius: 48, offset: const Offset(0, 16)),
-                      BoxShadow(color: const Color(0xFFE07A5F).withOpacity(0.25), blurRadius: 16, offset: const Offset(0, 4)),
+                      BoxShadow(color: const Color(0xFFE07A5F).withValues(alpha: 0.4), blurRadius: 48, offset: const Offset(0, 16)),
+                      BoxShadow(color: const Color(0xFFE07A5F).withValues(alpha: 0.25), blurRadius: 16, offset: const Offset(0, 4)),
                     ],
                   ),
                   child: Stack(
@@ -166,7 +219,7 @@ class HomeScreen extends ConsumerWidget {
                         child: Container(
                           width: 160,
                           height: 160,
-                          decoration: BoxDecoration(color: Colors.white.withOpacity(0.15), shape: BoxShape.circle),
+                          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), shape: BoxShape.circle),
                         ),
                       ),
                       Positioned(
@@ -175,7 +228,7 @@ class HomeScreen extends ConsumerWidget {
                         child: Container(
                           width: 112,
                           height: 112,
-                          decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), shape: BoxShape.circle),
+                          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.1), shape: BoxShape.circle),
                         ),
                       ),
                       Row(
@@ -184,7 +237,7 @@ class HomeScreen extends ConsumerWidget {
                             width: 56,
                             height: 56,
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: Colors.white.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: const Center(
@@ -196,11 +249,11 @@ class HomeScreen extends ConsumerWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('AI-Powered Detection', style: AppTextStyles.bodySmall.copyWith(color: Colors.white.withOpacity(0.75), fontWeight: FontWeight.w500)),
+                                Text('AI-Powered Detection', style: AppTextStyles.bodySmall.copyWith(color: Colors.white.withValues(alpha: 0.75), fontWeight: FontWeight.w500)),
                                 const SizedBox(height: 4),
                                 Text('Scan Crop for Diseases', style: AppTextStyles.headlineMedium.copyWith(color: Colors.white, fontSize: 20, letterSpacing: -0.3, height: 1.1)),
                                 const SizedBox(height: 6),
-                                Text('Instant results · 94% accuracy', style: AppTextStyles.bodySmall.copyWith(color: Colors.white.withOpacity(0.65), fontWeight: FontWeight.w500)),
+                                Text('Instant results · 94% accuracy', style: AppTextStyles.bodySmall.copyWith(color: Colors.white.withValues(alpha: 0.65), fontWeight: FontWeight.w500)),
                               ],
                             ),
                           ),
@@ -208,7 +261,7 @@ class HomeScreen extends ConsumerWidget {
                             width: 36,
                             height: 36,
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: Colors.white.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Center(
@@ -316,7 +369,7 @@ class HomeScreen extends ConsumerWidget {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(16),
-                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 12, offset: const Offset(0, 4))],
+                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4))],
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -401,7 +454,7 @@ class HomeScreen extends ConsumerWidget {
         decoration: BoxDecoration(
           color: bgColor,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

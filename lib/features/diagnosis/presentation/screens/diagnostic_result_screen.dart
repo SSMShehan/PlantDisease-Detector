@@ -1,24 +1,27 @@
 import 'package:flutter/material.dart';
-import 'dart:math';
 import 'dart:ui';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
+import 'package:plant_disease_detector/core/providers/location_provider.dart';
 import 'package:plant_disease_detector/models/disease_result.dart';
+import 'package:plant_disease_detector/models/market_price.dart';
 import 'package:plant_disease_detector/features/home/presentation/screens/main_screen.dart';
 import 'package:plant_disease_detector/features/treatment/presentation/screens/treatment_detail_screen.dart';
+import 'package:plant_disease_detector/features/treatment/presentation/screens/nearest_officer_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DiagnosticResultScreen — Matches Figma ResultsScreen.tsx
 // ─────────────────────────────────────────────────────────────────────────────
-class DiagnosticResultScreen extends StatefulWidget {
+class DiagnosticResultScreen extends ConsumerStatefulWidget {
   final ScanRecord? scan;
 
   const DiagnosticResultScreen({super.key, this.scan});
 
   @override
-  State<DiagnosticResultScreen> createState() => _DiagnosticResultScreenState();
+  ConsumerState<DiagnosticResultScreen> createState() => _DiagnosticResultScreenState();
 }
 
-class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
+class _DiagnosticResultScreenState extends ConsumerState<DiagnosticResultScreen>
     with SingleTickerProviderStateMixin {
   late final ScanRecord _scan;
   bool _isSymptomsTab = true;
@@ -162,7 +165,7 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -191,12 +194,12 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF2D3748).withOpacity(0.10),
+            color: const Color(0xFF2D3748).withValues(alpha: 0.10),
             blurRadius: 32,
             offset: const Offset(0, 8),
           ),
           BoxShadow(
-            color: const Color(0xFF2D3748).withOpacity(0.05),
+            color: const Color(0xFF2D3748).withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -215,7 +218,7 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
-                  colors: [AppColors.primary.withOpacity(0.1), Colors.transparent],
+                  colors: [AppColors.primary.withValues(alpha: 0.1), Colors.transparent],
                   stops: const [0.0, 0.7],
                 ),
               ),
@@ -324,7 +327,7 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: _scan.severityColor.withOpacity(0.1),
+                                color: _scan.severityColor.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(50),
                               ),
                               child: Text(
@@ -340,7 +343,7 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF81B29A).withOpacity(0.12),
+                                  color: const Color(0xFF81B29A).withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(50),
                                 ),
                                 child: const Text(
@@ -446,7 +449,7 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
                     color: _isSymptomsTab ? Colors.white : Colors.transparent,
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: _isSymptomsTab
-                        ? [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 8, offset: const Offset(0, 2))]
+                        ? [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 8, offset: const Offset(0, 2))]
                         : null,
                   ),
                   child: Center(
@@ -471,7 +474,7 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
                     color: !_isSymptomsTab ? Colors.white : Colors.transparent,
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: !_isSymptomsTab
-                        ? [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 8, offset: const Offset(0, 2))]
+                        ? [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 8, offset: const Offset(0, 2))]
                         : null,
                   ),
                   child: Center(
@@ -495,6 +498,7 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
 
   // ── Content List ───────────────────────────────────────────────────────────
   Widget _buildContentList() {
+    final locationState = ref.watch(locationProvider);
     if (_isSymptomsTab) {
       final symptoms = _symptomMap["Tomato Early Blight"] ?? [];
       return Padding(
@@ -504,6 +508,10 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
             ...symptoms.map((s) => _buildSymptomItem(s)),
             const SizedBox(height: 12),
             _buildAreaEstimateCard(),
+            const SizedBox(height: 12),
+            _buildClimateContextCard(locationState),
+            const SizedBox(height: 12),
+            _buildMarketPricesCard(),
           ],
         ),
       );
@@ -551,7 +559,7 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4)),
         ],
       ),
       child: Row(
@@ -562,7 +570,7 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
             height: 24,
             margin: const EdgeInsets.only(top: 2),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Center(
@@ -595,7 +603,7 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4)),
         ],
       ),
       child: Column(
@@ -647,7 +655,7 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4)),
         ],
       ),
       child: Row(
@@ -657,7 +665,7 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
@@ -689,6 +697,7 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
 
   // ── FAB ────────────────────────────────────────────────────────────────────
   Widget _buildBottomFAB() {
+    final locationState = ref.watch(locationProvider);
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
       decoration: BoxDecoration(
@@ -697,35 +706,285 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
           end: Alignment.topCenter,
           colors: [
             AppColors.background,
-            AppColors.background.withOpacity(0.0),
+            AppColors.background.withValues(alpha: 0.0),
           ],
           stops: const [0.3, 1.0],
         ),
       ),
-      child: GestureDetector(
-        onTap: () => setState(() => _showContactModal = true),
-        child: Container(
-          height: 56,
-          decoration: BoxDecoration(
-            gradient: AppGradients.primary,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(color: AppColors.primary.withOpacity(0.38), blurRadius: 32, offset: const Offset(0, 12)),
-              BoxShadow(color: AppColors.primary.withOpacity(0.2), blurRadius: 12, offset: const Offset(0, 4)),
-            ],
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const NearestOfficerScreen()),
+              ),
+              child: Container(
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: AppGradients.primary,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(color: AppColors.primary.withValues(alpha: 0.38), blurRadius: 32, offset: const Offset(0, 12)),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.phone_rounded, color: Colors.white, size: 18),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        locationState.isLoading
+                            ? 'Call Nearest Officer'
+                            : 'Officer Perera · 2.5km',
+                        textAlign: TextAlign.center,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Icon(Icons.headset_mic_rounded, color: Colors.white, size: 20),
-              SizedBox(width: 12),
-              Text(
-                'Contact Agricultural Officer',
-                style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
+          const SizedBox(width: 10),
+          GestureDetector(
+            onTap: () => setState(() => _showContactModal = true),
+            child: Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 12, offset: const Offset(0, 4))],
+              ),
+              child: const Icon(Icons.headset_mic_rounded, color: AppColors.primary, size: 22),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Climate Context Card ────────────────────────────────────────────────────
+  Widget _buildClimateContextCard(LocationState locationState) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF1A3A2A), Color(0xFF0D2518)],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(color: const Color(0xFF81B29A).withValues(alpha: 0.25), blurRadius: 20, offset: const Offset(0, 6)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF81B29A).withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Center(child: Text('🧠', style: TextStyle(fontSize: 18))),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Climate-Aware AI Context', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
+                    Text(
+                      locationState.isLoading ? 'Analyzing location...' : locationState.address,
+                      style: TextStyle(color: Colors.white.withValues(alpha: 0.55), fontSize: 11),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF81B29A).withValues(alpha: 0.25),
+                  borderRadius: BorderRadius.circular(50),
+                  border: Border.all(color: const Color(0xFF81B29A).withValues(alpha: 0.4)),
+                ),
+                child: const Text('WET ZONE', style: TextStyle(color: Color(0xFF81B29A), fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 0.8)),
               ),
             ],
           ),
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.07),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                const Text('🔬', style: TextStyle(fontSize: 20)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: RichText(
+                    text: TextSpan(
+                      style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12, height: 1.5),
+                      children: [
+                        TextSpan(
+                          text: '+12% probability boost — ',
+                          style: TextStyle(color: const Color(0xFFE07A5F), fontWeight: FontWeight.w700),
+                        ),
+                        const TextSpan(text: 'Fungal diseases are highly active in high-humidity wet zones. Your location history confirms elevated risk.'),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              _buildClimateChip('💧', 'High Humidity', '78%'),
+              const SizedBox(width: 8),
+              _buildClimateChip('🌡️', 'Temp', '28°C'),
+              const SizedBox(width: 8),
+              _buildClimateChip('🌧️', 'Monsoon Risk', 'HIGH'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildClimateChip(String emoji, String label, String val) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(10),
         ),
+        child: Column(
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 14)),
+            const SizedBox(height: 2),
+            Text(val, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 11)),
+            Text(label, style: TextStyle(color: Colors.white.withValues(alpha: 0.45), fontSize: 9)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Market Prices Card ─────────────────────────────────────────────────────
+  Widget _buildMarketPricesCard() {
+    final market = nearestMarket;
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 12, offset: const Offset(0, 4)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 16, 18, 12),
+            child: Row(
+              children: [
+                const Text('💰', style: TextStyle(fontSize: 20)),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Today\'s Market Prices', style: AppTextStyles.titleSmall),
+                      Text('${market.name} · ${market.distanceKm} km · ${market.lastUpdated}',
+                          style: AppTextStyles.bodySmall.copyWith(fontSize: 10)),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF81B29A).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(50),
+                  ),
+                  child: const Text('LIVE', style: TextStyle(color: Color(0xFF81B29A), fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 0.8)),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: Color(0x0F2D3748)),
+          ...market.prices.map((p) => _buildPriceRow(p)).toList(),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPriceRow(MarketPrice price) {
+    final isUp = price.changePercent > 0;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+      child: Row(
+        children: [
+          Text(price.emoji, style: const TextStyle(fontSize: 22)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(price.cropName, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
+          ),
+          if (price.isBestPrice)
+            Container(
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE07A5F).withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(50),
+              ),
+              child: const Text('BEST', style: TextStyle(color: AppColors.primary, fontSize: 8, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
+            ),
+          Text(
+            'Rs. ${price.pricePerKg.toStringAsFixed(0)}/kg',
+            style: AppTextStyles.titleSmall.copyWith(fontSize: 13),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+            decoration: BoxDecoration(
+              color: (isUp ? const Color(0xFF81B29A) : const Color(0xFFE07A5F)).withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(50),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  isUp ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
+                  size: 10,
+                  color: isUp ? const Color(0xFF5A9E7C) : AppColors.primary,
+                ),
+                Text(
+                  '${price.changePercent.abs().toStringAsFixed(1)}%',
+                  style: TextStyle(
+                    color: isUp ? const Color(0xFF5A9E7C) : AppColors.primary,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -735,7 +994,7 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
     return GestureDetector(
       onTap: () => setState(() => _showContactModal = false),
       child: Container(
-        color: const Color(0xFF2D3748).withOpacity(0.4),
+        color: const Color(0xFF2D3748).withValues(alpha: 0.4),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
           child: Column(
@@ -778,7 +1037,7 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
                           color: const Color(0xFFFAFAF8),
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
-                            BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
+                            BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
                           ],
                         ),
                         child: Row(
@@ -815,7 +1074,7 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
                               width: 32,
                               height: 32,
                               decoration: BoxDecoration(
-                                color: const Color(0xFF81B29A).withOpacity(0.15),
+                                color: const Color(0xFF81B29A).withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Center(
@@ -869,7 +1128,7 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
           color: isPrimary ? null : const Color(0xFFF5F3F0),
           borderRadius: BorderRadius.circular(16),
           boxShadow: isPrimary
-              ? [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 8))]
+              ? [BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 8))]
               : null,
         ),
         child: Row(
@@ -895,7 +1154,7 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
     return GestureDetector(
       onTap: () => setState(() => _showShareModal = false),
       child: Container(
-        color: const Color(0xFF2D3748).withOpacity(0.4),
+        color: const Color(0xFF2D3748).withValues(alpha: 0.4),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
           child: Column(
@@ -961,7 +1220,7 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
               color: const Color(0xFFF5F3F0),
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
+                BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
               ],
             ),
             child: Icon(icon, color: AppColors.textPrimary),
