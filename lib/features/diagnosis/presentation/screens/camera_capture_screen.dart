@@ -10,9 +10,26 @@ class CameraCaptureScreen extends StatefulWidget {
   State<CameraCaptureScreen> createState() => _CameraCaptureScreenState();
 }
 
-class _CameraCaptureScreenState extends State<CameraCaptureScreen> {
+class _CameraCaptureScreenState extends State<CameraCaptureScreen> with SingleTickerProviderStateMixin {
   int _selectedMode = 0;
   final List<String> _modes = ['Leaf Spot', 'Pest', 'Soil'];
+  
+  late AnimationController _scanController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scanController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _scanController.dispose();
+    super.dispose();
+  }
 
   void _onCapture() {
     Navigator.pushReplacement(
@@ -35,60 +52,109 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Full-screen viewfinder background
+          // Full-screen viewfinder background with error builder
           Positioned.fill(
             child: Image.network(
               'https://images.unsplash.com/photo-1508175688576-0c076b47b5b5?w=800&h=1200&fit=crop&auto=format',
               fit: BoxFit.cover,
-            ),
-          ),
-
-          // Translucent top gradient
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 120,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Colors.black.withValues(alpha: 0.6), Colors.transparent],
-                ),
+              errorBuilder: (context, error, stackTrace) => Container(
+                color: Colors.grey.shade900,
+                child: const Center(child: Icon(Icons.camera_alt, color: Colors.white24, size: 100)),
               ),
             ),
           ),
 
-          // Top Bar
+          // Scanning Reticle with Animation
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // AI Instruction Pill
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.document_scanner_rounded, color: AppColors.secondary, size: 16),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Point at the affected area',
+                            style: AppTextStyles.bodyMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                
+                // Animated Scanner Box
+                SizedBox(
+                  width: 260,
+                  height: 260,
+                  child: AnimatedBuilder(
+                    animation: _scanController,
+                    builder: (context, child) {
+                      return CustomPaint(
+                        painter: _ModernReticlePainter(scanProgress: _scanController.value),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Top Bar (Glassmorphic)
           Positioned(
             top: 0,
             left: 0,
             right: 0,
             child: SafeArea(
+              bottom: false,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    IconButton(
-                      icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28),
-                      onPressed: () => Navigator.pop(context),
+                    _buildTopGlassButton(
+                      icon: Icons.close_rounded, 
+                      onTap: () => Navigator.pop(context),
                     ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.flash_auto_rounded, color: Colors.white, size: 22),
-                        const SizedBox(width: 6),
-                        Text(
-                          'AUTO',
-                          style: AppTextStyles.titleSmall.copyWith(color: Colors.white, letterSpacing: 1.2),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(30),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.3),
+                            borderRadius: BorderRadius.circular(30),
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.flash_auto_rounded, color: Colors.amber, size: 20),
+                              const SizedBox(width: 8),
+                              Text('AUTO', style: AppTextStyles.titleSmall.copyWith(color: Colors.white, letterSpacing: 1.2)),
+                            ],
+                          ),
                         ),
-                      ],
+                      ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.grid_view_rounded, color: Colors.white, size: 24),
-                      onPressed: () {},
+                    _buildTopGlassButton(
+                      icon: Icons.grid_view_rounded, 
+                      onTap: () {},
                     ),
                   ],
                 ),
@@ -96,157 +162,138 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen> {
             ),
           ),
 
-          // Circular Alignment Reticle
-          Center(
-            child: SizedBox(
-              width: 300,
-              height: 300,
-              child: CustomPaint(
-                painter: _ReticlePainter(),
-              ),
-            ),
-          ),
-
-          // Bottom Control Panel
+          // Bottom Control Panel (Premium Glassmorphism)
           Positioned(
             bottom: 0,
             left: 0,
             right: 0,
             child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(40)),
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.5),
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-                    border: Border(
-                      top: BorderSide(color: Colors.white.withValues(alpha: 0.2), width: 1),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.black.withValues(alpha: 0.6),
+                        Colors.black.withValues(alpha: 0.8),
+                      ],
                     ),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(40)),
+                    border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.15), width: 1.5)),
                   ),
                   padding: const EdgeInsets.only(top: 24, bottom: 48, left: 24, right: 24),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Mode Switcher Carousel
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.chevron_left_rounded, color: Colors.white.withValues(alpha: 0.5)),
-                          const SizedBox(width: 8),
-                          ...List.generate(_modes.length, (index) {
+                      // Segmented Mode Selector
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: List.generate(_modes.length, (index) {
                             final isSelected = _selectedMode == index;
                             return GestureDetector(
                               onTap: () => setState(() => _selectedMode = index),
                               child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                margin: const EdgeInsets.symmetric(horizontal: 4),
+                                duration: const Duration(milliseconds: 250),
+                                curve: Curves.easeInOut,
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                                 decoration: BoxDecoration(
-                                  color: isSelected ? Colors.white.withValues(alpha: 0.2) : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(20),
+                                  color: isSelected ? Colors.white : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(26),
+                                  boxShadow: isSelected ? [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4)] : [],
                                 ),
-                                child: Row(
-                                  children: [
-                                    if (isSelected) ...[
-                                      Icon(
-                                        index == 0 ? Icons.energy_savings_leaf_rounded : index == 1 ? Icons.bug_report_rounded : Icons.grass_rounded,
-                                        color: Colors.white,
-                                        size: 16,
-                                      ),
-                                      const SizedBox(width: 6),
-                                    ],
-                                    Text(
-                                      _modes[index],
-                                      style: TextStyle(
-                                        color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.5),
-                                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
+                                child: Text(
+                                  _modes[index],
+                                  style: TextStyle(
+                                    color: isSelected ? Colors.black : Colors.white.withValues(alpha: 0.7),
+                                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                    fontSize: 14,
+                                  ),
                                 ),
                               ),
                             );
                           }),
-                          const SizedBox(width: 8),
-                          Icon(Icons.chevron_right_rounded, color: Colors.white.withValues(alpha: 0.5)),
-                        ],
+                        ),
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 40),
                       
-                      // Bottom Controls
+                      // Bottom Action Buttons
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          // Gallery Shortcut
+                          // Gallery Button
                           GestureDetector(
                             onTap: _onGallery,
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Container(
-                                  width: 50,
-                                  height: 50,
+                                  width: 56,
+                                  height: 56,
                                   decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 2),
-                                    image: const DecorationImage(
-                                      image: NetworkImage('https://images.unsplash.com/photo-1592841200221-a6898f307baa?w=100&h=100&fit=crop'),
-                                      fit: BoxFit.cover,
-                                    ),
+                                    shape: BoxShape.circle,
+                                    color: Colors.white.withValues(alpha: 0.1),
+                                    border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                                   ),
+                                  child: const Icon(Icons.photo_library_rounded, color: Colors.white, size: 24),
                                 ),
                                 const SizedBox(height: 8),
-                                Text('GALLERY', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                                Text('Gallery', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 11, fontWeight: FontWeight.w600)),
                               ],
                             ),
                           ),
 
-                          // Floating Capture Button
+                          // Glowing Shutter Button
                           GestureDetector(
                             onTap: _onCapture,
                             child: Container(
-                              width: 80,
-                              height: 80,
+                              width: 84,
+                              height: 84,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 4),
+                                border: Border.all(color: AppColors.secondary.withValues(alpha: 0.5), width: 3),
                                 boxShadow: [
-                                  BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 10, offset: const Offset(0, 4)),
+                                  BoxShadow(color: AppColors.secondary.withValues(alpha: 0.4), blurRadius: 20, spreadRadius: 2),
                                 ],
                               ),
-                              child: Center(
-                                child: Container(
-                                  width: 64,
-                                  height: 64,
-                                  decoration: const BoxDecoration(
-                                    color: Colors.white,
-                                    shape: BoxShape.circle,
-                                  ),
+                              padding: const EdgeInsets.all(4),
+                              child: Container(
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
                                 ),
                               ),
                             ),
                           ),
 
-                          // Advice Shortcut
+                          // Advice Button
                           GestureDetector(
                             onTap: () {},
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Container(
-                                  width: 50,
-                                  height: 50,
+                                  width: 56,
+                                  height: 56,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    color: Colors.white.withValues(alpha: 0.15),
+                                    color: Colors.white.withValues(alpha: 0.1),
+                                    border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                                   ),
-                                  child: const Icon(Icons.tips_and_updates_outlined, color: Colors.white, size: 24),
+                                  child: const Icon(Icons.psychology_rounded, color: Colors.white, size: 26),
                                 ),
                                 const SizedBox(height: 8),
-                                Text('ADVICE', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                                Text('Advice', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 11, fontWeight: FontWeight.w600)),
                               ],
                             ),
                           ),
@@ -262,71 +309,88 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen> {
       ),
     );
   }
+
+  Widget _buildTopGlassButton({required IconData icon, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.3),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            ),
+            child: Icon(icon, color: Colors.white, size: 22),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _ReticlePainter extends CustomPainter {
+class _ModernReticlePainter extends CustomPainter {
+  final double scanProgress;
+  
+  _ModernReticlePainter({required this.scanProgress});
+
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
+    final framePaint = Paint()
       ..color = Colors.white.withValues(alpha: 0.8)
-      ..strokeWidth = 1.5
+      ..strokeWidth = 2.0
       ..style = PaintingStyle.stroke;
 
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2;
-
-    // Draw main circle
-    canvas.drawCircle(center, radius, paint);
-
-    // Draw crosshairs
-    final crosshairLength = 20.0;
+    final cornerLength = 30.0;
     
-    // Top
-    canvas.drawLine(Offset(center.dx, center.dy - radius + 5), Offset(center.dx, center.dy - radius - crosshairLength), paint);
-    // Bottom
-    canvas.drawLine(Offset(center.dx, center.dy + radius - 5), Offset(center.dx, center.dy + radius + crosshairLength), paint);
-    // Left
-    canvas.drawLine(Offset(center.dx - radius + 5, center.dy), Offset(center.dx - radius - crosshairLength, center.dy), paint);
-    // Right
-    canvas.drawLine(Offset(center.dx + radius - 5, center.dy), Offset(center.dx + radius + crosshairLength, center.dy), paint);
-
-    // Draw dashed inner rectangle (Leaf Guides)
-    final rectSize = radius * 1.1;
-    final rect = Rect.fromCenter(center: center, width: rectSize, height: rectSize);
+    // Draw 4 corners (modern scanner look)
+    // Top Left
+    canvas.drawLine(const Offset(0, 0), Offset(cornerLength, 0), framePaint);
+    canvas.drawLine(const Offset(0, 0), Offset(0, cornerLength), framePaint);
     
-    _drawDashedRect(canvas, rect, paint);
-  }
-
-  void _drawDashedRect(Canvas canvas, Rect rect, Paint paint) {
-    // Top edge
-    _drawDashedLine(canvas, rect.topLeft, rect.topRight, paint);
-    // Right edge
-    _drawDashedLine(canvas, rect.topRight, rect.bottomRight, paint);
-    // Bottom edge
-    _drawDashedLine(canvas, rect.bottomRight, rect.bottomLeft, paint);
-    // Left edge
-    _drawDashedLine(canvas, rect.bottomLeft, rect.topLeft, paint);
-  }
-
-  void _drawDashedLine(Canvas canvas, Offset p1, Offset p2, Paint paint) {
-    const dashWidth = 8.0;
-    const dashSpace = 6.0;
-    final distance = (p2 - p1).distance;
-    final direction = (p2 - p1) / distance;
+    // Top Right
+    canvas.drawLine(Offset(size.width, 0), Offset(size.width - cornerLength, 0), framePaint);
+    canvas.drawLine(Offset(size.width, 0), Offset(size.width, cornerLength), framePaint);
     
-    double currentDistance = 0.0;
-    while (currentDistance < distance) {
-      final start = p1 + direction * currentDistance;
-      double endDistance = currentDistance + dashWidth;
-      if (endDistance > distance) {
-        endDistance = distance;
-      }
-      final end = p1 + direction * endDistance;
-      canvas.drawLine(start, end, paint);
-      currentDistance += dashWidth + dashSpace;
-    }
+    // Bottom Left
+    canvas.drawLine(Offset(0, size.height), Offset(cornerLength, size.height), framePaint);
+    canvas.drawLine(Offset(0, size.height), Offset(0, size.height - cornerLength), framePaint);
+    
+    // Bottom Right
+    canvas.drawLine(Offset(size.width, size.height), Offset(size.width - cornerLength, size.height), framePaint);
+    canvas.drawLine(Offset(size.width, size.height), Offset(size.width, size.height - cornerLength), framePaint);
+
+    // Draw animated scanning line
+    final lineY = size.height * scanProgress;
+    
+    final linePaint = Paint()
+      ..color = AppColors.secondary
+      ..strokeWidth = 3.0
+      ..style = PaintingStyle.stroke;
+      
+    canvas.drawLine(Offset(0, lineY), Offset(size.width, lineY), linePaint);
+    
+    // Glowing gradient effect above the line
+    final glowRect = Rect.fromLTRB(0, lineY - 40, size.width, lineY);
+    final glowPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          AppColors.secondary.withValues(alpha: 0.0),
+          AppColors.secondary.withValues(alpha: 0.3),
+        ],
+      ).createShader(glowRect);
+      
+    canvas.drawRect(glowRect, glowPaint);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _ModernReticlePainter oldDelegate) {
+    return oldDelegate.scanProgress != scanProgress;
+  }
 }
