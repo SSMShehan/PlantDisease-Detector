@@ -1,12 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/features/treatment/presentation/screens/disease_comparison_screen.dart';
+import 'package:plant_disease_detector/features/treatment/presentation/screens/disease_detail_screen.dart';
+import 'package:plant_disease_detector/features/treatment/data/disease_model.dart';
 
-class DiseaseCatalogueScreen extends StatelessWidget {
+class DiseaseCatalogueScreen extends StatefulWidget {
   const DiseaseCatalogueScreen({super.key});
 
   @override
+  State<DiseaseCatalogueScreen> createState() => _DiseaseCatalogueScreenState();
+}
+
+class _DiseaseCatalogueScreenState extends State<DiseaseCatalogueScreen> {
+  String _searchQuery = '';
+
+  @override
   Widget build(BuildContext context) {
+    final filteredDiseases = DiseaseRepository.diseases.where((d) {
+      final query = _searchQuery.toLowerCase();
+      return d.name.toLowerCase().contains(query) || d.cropName.toLowerCase().contains(query);
+    }).toList();
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -34,19 +48,16 @@ class DiseaseCatalogueScreen extends StatelessWidget {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
                 ],
               ),
               child: TextField(
-                style: AppTextStyles.bodyLarge,
+                onChanged: (value) => setState(() => _searchQuery = value),
+                style: AppTextStyles.bodyMedium,
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textSecondary),
-                  hintText: 'Search diseases...',
-                  hintStyle: AppTextStyles.bodyLarge.copyWith(color: AppColors.textSecondary),
+                  hintText: 'Search diseases or crops...',
+                  hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 ),
@@ -58,9 +69,9 @@ class DiseaseCatalogueScreen extends StatelessWidget {
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 24),
-              itemCount: 6,
+              itemCount: filteredDiseases.length,
               itemBuilder: (context, index) {
-                return _buildDiseaseCard();
+                return _buildDiseaseCard(filteredDiseases[index]);
               },
             ),
           ),
@@ -69,69 +80,77 @@ class DiseaseCatalogueScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDiseaseCard() {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(16),
-              bottomLeft: Radius.circular(16),
-            ),
-            child: Image.network(
-              'https://images.unsplash.com/photo-1558227091-62d499ba5620?w=100&h=100&fit=crop',
-              width: 100,
-              height: 100,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(
-                width: 100,
-                height: 100,
-                color: Colors.grey.shade200,
-                child: const Icon(Icons.image_not_supported_rounded, color: Colors.grey),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Early Blight', style: AppTextStyles.titleMedium),
-                const SizedBox(height: 4),
-                Text('Tomato', style: AppTextStyles.bodySmall),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.warning.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'Medium Severity',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.warning,
-                      fontWeight: FontWeight.w600,
-                    ),
+  Widget _buildDiseaseCard(Disease disease) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => DiseaseDetailScreen(disease: disease)));
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
+          ],
+        ),
+        child: Row(
+          children: [
+            Hero(
+              tag: 'disease_img_${disease.id}',
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(topLeft: Radius.circular(16), bottomLeft: Radius.circular(16)),
+                child: Image.network(
+                  disease.imageUrl,
+                  width: 100,
+                  height: 110,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    width: 100,
+                    height: 110,
+                    color: Colors.grey.shade200,
+                    child: const Icon(Icons.image_not_supported_rounded, color: Colors.grey),
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
-          const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
-          const SizedBox(width: 16),
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(disease.name, style: AppTextStyles.titleMedium),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.grass_rounded, size: 14, color: AppColors.primary),
+                      const SizedBox(width: 4),
+                      Text(disease.cropName, style: AppTextStyles.bodySmall),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: disease.severityColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      disease.severityLabel,
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: disease.severityColor,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+            const SizedBox(width: 16),
+          ],
+        ),
       ),
     );
   }
