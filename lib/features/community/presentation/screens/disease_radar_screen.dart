@@ -100,10 +100,9 @@ class _DiseaseRadarScreenState extends ConsumerState<DiseaseRadarScreen> with Ti
               onTap: (_, __) => setState(() => _selectedOutbreak = null), // Dismiss card on map tap
             ),
             children: [
-              // Dark Mode Map Tiles (CartoDB Dark Matter)
+              // Standard Light Map Tiles (OpenStreetMap)
               TileLayer(
-                urlTemplate: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-                subdomains: const ['a', 'b', 'c', 'd'],
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.example.plant_disease_detector',
               ),
               
@@ -153,16 +152,16 @@ class _DiseaseRadarScreenState extends ConsumerState<DiseaseRadarScreen> with Ti
                         builder: (_, __) => Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.white,
+                            color: Colors.blue,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.white.withValues(alpha: 0.6 * _pulseAnim.value),
+                                color: Colors.blue.withValues(alpha: 0.6 * _pulseAnim.value),
                                 blurRadius: 20,
                                 spreadRadius: 6,
                               ),
                             ],
                           ),
-                          child: const Icon(Icons.my_location_rounded, size: 24, color: Color(0xFF0A0F1E)),
+                          child: const Icon(Icons.my_location_rounded, size: 24, color: Colors.white),
                         ),
                       ),
                     ),
