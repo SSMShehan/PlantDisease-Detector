@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
 
 class UserData {
   final String fullName;
@@ -55,34 +56,56 @@ class UserNotifier extends StateNotifier<UserData> {
   }
 
   Future<void> _loadUserData() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(UserData(
-      fullName: prefs.getString('fullName') ?? 'Sunil Perera',
-      phoneNumber: prefs.getString('phoneNumber') ?? '+94 77 123 4567',
-      email: prefs.getString('email') ?? 'sunil.p@farmmail.com',
-      district: prefs.getString('district') ?? 'Ussapitiya, Sri Lanka',
-      farmName: prefs.getString('farmName') ?? 'Sunil Organic Farm',
-      farmSize: prefs.getString('farmSize') ?? '12.5',
-      bio: prefs.getString('bio') ?? 'Passionate organic farmer with 15 years of experience in sustainable agriculture.',
-      primaryCrops: prefs.getStringList('primaryCrops') ?? ['Rice', 'Tomato'],
-      imagePath: prefs.getString('imagePath'),
-    ));
+    final client = Supabase.instance.client;
+    final user = client.auth.currentUser;
+    if (user != null) {
+      try {
+        final data = await client.from('profiles').select().eq('id', user.id).maybeSingle();
+        if (data != null) {
+          state = UserData(
+            fullName: data['full_name'] ?? 'Sunil Perera',
+            phoneNumber: data['phone'] ?? '+94 77 123 4567',
+            email: data['email'] ?? 'sunil.p@farmmail.com',
+            district: data['district'] ?? 'Ussapitiya, Sri Lanka',
+            farmName: data['farm_name'] ?? 'Sunil Organic Farm',
+            farmSize: data['farm_size'] ?? '12.5',
+            bio: data['bio'] ?? 'Passionate organic farmer with 15 years of experience.',
+            primaryCrops: (data['primary_crops'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? ['Rice', 'Tomato'],
+            imagePath: data['avatar_url'],
+          );
+          return;
+        }
+      } catch (e) {
+        debugPrint('Error loading profile from Supabase: $e');
+      }
+    }
+    // Fallback if not logged in
+    state = UserData();
   }
 
   Future<void> saveUserData(UserData user) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('fullName', user.fullName);
-    await prefs.setString('phoneNumber', user.phoneNumber);
-    await prefs.setString('email', user.email);
-    await prefs.setString('district', user.district);
-    await prefs.setString('farmName', user.farmName);
-    await prefs.setString('farmSize', user.farmSize);
-    await prefs.setString('bio', user.bio);
-    await prefs.setStringList('primaryCrops', user.primaryCrops);
-    if (user.imagePath != null) {
-      await prefs.setString('imagePath', user.imagePath!);
+    final client = Supabase.instance.client;
+    final authUser = client.auth.currentUser;
+    
+    if (authUser != null) {
+      try {
+        await client.from('profiles').update({
+          'full_name': user.fullName,
+          'phone': user.phoneNumber,
+          'email': user.email,
+          'district': user.district,
+          'farm_name': user.farmName,
+          'farm_size': user.farmSize,
+          'bio': user.bio,
+          'primary_crops': user.primaryCrops,
+          'avatar_url': user.imagePath,
+          'updated_at': DateTime.now().toIso8601String(),
+        }).eq('id', authUser.id);
+      } catch (e) {
+        debugPrint('Error saving profile to Supabase: $e');
+      }
     } else {
-      await prefs.remove('imagePath');
+      debugPrint('No logged in user, could not save to Supabase');
     }
 
     state = user; // Update the Riverpod state

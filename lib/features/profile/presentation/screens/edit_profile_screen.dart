@@ -6,6 +6,7 @@ import 'package:plant_disease_detector/core/theme/app_theme.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:plant_disease_detector/core/providers/user_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
@@ -151,8 +152,36 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     );
   }
 
-  void _saveProfile() {
+  Future<void> _saveProfile() async {
     if (_formKey.currentState!.validate()) {
+      // Show loading overlay or something, but for simplicity just await
+      
+      String? finalImagePath = _imageFile?.path;
+      if (finalImagePath != null && !finalImagePath.startsWith('http')) {
+        // It's a local file, upload to Supabase
+        try {
+          final client = Supabase.instance.client;
+          final user = client.auth.currentUser;
+          if (user != null) {
+            final fileExt = finalImagePath.split('.').last;
+            final fileName = '${user.id}_avatar.${fileExt}';
+            
+            // For web support, we need bytes. But since file picking is complex, we just use File.
+            // If it's flutter web, this part might need adjustements, but we assume mobile.
+            if (!kIsWeb) {
+               await client.storage.from('avatars').upload(
+                 fileName, 
+                 File(finalImagePath), 
+                 fileOptions: const FileOptions(upsert: true)
+               );
+               finalImagePath = client.storage.from('avatars').getPublicUrl(fileName);
+            }
+          }
+        } catch (e) {
+          debugPrint('Error uploading image: $e');
+        }
+      }
+
       final updatedUser = UserData(
         fullName: _nameController.text,
         phoneNumber: _phoneController.text,
@@ -162,20 +191,21 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         farmSize: _farmSizeController.text,
         bio: _bioController.text,
         primaryCrops: List.from(_selectedCrops),
-        imagePath: _imageFile?.path,
+        imagePath: finalImagePath,
       );
 
-      ref.read(userProvider.notifier).saveUserData(updatedUser);
+      await ref.read(userProvider.notifier).saveUserData(updatedUser);
 
-      // Show success snackbar and pop
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Profile updated successfully!'),
-          backgroundColor: AppColors.primary,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      Navigator.pop(context);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile updated successfully!'),
+            backgroundColor: AppColors.primary,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        Navigator.pop(context);
+      }
     }
   }
 
@@ -336,7 +366,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
   DecorationImage? _buildProfileImage() {
     if (_imageFile != null) {
-      if (kIsWeb) {
+      if (_imageFile!.path.startsWith('http')) {
+        return DecorationImage(image: NetworkImage(_imageFile!.path), fit: BoxFit.cover);
+      } else if (kIsWeb) {
         return DecorationImage(image: NetworkImage(_imageFile!.path), fit: BoxFit.cover);
       } else {
         return DecorationImage(image: FileImage(File(_imageFile!.path)), fit: BoxFit.cover);

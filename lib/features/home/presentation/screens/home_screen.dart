@@ -85,7 +85,7 @@ class HomeScreen extends ConsumerWidget {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(14),
                             child: userData.imagePath != null
-                                ? (kIsWeb
+                                ? ((userData.imagePath!.startsWith('http') || kIsWeb)
                                     ? Image.network(userData.imagePath!, fit: BoxFit.cover)
                                     : Image.file(File(userData.imagePath!), fit: BoxFit.cover))
                                 : Image.network(

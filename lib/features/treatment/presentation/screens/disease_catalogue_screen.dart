@@ -3,6 +3,7 @@ import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/features/treatment/presentation/screens/disease_comparison_screen.dart';
 import 'package:plant_disease_detector/features/treatment/presentation/screens/disease_detail_screen.dart';
 import 'package:plant_disease_detector/features/treatment/data/disease_model.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class DiseaseCatalogueScreen extends StatefulWidget {
   const DiseaseCatalogueScreen({super.key});
@@ -13,14 +14,21 @@ class DiseaseCatalogueScreen extends StatefulWidget {
 
 class _DiseaseCatalogueScreenState extends State<DiseaseCatalogueScreen> {
   String _searchQuery = '';
+  late Future<List<Disease>> _diseasesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _diseasesFuture = _fetchDiseases();
+  }
+
+  Future<List<Disease>> _fetchDiseases() async {
+    final response = await Supabase.instance.client.from('diseases').select('*');
+    return response.map<Disease>((json) => Disease.fromJson(json)).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final filteredDiseases = DiseaseRepository.diseases.where((d) {
-      final query = _searchQuery.toLowerCase();
-      return d.name.toLowerCase().contains(query) || d.cropName.toLowerCase().contains(query);
-    }).toList();
-
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -67,11 +75,33 @@ class _DiseaseCatalogueScreenState extends State<DiseaseCatalogueScreen> {
           
           // List
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              itemCount: filteredDiseases.length,
-              itemBuilder: (context, index) {
-                return _buildDiseaseCard(filteredDiseases[index]);
+            child: FutureBuilder<List<Disease>>(
+              future: _diseasesFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error loading diseases', style: AppTextStyles.bodyMedium));
+                }
+
+                final diseases = snapshot.data ?? [];
+                final filteredDiseases = diseases.where((d) {
+                  final query = _searchQuery.toLowerCase();
+                  return d.name.toLowerCase().contains(query) || d.cropName.toLowerCase().contains(query);
+                }).toList();
+
+                if (filteredDiseases.isEmpty) {
+                  return Center(child: Text('No diseases found', style: AppTextStyles.bodyMedium));
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  itemCount: filteredDiseases.length,
+                  itemBuilder: (context, index) {
+                    return _buildDiseaseCard(filteredDiseases[index]);
+                  },
+                );
               },
             ),
           ),
