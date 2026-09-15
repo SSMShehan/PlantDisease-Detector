@@ -25,6 +25,7 @@ dependencies:
 
   # Fonts
   google_fonts: ^6.2.1
+  go_router: ^18.0.1
 
 dev_dependencies:
   flutter_test:
