@@ -1,10 +1,11 @@
 import 'dart:ui';
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/providers/location_provider.dart';
 import 'package:plant_disease_detector/models/outbreak_report.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 class DiseaseRadarScreen extends ConsumerStatefulWidget {
   const DiseaseRadarScreen({super.key});
@@ -13,152 +14,164 @@ class DiseaseRadarScreen extends ConsumerStatefulWidget {
   ConsumerState<DiseaseRadarScreen> createState() => _DiseaseRadarScreenState();
 }
 
-class _DiseaseRadarScreenState extends ConsumerState<DiseaseRadarScreen>
-    with TickerProviderStateMixin {
+class _DiseaseRadarScreenState extends ConsumerState<DiseaseRadarScreen> with TickerProviderStateMixin {
   OutbreakReport? _selectedOutbreak;
   bool _alertDismissed = false;
   bool _reported = false;
+  
+  final MapController _mapController = MapController();
+  
+  // Local list of outbreaks to allow adding a new one
+  late List<OutbreakReport> _liveOutbreaks;
 
   late AnimationController _pulseCtrl;
-  late AnimationController _scanCtrl;
   late Animation<double> _pulseAnim;
-  late Animation<double> _scanAnim;
 
   @override
   void initState() {
     super.initState();
+    _liveOutbreaks = List.from(mockOutbreaks);
+    
     _pulseCtrl = AnimationController(vsync: this, duration: const Duration(seconds: 2))
       ..repeat(reverse: true);
-    _scanCtrl = AnimationController(vsync: this, duration: const Duration(seconds: 4))
-      ..repeat();
     _pulseAnim = Tween<double>(begin: 0.85, end: 1.15).animate(
       CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
     );
-    _scanAnim = Tween<double>(begin: 0, end: 2 * math.pi).animate(_scanCtrl);
   }
 
   @override
   void dispose() {
     _pulseCtrl.dispose();
-    _scanCtrl.dispose();
+    _mapController.dispose();
     super.dispose();
+  }
+
+  void _reportOutbreak(LatLng location) {
+    setState(() {
+      _reported = true;
+      _liveOutbreaks.add(
+        OutbreakReport(
+          id: 'ob_new',
+          diseaseName: 'Unknown Disease (Pending)',
+          cropType: 'My Crop',
+          reportCount: 1,
+          distanceKm: 0.0,
+          timeAgo: 'Just now',
+          severity: 0.5,
+          color: const Color(0xFFE07A5F), // Warning red
+          latitude: location.latitude,
+          longitude: location.longitude,
+        ),
+      );
+    });
+    
+    // Fly to new marker
+    _mapController.move(location, 14.0);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('🌿 Outbreak reported! Agri Officer notified.'),
+        backgroundColor: const Color(0xFF81B29A),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final locationState = ref.watch(locationProvider);
+    
+    // Default to Sri Lanka center if location not available yet
+    final userLocation = locationState.position != null 
+        ? LatLng(locationState.position!.latitude, locationState.position!.longitude)
+        : const LatLng(7.8731, 80.7718); // Dambulla, SL as fallback center
+
     return Scaffold(
       backgroundColor: const Color(0xFF0A0F1E),
       body: Stack(
         children: [
-          // ── Deep space background gradient
-          Positioned.fill(
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: RadialGradient(
-                  center: Alignment(0, -0.3),
-                  radius: 1.2,
-                  colors: [Color(0xFF1A2340), Color(0xFF0A0F1E)],
-                ),
-              ),
+          // ── The Interactive Map ──────────────────────────────────────────────
+          FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: userLocation,
+              initialZoom: locationState.position != null ? 11.0 : 7.0, // Zoom out if fallback
+              onTap: (_, __) => setState(() => _selectedOutbreak = null), // Dismiss card on map tap
             ),
-          ),
-
-          // ── Satellite map placeholder with overlay
-          Positioned.fill(
-            child: Opacity(
-              opacity: 0.18,
-              child: Image.network(
-                'https://images.unsplash.com/photo-1508175688576-0c076b47b5b5?w=800&fit=crop&auto=format',
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const SizedBox(),
+            children: [
+              // Dark Mode Map Tiles (CartoDB Dark Matter)
+              TileLayer(
+                urlTemplate: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+                subdomains: const ['a', 'b', 'c', 'd'],
+                userAgentPackageName: 'com.example.plant_disease_detector',
               ),
-            ),
-          ),
-
-          // ── Grid lines overlay
-          Positioned.fill(child: CustomPaint(painter: _GridPainter())),
-
-          // ── Radar sweep animation
-          Positioned.fill(
-            child: AnimatedBuilder(
-              animation: _scanAnim,
-              builder: (_, __) => CustomPaint(
-                painter: _RadarSweepPainter(_scanAnim.value),
-              ),
-            ),
-          ),
-
-          // ── Outbreak heat zones
-          Positioned.fill(
-            child: LayoutBuilder(builder: (context, constraints) {
-              return Stack(
-                children: mockOutbreaks.map((outbreak) {
-                  final x = outbreak.mapPosition.dx * constraints.maxWidth;
-                  final y = outbreak.mapPosition.dy * constraints.maxHeight;
+              
+              // Disease Outbreak Markers
+              MarkerLayer(
+                markers: _liveOutbreaks.map((outbreak) {
                   final isSelected = _selectedOutbreak?.id == outbreak.id;
-                  final baseRadius = 30.0 + (outbreak.severity * 40);
-                  return Positioned(
-                    left: x - baseRadius,
-                    top: y - baseRadius,
+                  final baseSize = 40.0 + (outbreak.severity * 40.0);
+                  
+                  return Marker(
+                    point: LatLng(outbreak.latitude, outbreak.longitude),
+                    width: baseSize * 2,
+                    height: baseSize * 2,
                     child: GestureDetector(
-                      onTap: () => setState(() =>
-                          _selectedOutbreak = isSelected ? null : outbreak),
+                      onTap: () {
+                        setState(() => _selectedOutbreak = isSelected ? null : outbreak);
+                        _mapController.move(LatLng(outbreak.latitude, outbreak.longitude), _mapController.camera.zoom);
+                      },
                       child: AnimatedBuilder(
                         animation: _pulseAnim,
-                        builder: (_, __) => SizedBox(
-                          width: baseRadius * 2,
-                          height: baseRadius * 2,
-                          child: CustomPaint(
+                        builder: (_, __) {
+                          final pulse = isSelected ? _pulseAnim.value : 1.0;
+                          return CustomPaint(
                             painter: _HeatZonePainter(
                               color: outbreak.color,
-                              pulse: isSelected ? _pulseAnim.value : 1.0,
+                              pulse: pulse,
                               severity: outbreak.severity,
                             ),
-                          ),
-                        ),
+                          );
+                        },
                       ),
                     ),
                   );
                 }).toList(),
-              );
-            }),
-          ),
-
-          // ── User location dot (center)
-          Positioned.fill(
-            child: LayoutBuilder(builder: (context, constraints) {
-              return Stack(
-                children: [
-                  Positioned(
-                    left: constraints.maxWidth * 0.48 - 12,
-                    top: constraints.maxHeight * 0.44 - 12,
-                    child: AnimatedBuilder(
-                      animation: _pulseCtrl,
-                      builder: (_, __) => Container(
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.white.withValues(alpha: 0.6 * _pulseAnim.value),
-                              blurRadius: 20,
-                              spreadRadius: 6,
-                            ),
-                          ],
+              ),
+              
+              // User Location Marker
+              if (locationState.position != null)
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: userLocation,
+                      width: 60,
+                      height: 60,
+                      child: AnimatedBuilder(
+                        animation: _pulseCtrl,
+                        builder: (_, __) => Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.white.withValues(alpha: 0.6 * _pulseAnim.value),
+                                blurRadius: 20,
+                                spreadRadius: 6,
+                              ),
+                            ],
+                          ),
+                          child: const Icon(Icons.my_location_rounded, size: 24, color: Color(0xFF0A0F1E)),
                         ),
-                        child: const Icon(Icons.my_location_rounded, size: 14, color: Color(0xFF0A0F1E)),
                       ),
                     ),
-                  ),
-                ],
-              );
-            }),
+                  ],
+                ),
+            ],
           ),
 
-          // ── Top Bar
+          // ── Top Bar ───────────────────────────────────────────────────────
           Positioned(
             top: 0,
             left: 0,
@@ -178,7 +191,7 @@ class _DiseaseRadarScreenState extends ConsumerState<DiseaseRadarScreen>
                             width: 42,
                             height: 42,
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.12),
+                              color: Colors.black.withValues(alpha: 0.3),
                               borderRadius: BorderRadius.circular(14),
                               border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                             ),
@@ -196,7 +209,7 @@ class _DiseaseRadarScreenState extends ConsumerState<DiseaseRadarScreen>
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.1),
+                              color: Colors.black.withValues(alpha: 0.3),
                               borderRadius: BorderRadius.circular(14),
                               border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
                             ),
@@ -241,8 +254,8 @@ class _DiseaseRadarScreenState extends ConsumerState<DiseaseRadarScreen>
             ),
           ),
 
-          // ── Alert banner (dismissable)
-          if (!_alertDismissed)
+          // ── Alert banner (dismissable) ────────────────────────────────────
+          if (!_alertDismissed && _liveOutbreaks.isNotEmpty)
             Positioned(
               top: 110,
               left: 20,
@@ -282,7 +295,7 @@ class _DiseaseRadarScreenState extends ConsumerState<DiseaseRadarScreen>
                                     style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13),
                                   ),
                                   Text(
-                                    'Tomato Blight detected within 2.3km. Spray fungicides.',
+                                    '${_liveOutbreaks.first.diseaseName} detected within ${_liveOutbreaks.first.distanceKm}km. Take precautions.',
                                     style: TextStyle(color: Colors.white.withValues(alpha: 0.75), fontSize: 11),
                                   ),
                                 ],
@@ -298,7 +311,23 @@ class _DiseaseRadarScreenState extends ConsumerState<DiseaseRadarScreen>
               ),
             ),
 
-          // ── Legend (bottom-left)
+          // ── Map Controls (Center Map) ───────────────────────────────────────
+          if (locationState.position != null)
+            Positioned(
+              right: 20,
+              bottom: _selectedOutbreak != null ? 300 : 120,
+              child: FloatingActionButton(
+                heroTag: 'center_map',
+                backgroundColor: const Color(0xFF1A2340),
+                mini: true,
+                onPressed: () {
+                  _mapController.move(userLocation, 12.0);
+                },
+                child: const Icon(Icons.my_location_rounded, color: Colors.white),
+              ),
+            ),
+
+          // ── Legend (bottom-left) ──────────────────────────────────────────
           Positioned(
             bottom: _selectedOutbreak != null ? 300 : 120,
             left: 20,
@@ -309,7 +338,7 @@ class _DiseaseRadarScreenState extends ConsumerState<DiseaseRadarScreen>
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.1),
+                    color: Colors.black.withValues(alpha: 0.4),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
                   ),
@@ -330,36 +359,7 @@ class _DiseaseRadarScreenState extends ConsumerState<DiseaseRadarScreen>
             ),
           ),
 
-          // ── Outbreak count badge (bottom-right)
-          Positioned(
-            bottom: _selectedOutbreak != null ? 300 : 120,
-            right: 20,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(14),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        '${mockOutbreaks.length}',
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 22),
-                      ),
-                      Text('Active\nZones', textAlign: TextAlign.center, style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 9, height: 1.3)),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          // ── Bottom: Outbreak detail sheet OR report button
+          // ── Bottom: Outbreak detail sheet OR report button ────────────────
           Positioned(
             bottom: 0,
             left: 0,
@@ -368,7 +368,7 @@ class _DiseaseRadarScreenState extends ConsumerState<DiseaseRadarScreen>
               duration: const Duration(milliseconds: 300),
               child: _selectedOutbreak != null
                   ? _buildOutbreakSheet(_selectedOutbreak!)
-                  : _buildBottomBar(),
+                  : _buildBottomBar(userLocation),
             ),
           ),
         ],
@@ -387,7 +387,7 @@ class _DiseaseRadarScreenState extends ConsumerState<DiseaseRadarScreen>
     );
   }
 
-  Widget _buildBottomBar() {
+  Widget _buildBottomBar(LatLng userLocation) {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -397,15 +397,7 @@ class _DiseaseRadarScreenState extends ConsumerState<DiseaseRadarScreen>
             filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
             child: GestureDetector(
               onTap: () {
-                setState(() => _reported = true);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('🌿 Outbreak reported! Thank you for keeping the community safe.'),
-                    backgroundColor: const Color(0xFF81B29A),
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                );
+                if (!_reported) _reportOutbreak(userLocation);
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -558,67 +550,7 @@ class _DiseaseRadarScreenState extends ConsumerState<DiseaseRadarScreen>
   }
 }
 
-// ── Custom Painters ─────────────────────────────────────────────────────────
-
-class _GridPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.05)
-      ..strokeWidth = 0.5;
-    const step = 40.0;
-    for (double x = 0; x < size.width; x += step) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-    for (double y = 0; y < size.height; y += step) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class _RadarSweepPainter extends CustomPainter {
-  final double angle;
-  _RadarSweepPainter(this.angle);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width * 0.48, size.height * 0.44);
-    final radius = size.width * 0.42;
-
-    // Draw radar circles
-    final circlePaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.06)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.8;
-    for (int i = 1; i <= 4; i++) {
-      canvas.drawCircle(center, radius * i / 4, circlePaint);
-    }
-
-    // Sweep gradient
-    final sweepPaint = Paint()
-      ..shader = SweepGradient(
-        center: Alignment.center,
-        startAngle: angle,
-        endAngle: angle + 1.2,
-        colors: [Colors.transparent, const Color(0xFF81B29A).withValues(alpha: 0.35)],
-      ).createShader(Rect.fromCircle(center: center, radius: radius))
-      ..style = PaintingStyle.fill;
-
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      angle,
-      1.2,
-      true,
-      sweepPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _RadarSweepPainter old) => old.angle != angle;
-}
+// ── Custom Heat Zone Painter for Map Markers ────────────────────────────────
 
 class _HeatZonePainter extends CustomPainter {
   final Color color;
@@ -636,7 +568,7 @@ class _HeatZonePainter extends CustomPainter {
     final glowPaint = Paint()
       ..shader = RadialGradient(
         colors: [
-          color.withValues(alpha: 0.5 * severity),
+          color.withValues(alpha: 0.6 * severity),
           color.withValues(alpha: 0.2 * severity),
           Colors.transparent,
         ],
@@ -645,7 +577,7 @@ class _HeatZonePainter extends CustomPainter {
     canvas.drawCircle(center, radius, glowPaint);
 
     // Inner core
-    final corePaint = Paint()..color = color.withValues(alpha: 0.7 * severity);
+    final corePaint = Paint()..color = color.withValues(alpha: 0.8 * severity);
     canvas.drawCircle(center, radius * 0.25, corePaint);
   }
 

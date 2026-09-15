@@ -34,7 +34,7 @@ class LocationService {
   /// Convert coordinates to a readable address.
   Future<String> getAddressFromCoordinates(double lat, double lon) async {
     try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(lat, lon);
+      List<Placemark> placemarks = await Geocoding().placemarkFromCoordinates(lat, lon);
       if (placemarks.isNotEmpty) {
         Placemark place = placemarks[0];
         // e.g., "Anuradhapura, Sri Lanka"

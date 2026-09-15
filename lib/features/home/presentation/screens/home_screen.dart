@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
-import 'package:plant_disease_detector/models/disease_result.dart';
 import 'package:plant_disease_detector/features/diagnosis/application/scan_history_provider.dart';
 import 'package:plant_disease_detector/core/providers/location_provider.dart';
 import 'package:plant_disease_detector/features/weather/presentation/providers/weather_provider.dart';
@@ -41,6 +40,7 @@ class HomeScreen extends ConsumerWidget {
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text('Good Morning,', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w500)),
                         Text('Sunil 👋', style: AppTextStyles.headlineMedium.copyWith(letterSpacing: -0.5)),
                         const SizedBox(height: 4),

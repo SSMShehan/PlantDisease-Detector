@@ -9,7 +9,8 @@ class OutbreakReport {
   final String timeAgo;
   final double severity; // 0.0 - 1.0
   final Color color;
-  final Offset mapPosition; // normalized 0.0–1.0 position on map widget
+  final double latitude;
+  final double longitude;
 
   const OutbreakReport({
     required this.id,
@@ -20,7 +21,8 @@ class OutbreakReport {
     required this.timeAgo,
     required this.severity,
     required this.color,
-    required this.mapPosition,
+    required this.latitude,
+    required this.longitude,
   });
 }
 
@@ -34,7 +36,8 @@ final List<OutbreakReport> mockOutbreaks = [
     timeAgo: '2h ago',
     severity: 0.9,
     color: const Color(0xFFE07A5F),
-    mapPosition: const Offset(0.48, 0.44),
+    latitude: 7.954,
+    longitude: 80.75, // Around Dambulla area
   ),
   OutbreakReport(
     id: 'ob2',
@@ -45,7 +48,8 @@ final List<OutbreakReport> mockOutbreaks = [
     timeAgo: '5h ago',
     severity: 0.6,
     color: const Color(0xFFF2A34A),
-    mapPosition: const Offset(0.28, 0.35),
+    latitude: 8.01,
+    longitude: 80.68,
   ),
   OutbreakReport(
     id: 'ob3',
@@ -56,7 +60,8 @@ final List<OutbreakReport> mockOutbreaks = [
     timeAgo: '1d ago',
     severity: 0.4,
     color: const Color(0xFF81B29A),
-    mapPosition: const Offset(0.70, 0.60),
+    latitude: 7.89,
+    longitude: 80.78,
   ),
   OutbreakReport(
     id: 'ob4',
@@ -67,7 +72,8 @@ final List<OutbreakReport> mockOutbreaks = [
     timeAgo: '3h ago',
     severity: 0.75,
     color: const Color(0xFFE07A5F),
-    mapPosition: const Offset(0.60, 0.25),
+    latitude: 8.05,
+    longitude: 80.80,
   ),
   OutbreakReport(
     id: 'ob5',
@@ -78,6 +84,7 @@ final List<OutbreakReport> mockOutbreaks = [
     timeAgo: '2d ago',
     severity: 0.5,
     color: const Color(0xFFF2A34A),
-    mapPosition: const Offset(0.20, 0.65),
+    latitude: 7.80,
+    longitude: 80.65,
   ),
 ];
