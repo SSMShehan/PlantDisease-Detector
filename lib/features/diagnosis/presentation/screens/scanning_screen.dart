@@ -186,23 +186,31 @@ class _ScanningScreenState extends State<ScanningScreen>
                     color: Colors.black.withOpacity(0.05),
                     colorBlendMode: BlendMode.darken,
                   ),
-                  // Animated Scan Line
+                  // Animated Radar Scan Sweep
                   AnimatedBuilder(
                     animation: _lineCtrl,
                     builder: (context, child) {
                       return Positioned(
-                        top: _lineCtrl.value * 128,
+                        top: _lineCtrl.value * 128 - 32, // Offset by height of the trail
                         left: 0,
                         right: 0,
                         child: Container(
-                          height: 2,
+                          height: 32, // Thicker trail for "radar" effect
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
                               colors: [
-                                Colors.transparent,
-                                AppColors.primary.withOpacity(0.8),
-                                Colors.transparent,
+                                AppColors.primary.withOpacity(0.9), // Bright leading edge
+                                AppColors.primary.withOpacity(0.0), // Fading tail
                               ],
+                            ),
+                          ),
+                          child: Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Container(
+                              height: 2,
+                              color: Colors.white.withOpacity(0.8), // Core laser beam
                             ),
                           ),
                         ),

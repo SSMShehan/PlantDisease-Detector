@@ -1,30 +1,70 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:plant_disease_detector/core/config/env.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/routing/app_router.dart';
+import 'package:plant_disease_detector/core/providers/locale_provider.dart';
+import 'package:plant_disease_detector/l10n/app_localizations.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  runApp(const AgroLuxApp());
+
+  // Initialise Supabase. Will be a no-op until real credentials are supplied.
+  try {
+    await Supabase.initialize(
+      url: Env.supabaseUrl,
+      anonKey: Env.supabaseAnonKey,
+    );
+  } catch (_) {
+    // Silently ignore in dev — placeholder credentials will fail gracefully.
+  }
+
+  runApp(
+    // ProviderScope is required by Riverpod — wraps the entire widget tree.
+    const ProviderScope(
+      child: CropGuardApp(),
+    ),
+  );
 }
 
-class AgroLuxApp extends StatelessWidget {
-  const AgroLuxApp({super.key});
+class CropGuardApp extends ConsumerWidget {
+  const CropGuardApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final locale = ref.watch(localeProvider);
+
     return MaterialApp.router(
-      title: 'AgroLux – Crop Disease Detector',
+      title: 'CropGuard LK',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       routerConfig: appRouter,
+
+      // ── Localisation ────────────────────────────────────────────────────
+      locale: locale,
+      supportedLocales: const [
+        Locale('en'),
+        Locale('si'),
+        Locale('ta'),
+      ],
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+
       builder: (context, child) {
         return Container(
-          color: const Color(0xFF131524), // Dark background for web outer area
+          color: const Color(0xFF131524), // Dark bg for web outer area
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 450),

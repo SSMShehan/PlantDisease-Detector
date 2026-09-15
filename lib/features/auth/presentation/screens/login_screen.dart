@@ -1,101 +1,342 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'dart:ui';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
-import 'package:plant_disease_detector/features/auth/presentation/screens/otp_verification_screen.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends ConsumerState<LoginScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _isLoading = false;
+  bool _obscurePassword = true;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _onLogin() async {
+    if (_emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) return;
+    setState(() => _isLoading = true);
+    await Future.delayed(const Duration(seconds: 1)); // Simulate network
+    if (mounted) {
+      setState(() => _isLoading = false);
+      context.go('/main');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'Enter your phone number',
-                style: AppTextStyles.headlineMedium,
+      body: Stack(
+        children: [
+          // Background blobs for glassmorphism effect
+          Positioned(
+            top: -100,
+            right: -100,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.primary.withValues(alpha: 0.5),
               ),
-              const SizedBox(height: 12),
-              Text(
-                'We will send you a 6-digit verification code to securely log in.',
-                style: AppTextStyles.bodyLarge,
+            ),
+          ),
+          Positioned(
+            bottom: -150,
+            left: -100,
+            child: Container(
+              width: 400,
+              height: 400,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.secondary.withValues(alpha: 0.4),
               ),
-              const SizedBox(height: 40),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
+            ),
+          ),
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.4,
+            right: 50,
+            child: Container(
+              width: 150,
+              height: 150,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.accent.withValues(alpha: 0.3),
+              ),
+            ),
+          ),
+          
+          // Glass effect overlay
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
+              child: Container(color: Colors.white.withValues(alpha: 0.2)),
+            ),
+          ),
+
+          // Main Content
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Header text
+                    Text(
+                      'LOGIN / SIGNUP',
+                      style: AppTextStyles.headlineLarge.copyWith(
+                        letterSpacing: 2,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
-                  ],
-                ),
-                child: TextField(
-                  keyboardType: TextInputType.phone,
-                  style: AppTextStyles.titleMedium,
-                  decoration: InputDecoration(
-                    prefixIcon: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
+                    const SizedBox(height: 48),
+
+                    // Glass Form Container
+                    Container(
+                      padding: const EdgeInsets.all(28),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.45),
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 24,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text('+94', style: AppTextStyles.titleMedium),
-                          const SizedBox(width: 8),
-                          Container(width: 1, height: 24, color: AppColors.divider),
+                          // Email label
+                          Text('Email', style: AppTextStyles.titleSmall),
+                          const SizedBox(height: 8),
+                          // Email Field
+                          _buildTextField(
+                            controller: _emailController,
+                            hint: 'Enter your email',
+                            icon: Icons.mail_outline_rounded,
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Password label & forgot password
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Password', style: AppTextStyles.titleSmall),
+                              TextButton(
+                                onPressed: () {},
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: Text(
+                                  'forgot password?',
+                                  style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primary),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          // Password Field
+                          _buildTextField(
+                            controller: _passwordController,
+                            hint: 'Enter your password',
+                            icon: Icons.lock_outline_rounded,
+                            isPassword: true,
+                          ),
+                          const SizedBox(height: 32),
+
+                          // Login Button
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              gradient: AppGradients.primary,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withValues(alpha: 0.3),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
+                            ),
+                            child: ElevatedButton(
+                              onPressed: _isLoading ? null : _onLogin,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                padding: const EdgeInsets.symmetric(vertical: 18),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              ),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      width: 24, height: 24,
+                                      child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
+                                  : Text('LOGIN', style: AppTextStyles.titleMedium.copyWith(color: Colors.white, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+
+                          // OR Divider
+                          Row(
+                            children: [
+                              Expanded(child: Container(height: 1, color: AppColors.textPrimary.withValues(alpha: 0.2))),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                child: Text('OR', style: AppTextStyles.titleSmall.copyWith(color: AppColors.textPrimary.withValues(alpha: 0.6))),
+                              ),
+                              Expanded(child: Container(height: 1, color: AppColors.textPrimary.withValues(alpha: 0.2))),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Social Login Label
+                          Text(
+                            'Social Login',
+                            textAlign: TextAlign.center,
+                            style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Social Buttons
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _buildSocialCircle(Icons.facebook_rounded, const Color(0xFF1877F2), () => context.go('/main')),
+                              const SizedBox(width: 24),
+                              _buildSocialCircle(Icons.g_mobiledata_rounded, Colors.red, () => context.go('/main'), iconSize: 44),
+                              const SizedBox(width: 24),
+                              _buildSocialCircle(Icons.apple_rounded, Colors.black, () => context.go('/main')),
+                            ],
+                          ),
+                          const SizedBox(height: 32),
+
+                          // Sign up text
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text("Don't have an account? ", style: AppTextStyles.titleSmall.copyWith(fontWeight: FontWeight.normal)),
+                              GestureDetector(
+                                onTap: () {},
+                                child: Text(
+                                  'Sign Up',
+                                  style: AppTextStyles.titleSmall.copyWith(
+                                    color: AppColors.primary,
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: AppColors.primary,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),
-                    hintText: '7X XXX XXXX',
-                    hintStyle: AppTextStyles.titleMedium.copyWith(color: AppColors.textSecondary),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide.none,
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(color: AppColors.primary, width: 2),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 18),
-                  ),
+                  ],
                 ),
               ),
-              const Spacer(),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const OtpVerificationScreen()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  minimumSize: const Size(double.infinity, 56),
-                ),
-                child: Text(
-                  'Send Code',
-                  style: AppTextStyles.titleMedium.copyWith(color: Colors.white),
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
+            ),
           ),
+
+          // Back button
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: IconButton(
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.5),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
+                  ),
+                  onPressed: () {
+                    if (context.canPop()) context.pop();
+                  },
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+    bool isPassword = false,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.9), width: 1),
+      ),
+      child: TextField(
+        controller: controller,
+        obscureText: isPassword && _obscurePassword,
+        style: AppTextStyles.bodyLarge,
+        decoration: InputDecoration(
+          prefixIcon: Icon(icon, color: AppColors.textPrimary.withValues(alpha: 0.6)),
+          suffixIcon: isPassword
+              ? IconButton(
+                  icon: Icon(
+                    _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                    color: AppColors.textPrimary.withValues(alpha: 0.6),
+                  ),
+                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                )
+              : null,
+          hintText: hint,
+          hintStyle: AppTextStyles.bodyLarge.copyWith(color: AppColors.textSecondary),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+          contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSocialCircle(IconData icon, Color color, VoidCallback onTap, {double iconSize = 28}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(30),
+      child: Container(
+        width: 60,
+        height: 60,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.white.withValues(alpha: 0.9),
+          border: Border.all(color: Colors.white, width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Icon(icon, color: color, size: iconSize),
         ),
       ),
     );

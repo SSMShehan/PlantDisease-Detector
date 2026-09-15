@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/features/diagnosis/presentation/screens/camera_capture_screen.dart';
+import 'package:plant_disease_detector/features/farm_log/presentation/screens/yield_tracker_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FarmScreen — Matches Figma FarmScreen.tsx
@@ -149,52 +150,63 @@ class _FarmScreenState extends State<FarmScreen> {
   }
 
   Widget _buildOverallHealth() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 4))],
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Overall Farm Health', style: AppTextStyles.titleSmall),
-              Text('72%', style: AppTextStyles.titleSmall.copyWith(color: const Color(0xFF81B29A), fontWeight: FontWeight.bold)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(50),
-            child: SizedBox(
-              height: 8,
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 72,
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(colors: [Color(0xFFA8D5BE), Color(0xFF81B29A)]),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const YieldTrackerScreen()));
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 4))],
+        ),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Text('Overall Farm Health & Yield', style: AppTextStyles.titleSmall),
+                    const SizedBox(width: 4),
+                    Icon(Icons.arrow_forward_ios_rounded, size: 12, color: AppColors.textSecondary),
+                  ],
+                ),
+                Text('72%', style: AppTextStyles.titleSmall.copyWith(color: const Color(0xFF81B29A), fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(50),
+              child: SizedBox(
+                height: 8,
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 72,
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(colors: [Color(0xFFA8D5BE), Color(0xFF81B29A)]),
+                        ),
                       ),
                     ),
-                  ),
-                  Expanded(flex: 28, child: Container(color: const Color(0xFFF0EDE8))),
-                ],
+                    Expanded(flex: 28, child: Container(color: const Color(0xFFF0EDE8))),
+                  ],
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildHealthStat('Healthy', '2', const Color(0xFF81B29A)),
-              _buildHealthStat('Monitor', '1', const Color(0xFFF5A623)),
-              _buildHealthStat('At Risk', '2', const Color(0xFFE07A5F)),
-            ],
-          ),
-        ],
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildHealthStat('Healthy', '2', const Color(0xFF81B29A)),
+                _buildHealthStat('Monitor', '1', const Color(0xFFF5A623)),
+                _buildHealthStat('At Risk', '2', const Color(0xFFE07A5F)),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

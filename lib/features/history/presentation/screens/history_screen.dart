@@ -1,25 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/models/disease_result.dart';
+import 'package:plant_disease_detector/features/diagnosis/application/scan_history_provider.dart';
 import 'package:plant_disease_detector/features/diagnosis/presentation/screens/diagnostic_result_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HistoryScreen — Matches Figma HistoryScreen.tsx
 // ─────────────────────────────────────────────────────────────────────────────
-class HistoryScreen extends StatefulWidget {
+class HistoryScreen extends ConsumerStatefulWidget {
   const HistoryScreen({super.key});
 
   @override
-  State<HistoryScreen> createState() => _HistoryScreenState();
+  ConsumerState<HistoryScreen> createState() => _HistoryScreenState();
 }
 
-class _HistoryScreenState extends State<HistoryScreen> {
+class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   final List<String> _filters = const ["All", "High", "Medium", "Low", "None"];
   String _activeFilter = "All";
 
-  List<ScanRecord> get _filteredScans {
-    if (_activeFilter == "All") return mockScanHistory;
-    return mockScanHistory.where((s) => s.severity == _activeFilter).toList();
+  List<ScanRecord> _filteredScans(List<ScanRecord> all) {
+    if (_activeFilter == "All") return all;
+    return all.where((s) => s.severity == _activeFilter.toLowerCase()).toList();
   }
 
   void _openScan(ScanRecord scan) {
@@ -33,7 +35,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filtered = _filteredScans;
+    final all = ref.watch(scanHistoryProvider);
+    final filtered = _filteredScans(all);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -53,7 +56,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${mockScanHistory.length} total scans',
+                    '${all.length} total scans',
                     style: AppTextStyles.bodySmall.copyWith(color: const Color(0xFF9AA5B4)),
                   ),
                 ],
@@ -79,9 +82,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         borderRadius: BorderRadius.circular(50),
                         boxShadow: [
                           if (isActive)
-                            BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4))
+                            BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 4))
                           else
-                            BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 6, offset: const Offset(0, 2)),
+                            BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 6, offset: const Offset(0, 2)),
                         ],
                       ),
                       child: Text(
@@ -140,7 +143,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -210,7 +213,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -232,7 +235,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       Container(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [Colors.transparent, scan.severityColor.withOpacity(0.3)],
+                            colors: [Colors.transparent, scan.severityColor.withValues(alpha: 0.3)],
                             stops: const [0.6, 1.0],
                           ),
                         ),
@@ -265,7 +268,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: scan.severityColor.withOpacity(0.1),
+                              color: scan.severityColor.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(50),
                             ),
                             child: Text(

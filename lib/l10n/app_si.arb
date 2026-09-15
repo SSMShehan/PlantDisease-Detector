@@ -1,0 +1,56 @@
+{
+  "@@locale": "si",
+  "appTitle": "CropGuard LK",
+  "chooseLanguage": "ඔබේ භාෂාව තෝරන්න",
+  "languageSubtitle": "ඔබට මෙය සැකසුම් වලින් පසුව වෙනස් කළ හැකිය.",
+  "continueBtn": "ඉදිරියට යන්න",
+
+  "welcomeBack": "නැවත සාදරයෙන් පිළිගනිමු",
+  "loginSubtitle": "ඔබේ බෝග ආරක්ෂා කිරීම දිගටම කරගෙන යන්න.",
+  "sendCode": "කේතය යවන්න",
+  "continueWithGoogle": "Google සමඟ ඉදිරියට යන්න",
+  "continueWithFacebook": "Facebook සමඟ ඉදිරියට යන්න",
+  "continueWithApple": "Apple සමඟ ඉදිරියට යන්න",
+
+  "createAccount": "ගිණුම සාදන්න",
+  "signupSubtitle": "ඔවුන්ගේ බෝග ආරක්ෂා කරන ගොවියන් දහස් ගණනකට එකතු වන්න.",
+  "fullName": "සම්පූර්ණ නම",
+  "phoneNumber": "දුරකථන අංකය",
+  "district": "දිස්ත්‍රික්කය",
+
+  "goodMorning": "සුභ උදෑසනක්,",
+  "goodAfternoon": "සුභ දහවලක්,",
+  "goodEvening": "සුභ සන්ධ්‍යාවක්,",
+
+  "scanCropTitle": "රෝග සඳහා බෝගය ස්කෑන් කරන්න",
+  "aiPowered": "AI-ශක්තිමත් හඳුනාගැනීම",
+  "scanAccuracy": "ක්ෂණික ප්‍රතිඵල · 94% නිරවද්‍යතාව",
+  "recentScans": "මෑත ස්කෑන්",
+  "seeAll": "සියල්ල බලන්න",
+  "diseaseCatalogue": "රෝග නාමාවලිය",
+  "savedItems": "සුරකින ලද අයිතම",
+
+  "diagnosisResult": "රෝග විනිශ්චය ප්‍රතිඵලය",
+  "confidence": "විශ්වාසය",
+  "symptoms": "රෝග ලක්ෂණ",
+  "treatmentPlan": "ප්‍රතිකාර සැලැස්ම",
+  "contactOfficer": "කෘෂිකර්ම නිලධාරියා සම්බන්ධ කරන්න",
+
+  "scanLeaf": "කොළය ස්කෑන් කරන්න",
+  "placeleafInFrame": "රාමුව තුළ කොළය තබන්න",
+  "holdSteady": "ස්ථිරව ගන්න · හොඳ ආලෝකය නිර්දේශ කෙරේ",
+  "gallery": "ගැලරිය",
+  "aiScan": "AI ස්කෑන්",
+  "analyzing": "බෝගය විශ්ලේෂණය කරමින්...",
+
+  "home": "මුල් පිටුව",
+  "farm": "ගොවිපල",
+  "history": "ඉතිහාසය",
+  "profile": "පැතිකඩ",
+
+  "settings": "සැකසීම්",
+  "notifications": "දැනුම්දීම්",
+  "language": "භාෂාව",
+  "editProfile": "පැතිකඩ සංස්කරණය කරන්න",
+  "logout": "ලොග් අවුට්"
+}

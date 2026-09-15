@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
-import 'package:plant_disease_detector/features/expert_consult/presentation/screens/consultation_status_screen.dart';
 
-class ExpertConsultScreen extends StatelessWidget {
+class ExpertConsultScreen extends StatefulWidget {
   const ExpertConsultScreen({super.key});
+
+  @override
+  State<ExpertConsultScreen> createState() => _ExpertConsultScreenState();
+}
+
+class _ExpertConsultScreenState extends State<ExpertConsultScreen> {
+  int _selectedCategoryIndex = 0;
+  final List<String> _categories = ['All', 'Agronomist', 'Pathologist', 'Soil Expert'];
 
   @override
   Widget build(BuildContext context) {
@@ -12,126 +20,210 @@ class ExpertConsultScreen extends StatelessWidget {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
         ),
-        title: Text('Ask an Officer', style: AppTextStyles.titleMedium),
+        title: Text('Expert Consult', style: AppTextStyles.titleMedium),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.menu_rounded),
+            onPressed: () {},
+          ),
+        ],
+        elevation: 0,
+        backgroundColor: Colors.transparent,
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.info.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.info_outline_rounded, color: AppColors.info),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'Agricultural officers usually respond within 24 hours. Provide as much detail as possible.',
-                              style: AppTextStyles.bodySmall.copyWith(color: AppColors.textPrimary),
-                            ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+            child: Text('Filter Experts', style: AppTextStyles.titleSmall),
+          ),
+          
+          // Filter Tabs
+          SizedBox(
+            height: 40,
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              scrollDirection: Axis.horizontal,
+              itemCount: _categories.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (context, index) {
+                final isSelected = _selectedCategoryIndex == index;
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedCategoryIndex = index),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.secondary : Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: isSelected ? null : Border.all(color: Colors.grey.shade300),
+                      boxShadow: [
+                        if (isSelected)
+                          BoxShadow(
+                            color: AppColors.secondary.withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
                           ),
-                        ],
+                      ],
+                    ),
+                    child: Text(
+                      _categories[index],
+                      style: AppTextStyles.titleSmall.copyWith(
+                        color: isSelected ? Colors.white : AppColors.textPrimary,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    
-                    Text('Attached Photo', style: AppTextStyles.titleSmall),
-                    const SizedBox(height: 8),
-                    Container(
-                      height: 120,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.divider),
-                      ),
-                      child: Row(
-                        children: [
-                          ClipRRect(
-                            borderRadius: const BorderRadius.only(topLeft: Radius.circular(16), bottomLeft: Radius.circular(16)),
-                            child: Image.network(
-                              'https://images.unsplash.com/photo-1592843997232-f1797c55c2f5?w=120&h=120&fit=crop',
-                              width: 120,
-                              height: 120,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Scan #102', style: AppTextStyles.titleSmall),
-                                const SizedBox(height: 4),
-                                Text('AI Confidence: 42%', style: AppTextStyles.bodySmall.copyWith(color: AppColors.error, fontWeight: FontWeight.w600)),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          // Expert List
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              children: [
+                _buildExpertCard('Dr. Sarah Jenkins', 'Agronomist', 4.8, 'https://images.unsplash.com/photo-1594824476967-4f1201946c59?q=80&w=200&auto=format&fit=crop'),
+                _buildExpertCard('Prof. Alan Smith', 'Plant Pathologist', 5.0, 'https://images.unsplash.com/photo-1537368910025-702850356589?q=80&w=200&auto=format&fit=crop'),
+                _buildExpertCard('Dr. Emily Chen', 'Soil Scientist', 4.9, 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=200&auto=format&fit=crop'),
+                _buildExpertCard('Mr. John Doe', 'Pest Control Spec.', 4.5, 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=200&auto=format&fit=crop'),
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-                    Text('Describe the problem', style: AppTextStyles.titleSmall),
-                    const SizedBox(height: 8),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
-                        ],
-                      ),
-                      child: TextField(
-                        maxLines: 5,
-                        style: AppTextStyles.bodyLarge,
-                        decoration: InputDecoration(
-                          hintText: 'e.g., The leaves started turning yellow 3 days ago. I applied fertilizer last week...',
-                          hintStyle: AppTextStyles.bodyLarge.copyWith(color: AppColors.textSecondary),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          contentPadding: const EdgeInsets.all(16),
-                        ),
-                      ),
+  Widget _buildExpertCard(String name, String specialty, double rating, String imageUrl) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              // Avatar
+              Container(
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  image: DecorationImage(
+                    image: NetworkImage(imageUrl),
+                    fit: BoxFit.cover,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (_) => const ConsultationStatusScreen()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  minimumSize: const Size(double.infinity, 56),
+              const SizedBox(width: 16),
+              // Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(name, style: AppTextStyles.titleMedium),
+                    const SizedBox(height: 4),
+                    Text('Specialty: $specialty', style: AppTextStyles.bodyMedium),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Text('Rating: ', style: AppTextStyles.bodyMedium),
+                        _buildStars(rating),
+                        const SizedBox(width: 4),
+                        Text('($rating)', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ],
                 ),
-                child: Text('Submit for Review', style: AppTextStyles.titleMedium.copyWith(color: Colors.white)),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          // Action Buttons
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    gradient: AppGradients.primary,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text('Book', style: AppTextStyles.titleSmall.copyWith(color: Colors.white)),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {},
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    side: const BorderSide(color: AppColors.primary, width: 1.5),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: Text('Chat', style: AppTextStyles.titleSmall.copyWith(color: AppColors.primary)),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildStars(double rating) {
+    int fullStars = rating.floor();
+    bool hasHalfStar = (rating - fullStars) >= 0.5;
+    
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(5, (index) {
+        if (index < fullStars) {
+          return const Icon(Icons.star_rounded, color: Colors.amber, size: 18);
+        } else if (index == fullStars && hasHalfStar) {
+          return const Icon(Icons.star_half_rounded, color: Colors.amber, size: 18);
+        } else {
+          return const Icon(Icons.star_border_rounded, color: Colors.amber, size: 18);
+        }
+      }),
     );
   }
 }

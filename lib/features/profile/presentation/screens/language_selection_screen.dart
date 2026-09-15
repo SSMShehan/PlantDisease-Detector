@@ -1,34 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
+import 'package:plant_disease_detector/core/providers/locale_provider.dart';
 
-class LanguageSelectionScreen extends StatefulWidget {
+class LanguageSelectionScreen extends ConsumerStatefulWidget {
   const LanguageSelectionScreen({super.key});
 
   @override
-  State<LanguageSelectionScreen> createState() => _LanguageSelectionScreenState();
+  ConsumerState<LanguageSelectionScreen> createState() =>
+      _LanguageSelectionScreenState();
 }
 
-class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
-  String _selectedLanguage = 'English';
+class _LanguageSelectionScreenState
+    extends ConsumerState<LanguageSelectionScreen> {
+  String _selectedCode = 'en';
 
   final List<Map<String, String>> _languages = [
-    {'name': 'English', 'localName': 'English'},
-    {'name': 'Sinhala', 'localName': 'සිංහල'},
-    {'name': 'Tamil', 'localName': 'தமிழ்'},
+    {'code': 'en', 'name': 'English', 'localName': 'English'},
+    {'code': 'si', 'name': 'Sinhala', 'localName': 'සිංහල'},
+    {'code': 'ta', 'name': 'Tamil', 'localName': 'தமிழ்'},
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Reflect whatever locale is already saved
+    _selectedCode = ref.read(localeProvider).languageCode;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
+          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
           onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            }
+            if (context.canPop()) context.pop();
           },
         ),
       ),
@@ -48,24 +59,29 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                 style: AppTextStyles.bodyLarge,
               ),
               const SizedBox(height: 40),
-              ..._languages.map((lang) => _buildLanguageCard(lang['name']!, lang['localName']!)).toList(),
+              ..._languages.map((lang) =>
+                  _buildLanguageCard(lang['code']!, lang['name']!, lang['localName']!)),
               const Spacer(),
               ElevatedButton(
-                onPressed: () {
-                  // In a real app, save to shared_preferences / Riverpod
-                  if (context.canPop()) {
-                    context.pop();
-                  } else {
+                onPressed: () async {
+                  // Persist & propagate the chosen locale via Riverpod
+                  await ref
+                      .read(localeProvider.notifier)
+                      .setLocale(Locale(_selectedCode));
+                  if (mounted) {
                     context.go('/onboarding');
                   }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
                   minimumSize: const Size(double.infinity, 56),
                 ),
-                child: Text('Continue', style: AppTextStyles.titleMedium.copyWith(color: Colors.white)),
+                child: Text('Continue',
+                    style: AppTextStyles.titleMedium
+                        .copyWith(color: Colors.white)),
               ),
             ],
           ),
@@ -74,16 +90,16 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
     );
   }
 
-  Widget _buildLanguageCard(String id, String localName) {
-    final bool isSelected = _selectedLanguage == id;
-    
+  Widget _buildLanguageCard(String code, String name, String localName) {
+    final bool isSelected = _selectedCode == code;
+
     return GestureDetector(
-      onTap: () => setState(() => _selectedLanguage = id),
+      onTap: () => setState(() => _selectedCode = code),
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.white,
+          color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : Colors.white,
           border: Border.all(
             color: isSelected ? AppColors.primary : Colors.transparent,
             width: 2,
@@ -92,7 +108,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
           boxShadow: [
             if (!isSelected)
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: Colors.black.withValues(alpha: 0.04),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -104,15 +120,23 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(localName, style: AppTextStyles.titleMedium.copyWith(
-                  color: isSelected ? AppColors.primary : AppColors.textPrimary,
-                  fontSize: 18,
-                )),
-                if (id != localName) ...[
+                Text(
+                  localName,
+                  style: AppTextStyles.titleMedium.copyWith(
+                    color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                    fontSize: 18,
+                  ),
+                ),
+                if (name != localName) ...[
                   const SizedBox(height: 4),
-                  Text(id, style: AppTextStyles.bodySmall.copyWith(
-                    color: isSelected ? AppColors.primary.withOpacity(0.8) : AppColors.textSecondary,
-                  )),
+                  Text(
+                    name,
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: isSelected
+                          ? AppColors.primary.withValues(alpha: 0.8)
+                          : AppColors.textSecondary,
+                    ),
+                  ),
                 ],
               ],
             ),

@@ -1,20 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/models/disease_result.dart';
+import 'package:plant_disease_detector/features/diagnosis/application/scan_history_provider.dart';
 import 'package:plant_disease_detector/features/diagnosis/presentation/screens/diagnostic_result_screen.dart';
 import 'package:plant_disease_detector/features/diagnosis/presentation/screens/camera_capture_screen.dart';
 import 'package:plant_disease_detector/features/weather/presentation/screens/weather_forecast_screen.dart';
 import 'package:plant_disease_detector/features/treatment/presentation/screens/disease_catalogue_screen.dart';
 import 'package:plant_disease_detector/features/home/presentation/screens/saved_items_screen.dart';
+import 'package:plant_disease_detector/features/expert_consult/presentation/screens/expert_consult_screen.dart';
+import 'package:plant_disease_detector/features/community/presentation/screens/community_feed_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HomeScreen — Matches Figma HomeScreen.tsx
 // ─────────────────────────────────────────────────────────────────────────────
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final scanHistory = ref.watch(scanHistoryProvider);
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -128,6 +133,19 @@ class HomeScreen extends StatelessWidget {
                   child: Stack(
                     clipBehavior: Clip.none,
                     children: [
+                      // Subtle background image blended with the gradient
+                      Positioned.fill(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: Opacity(
+                            opacity: 0.15,
+                            child: Image.network(
+                              'https://images.unsplash.com/photo-1592841200221-a6898f307baa?q=80&w=800&auto=format&fit=crop',
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      ),
                       Positioned(
                         top: -50,
                         right: -40,
@@ -190,61 +208,65 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
 
-              // Quick Stats (Navigate to Catalogue and Saved Items)
+              // Quick Stats (Grid)
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-                child: Row(
+                child: Column(
                   children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => const DiseaseCatalogueScreen()));
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Icon(Icons.menu_book_rounded, color: AppColors.primary, size: 28),
-                              const SizedBox(height: 8),
-                              Text('Disease', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
-                              const SizedBox(height: 2),
-                              Text('Catalogue', style: AppTextStyles.bodySmall.copyWith(fontSize: 10)),
-                            ],
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildQuickStatCard(
+                            context,
+                            'Disease',
+                            'Catalogue',
+                            Icons.menu_book_rounded,
+                            AppColors.primary,
+                            const Color(0xFFFFFFFF),
+                            () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DiseaseCatalogueScreen())),
                           ),
                         ),
-                      ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildQuickStatCard(
+                            context,
+                            'Saved',
+                            'Items',
+                            Icons.bookmark_rounded,
+                            AppColors.primary,
+                            const Color(0xFFFFF5F2),
+                            () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SavedItemsScreen())),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => const SavedItemsScreen()));
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFF5F2),
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Icon(Icons.bookmark_rounded, color: AppColors.primary, size: 28),
-                              const SizedBox(height: 8),
-                              Text('Saved Items', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
-                              const SizedBox(height: 2),
-                              Text('View bookmarks', style: AppTextStyles.bodySmall.copyWith(fontSize: 10)),
-                            ],
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildQuickStatCard(
+                            context,
+                            'Expert',
+                            'Consult',
+                            Icons.support_agent_rounded,
+                            AppColors.secondary,
+                            const Color(0xFFFFFFFF),
+                            () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ExpertConsultScreen())),
                           ),
                         ),
-                      ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildQuickStatCard(
+                            context,
+                            'Community',
+                            'Forum',
+                            Icons.forum_rounded,
+                            AppColors.secondary,
+                            const Color(0xFFF2F9F6),
+                            () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CommunityFeedScreen())),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -267,9 +289,9 @@ class HomeScreen extends StatelessWidget {
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: mockScanHistory.length > 5 ? 5 : mockScanHistory.length,
+                  itemCount: scanHistory.length > 5 ? 5 : scanHistory.length,
                   itemBuilder: (context, index) {
-                    final scan = mockScanHistory[index];
+                    final scan = scanHistory[index];
                     return GestureDetector(
                       onTap: () {
                         Navigator.push(context, MaterialPageRoute(builder: (_) => DiagnosticResultScreen(scan: scan)));
@@ -290,9 +312,12 @@ class HomeScreen extends StatelessWidget {
                               width: double.infinity,
                               child: Stack(
                                 children: [
-                                  ClipRRect(
-                                    borderRadius: const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16)),
-                                    child: Image.network(scan.imageUrl, fit: BoxFit.cover, width: double.infinity, height: double.infinity),
+                                  Hero(
+                                    tag: 'scan_image_${scan.id}',
+                                    child: ClipRRect(
+                                      borderRadius: const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16)),
+                                      child: Image.network(scan.imageUrl, fit: BoxFit.cover, width: double.infinity, height: double.infinity),
+                                    ),
                                   ),
                                   Positioned(
                                     top: 8,
@@ -354,4 +379,27 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildQuickStatCard(BuildContext context, String line1, String line2, IconData icon, Color iconColor, Color bgColor, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: iconColor, size: 28),
+            const SizedBox(height: 8),
+            Text(line1, style: AppTextStyles.bodySmall.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 2),
+            Text(line2, style: AppTextStyles.bodySmall.copyWith(fontSize: 10)),
+          ],
+        ),
+      ),
+    );
+  }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
-import 'package:plant_disease_detector/features/home/presentation/screens/home_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -23,108 +23,178 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'Complete your profile',
-                      style: AppTextStyles.headlineMedium,
+      body: Stack(
+        children: [
+          // Background Image
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: MediaQuery.of(context).size.height * 0.4,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.network(
+                  'https://images.unsplash.com/photo-1599839619722-39751411ea63?q=80&w=800&auto=format&fit=crop',
+                  fit: BoxFit.cover,
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withOpacity(0.2),
+                        AppColors.background,
+                      ],
+                      stops: const [0.4, 1.0],
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Tell us a bit about yourself to personalize your experience.',
-                      style: AppTextStyles.bodyLarge,
-                    ),
-                    const SizedBox(height: 32),
-                    
-                    // Full Name Field
-                    Text('Full Name', style: AppTextStyles.titleSmall),
-                    const SizedBox(height: 8),
-                    _buildTextField(hint: 'e.g. Sunil Perera', icon: Icons.person_outline_rounded),
-                    const SizedBox(height: 24),
-                    
-                    // District Dropdown
-                    Text('District', style: AppTextStyles.titleSmall),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          SafeArea(
+            child: Column(
+              children: [
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: IconButton(
+                      icon: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.arrow_back_rounded, color: Colors.white),
                       ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: _selectedDistrict,
-                          icon: const Icon(Icons.keyboard_arrow_down_rounded),
-                          isExpanded: true,
-                          style: AppTextStyles.titleMedium,
-                          dropdownColor: Colors.white,
+                      onPressed: () {
+                        if (context.canPop()) {
+                          context.pop();
+                        }
+                      },
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                
+                // Form Container
+                Container(
+                  padding: const EdgeInsets.all(32.0),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(40),
+                      topRight: Radius.circular(40),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Join CropGuard',
+                        style: AppTextStyles.headlineMedium,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Complete your profile to get personalized advice.',
+                        style: AppTextStyles.bodyLarge,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 32),
+                      
+                      // Full Name Field
+                      Text('Full Name', style: AppTextStyles.titleSmall),
+                      const SizedBox(height: 8),
+                      _buildTextField(hint: 'e.g. Sunil Perera', icon: Icons.person_outline_rounded),
+                      const SizedBox(height: 20),
+                      
+                      // District Dropdown
+                      Text('District', style: AppTextStyles.titleSmall),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: AppColors.background,
                           borderRadius: BorderRadius.circular(16),
-                          items: _districts.map((String district) {
-                            return DropdownMenuItem<String>(
-                              value: district,
-                              child: Text(district),
-                            );
-                          }).toList(),
-                          onChanged: (String? newValue) {
-                            if (newValue != null) {
-                              setState(() {
-                                _selectedDistrict = newValue;
-                              });
-                            }
-                          },
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _selectedDistrict,
+                            icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
+                            isExpanded: true,
+                            style: AppTextStyles.titleMedium,
+                            dropdownColor: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            items: _districts.map((String district) {
+                              return DropdownMenuItem<String>(
+                                value: district,
+                                child: Text(district),
+                              );
+                            }).toList(),
+                            onChanged: (String? newValue) {
+                              if (newValue != null) {
+                                setState(() {
+                                  _selectedDistrict = newValue;
+                                });
+                              }
+                            },
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (_) => const HomeScreen()),
-                    (route) => false,
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                      const SizedBox(height: 32),
+                      
+                      ElevatedButton(
+                        onPressed: () {
+                          context.go('/main');
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          padding: const EdgeInsets.symmetric(vertical: 18),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          'Complete Registration',
+                          style: AppTextStyles.titleMedium.copyWith(color: Colors.white, fontSize: 16),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      
+                      Row(
+                        children: [
+                          Expanded(child: Container(height: 1, color: AppColors.divider)),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Text('OR', style: AppTextStyles.bodySmall),
+                          ),
+                          Expanded(child: Container(height: 1, color: AppColors.divider)),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _buildSmallSocialButton(Icons.g_mobiledata_rounded, Colors.white, Colors.black87),
+                          _buildSmallSocialButton(Icons.facebook_rounded, const Color(0xFF1877F2), Colors.white),
+                          _buildSmallSocialButton(Icons.apple_rounded, Colors.black, Colors.white),
+                        ],
+                      ),
+                    ],
                   ),
-                  minimumSize: const Size(double.infinity, 56),
                 ),
-                child: Text(
-                  'Finish Registration',
-                  style: AppTextStyles.titleMedium.copyWith(color: Colors.white),
-                ),
-              ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -132,15 +202,8 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget _buildTextField({required String hint, required IconData icon}) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.background,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: TextField(
         style: AppTextStyles.titleMedium,
@@ -161,4 +224,31 @@ class _SignupScreenState extends State<SignupScreen> {
       ),
     );
   }
+
+  Widget _buildSmallSocialButton(IconData icon, Color bgColor, Color iconColor) {
+    return Container(
+      width: 64,
+      height: 64,
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(16),
+        border: bgColor == Colors.white ? Border.all(color: Colors.grey.shade300) : null,
+        boxShadow: [
+          if (bgColor == Colors.white)
+            BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 4, offset: const Offset(0, 2)),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {},
+          child: Center(
+            child: Icon(icon, color: iconColor, size: 32),
+          ),
+        ),
+      ),
+    );
+  }
 }
+

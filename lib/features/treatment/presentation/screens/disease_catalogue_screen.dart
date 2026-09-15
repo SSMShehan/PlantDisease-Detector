@@ -95,6 +95,12 @@ class DiseaseCatalogueScreen extends StatelessWidget {
               width: 100,
               height: 100,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                width: 100,
+                height: 100,
+                color: Colors.grey.shade200,
+                child: const Icon(Icons.image_not_supported_rounded, color: Colors.grey),
+              ),
             ),
           ),
           const SizedBox(width: 16),

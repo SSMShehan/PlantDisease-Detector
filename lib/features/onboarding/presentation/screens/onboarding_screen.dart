@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'dart:ui';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
-import 'package:plant_disease_detector/features/auth/presentation/screens/login_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -10,130 +11,166 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  String _selectedLanguage = 'en';
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+
+  final List<Map<String, String>> _onboardingData = [
+    {
+      'title': 'Identify Diseases Instantly',
+      'description': 'Take a photo of any sick plant and let our AI diagnose it in seconds.',
+      'image': 'https://images.unsplash.com/photo-1622383563227-04401ab4e5ea?q=80&w=800&auto=format&fit=crop',
+    },
+    {
+      'title': 'Get Expert Treatments',
+      'description': 'Receive step-by-step organic and chemical treatment plans tailored for your crop.',
+      'image': 'https://images.unsplash.com/photo-1592841200221-a6898f307baa?q=80&w=800&auto=format&fit=crop',
+    },
+    {
+      'title': 'Track Yield & Connect',
+      'description': 'Manage your farm expenses and join a community of thriving farmers.',
+      'image': 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?q=80&w=800&auto=format&fit=crop',
+    },
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 40),
-                    Center(
-                      child: Container(
-                        width: 120,
-                        height: 120,
-                        decoration: BoxDecoration(
-                          color: AppColors.secondary.withOpacity(0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.grass_rounded,
-                          size: 64,
-                          color: AppColors.secondary,
-                        ),
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          // Background Images Carousel
+          PageView.builder(
+            controller: _pageController,
+            onPageChanged: (index) {
+              setState(() {
+                _currentPage = index;
+              });
+            },
+            itemCount: _onboardingData.length,
+            itemBuilder: (context, index) {
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.network(
+                    _onboardingData[index]['image']!,
+                    fit: BoxFit.cover,
+                  ),
+                  // Gradient overlay to ensure text readability
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.4),
+                          Colors.black.withOpacity(0.9),
+                        ],
+                        stops: const [0.0, 0.5, 1.0],
                       ),
                     ),
-                    const SizedBox(height: 40),
-                    Text(
-                      'Welcome to CropGuard',
-                      style: AppTextStyles.headlineMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Protecting your harvest with AI. Select your preferred language to get started.',
-                      style: AppTextStyles.bodyLarge,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 48),
-                    _buildLanguageOption('en', 'English'),
-                    const SizedBox(height: 16),
-                    _buildLanguageOption('si', 'සිංහල'),
-                    const SizedBox(height: 16),
-                    _buildLanguageOption('ta', 'தமிழ்'),
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
                   ),
-                  minimumSize: const Size(double.infinity, 56),
-                ),
-                child: Text(
-                  'Continue',
-                  style: AppTextStyles.titleMedium.copyWith(color: Colors.white),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLanguageOption(String code, String label) {
-    final isSelected = _selectedLanguage == code;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedLanguage = code;
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : Colors.transparent,
-            width: 2,
+                ],
+              );
+            },
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              label,
-              style: AppTextStyles.titleMedium.copyWith(
-                color: isSelected ? AppColors.primary : AppColors.textPrimary,
+          
+          // Glassmorphic Content Card at the bottom
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(32),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    padding: const EdgeInsets.all(32),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(32),
+                      border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Page Indicators
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(
+                            _onboardingData.length,
+                            (index) => AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              height: 8,
+                              width: _currentPage == index ? 24 : 8,
+                              decoration: BoxDecoration(
+                                color: _currentPage == index ? AppColors.primary : Colors.white.withOpacity(0.5),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        
+                        // Text Content
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          child: Text(
+                            _onboardingData[_currentPage]['title']!,
+                            key: ValueKey<int>(_currentPage),
+                            style: AppTextStyles.headlineMedium.copyWith(color: Colors.white),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          child: Text(
+                            _onboardingData[_currentPage]['description']!,
+                            key: ValueKey<int>(_currentPage + 10),
+                            style: AppTextStyles.bodyLarge.copyWith(color: Colors.white.withOpacity(0.9)),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+                        
+                        // Action Button
+                        ElevatedButton(
+                          onPressed: () {
+                            if (_currentPage == _onboardingData.length - 1) {
+                              context.go('/login');
+                            } else {
+                              _pageController.nextPage(
+                                duration: const Duration(milliseconds: 500),
+                                curve: Curves.easeInOut,
+                              );
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            padding: const EdgeInsets.symmetric(vertical: 18),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            minimumSize: const Size(double.infinity, 60),
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            _currentPage == _onboardingData.length - 1 ? 'Get Started' : 'Next',
+                            style: AppTextStyles.titleMedium.copyWith(color: Colors.white, fontSize: 18),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
-            if (isSelected)
-              const Icon(
-                Icons.check_circle_rounded,
-                color: AppColors.primary,
-              ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
+

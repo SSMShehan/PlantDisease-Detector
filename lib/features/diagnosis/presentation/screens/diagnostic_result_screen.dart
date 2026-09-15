@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/models/disease_result.dart';
 import 'package:plant_disease_detector/features/home/presentation/screens/main_screen.dart';
+import 'package:plant_disease_detector/features/treatment/presentation/screens/treatment_detail_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DiagnosticResultScreen — Matches Figma ResultsScreen.tsx
@@ -363,13 +364,16 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
               const SizedBox(height: 12),
               Row(
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Image.network(
-                      _scan.imageUrl,
-                      width: 40,
-                      height: 40,
-                      fit: BoxFit.cover,
+                  Hero(
+                    tag: 'scan_image_${_scan.id}',
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.network(
+                        _scan.imageUrl,
+                        width: 40,
+                        height: 40,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -508,7 +512,32 @@ class _DiagnosticResultScreenState extends State<DiagnosticResultScreen>
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         child: Column(
-          children: treatments.map((t) => _buildTreatmentItem(t)).toList(),
+          children: [
+            ...treatments.map((t) => _buildTreatmentItem(t)),
+            const SizedBox(height: 16),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const TreatmentDetailScreen()));
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                decoration: BoxDecoration(
+                  color: AppColors.secondary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  'View Detailed Treatment Plan',
+                  style: TextStyle(
+                    color: AppColors.secondary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       );
     }

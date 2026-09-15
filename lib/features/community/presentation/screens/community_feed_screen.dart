@@ -2,8 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 
-class CommunityFeedScreen extends StatelessWidget {
+class CommunityFeedScreen extends StatefulWidget {
   const CommunityFeedScreen({super.key});
+
+  @override
+  State<CommunityFeedScreen> createState() => _CommunityFeedScreenState();
+}
+
+class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
+  int _selectedFilterIndex = 0;
+  final List<Map<String, dynamic>> _filters = [
+    {'title': 'Trending', 'icon': Icons.local_fire_department_rounded},
+    {'title': 'My Crops', 'icon': Icons.eco_rounded},
+    {'title': 'Q&A', 'icon': Icons.help_outline_rounded},
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -15,149 +27,252 @@ class CommunityFeedScreen extends StatelessWidget {
           onPressed: () => context.pop(),
         ),
         title: Text('Community Forum', style: AppTextStyles.titleMedium),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search_rounded),
-            onPressed: () {},
-          ),
-        ],
+        elevation: 0,
+        backgroundColor: Colors.transparent,
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {},
-        backgroundColor: AppColors.primary,
-        icon: const Icon(Icons.add_rounded, color: Colors.white),
-        label: Text('Ask', style: AppTextStyles.titleSmall.copyWith(color: Colors.white)),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
+      body: Stack(
         children: [
-          _buildPostCard(
-            authorName: 'Kamal Perera',
-            time: '2 hours ago',
-            content: 'Has anyone tried using neem oil for Early Blight? Did it show good results before switching to chemical fungicides?',
-            likes: 12,
-            comments: 4,
-            imageUrl: null,
+          Column(
+            children: [
+              // Search Bar
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: TextField(
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(Icons.search_rounded, color: AppColors.textSecondary),
+                      hintText: 'Search discussions...',
+                      hintStyle: AppTextStyles.bodyMedium,
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              
+              // Filter Tabs
+              SizedBox(
+                height: 40,
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _filters.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemBuilder: (context, index) {
+                    final isSelected = _selectedFilterIndex == index;
+                    return GestureDetector(
+                      onTap: () => setState(() => _selectedFilterIndex = index),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: isSelected ? Colors.white : Colors.transparent,
+                          borderRadius: BorderRadius.circular(20),
+                          border: isSelected ? Border.all(color: AppColors.primary, width: 1.5) : Border.all(color: Colors.grey.shade400),
+                          boxShadow: [
+                            if (isSelected)
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              _filters[index]['icon'],
+                              size: 18,
+                              color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              _filters[index]['title'],
+                              style: AppTextStyles.titleSmall.copyWith(
+                                color: isSelected ? AppColors.textPrimary : AppColors.textSecondary,
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Feed List
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  children: [
+                    _buildFeedCard(
+                      'Farmer Tom',
+                      '3h ago',
+                      'First signs of blight on my tomatoes... need advice ASAP.',
+                      15,
+                      4,
+                      'https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?q=80&w=200&auto=format&fit=crop',
+                      'https://images.unsplash.com/photo-1582298538104-fe2e74c878f1?q=80&w=300&auto=format&fit=crop', // Tomato blight
+                    ),
+                    _buildFeedCard(
+                      'Green_Thumb',
+                      '5h ago',
+                      'Thinking of rotating my corn crop this season. Pros and cons?',
+                      8,
+                      2,
+                      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop',
+                      'https://images.unsplash.com/photo-1601646271927-466d6a2f8c05?q=80&w=300&auto=format&fit=crop', // Corn field
+                    ),
+                    _buildFeedCard(
+                      'AgriExpert',
+                      '1d ago',
+                      'New fertilizer comparison study published today. Very interesting results for wheat yields.',
+                      42,
+                      12,
+                      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
+                      null, // No image
+                    ),
+                    const SizedBox(height: 100), // Space for FAB
+                  ],
+                ),
+              ),
+            ],
           ),
-          _buildPostCard(
-            authorName: 'Sunil Silva',
-            time: '5 hours ago',
-            content: 'My tomato yield this season after following the cultural practices suggested here. Very happy!',
-            likes: 45,
-            comments: 8,
-            imageUrl: 'https://images.unsplash.com/photo-1592841200221-a6898f307baa?w=400&h=300&fit=crop',
-          ),
-          _buildPostCard(
-            authorName: 'Farmer Nimal',
-            time: '1 day ago',
-            content: 'Be careful of fake fungicides in the market. Always buy from authorized dealers.',
-            likes: 89,
-            comments: 15,
-            imageUrl: null,
+          
+          // Centered FAB for New Post
+          Positioned(
+            bottom: 30,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: AppGradients.primary,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.4),
+                      blurRadius: 15,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: FloatingActionButton(
+                  onPressed: () {},
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  highlightElevation: 0,
+                  child: const Icon(Icons.add_rounded, size: 32, color: Colors.white),
+                ),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPostCard({
-    required String authorName,
-    required String time,
-    required String content,
-    required int likes,
-    required int comments,
-    String? imageUrl,
-  }) {
+  Widget _buildFeedCard(String username, String timeAgo, String content, int upvotes, int comments, String avatarUrl, String? contentImageUrl) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 24),
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade100),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  backgroundColor: AppColors.primary.withOpacity(0.1),
-                  child: Text(authorName[0], style: AppTextStyles.titleMedium.copyWith(color: AppColors.primary)),
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 16,
+                backgroundColor: Colors.grey.shade200,
+                backgroundImage: NetworkImage(avatarUrl),
+                onBackgroundImageError: (exception, stackTrace) {},
+              ),
+              const SizedBox(width: 12),
+              Text(username, style: AppTextStyles.titleSmall),
+              const Spacer(),
+              Text(timeAgo, style: AppTextStyles.bodySmall),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  content,
+                  style: AppTextStyles.bodyLarge.copyWith(height: 1.4),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(authorName, style: AppTextStyles.titleSmall),
-                      Text(time, style: AppTextStyles.bodySmall),
-                    ],
+              ),
+              if (contentImageUrl != null) ...[
+                const SizedBox(width: 16),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    contentImageUrl,
+                    width: 70,
+                    height: 70,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      width: 70,
+                      height: 70,
+                      color: Colors.grey.shade200,
+                      child: const Icon(Icons.image_not_supported_rounded, color: Colors.grey),
+                    ),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.more_vert_rounded, color: AppColors.textSecondary),
-                  onPressed: () {},
-                ),
-              ],
-            ),
+              ]
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(content, style: AppTextStyles.bodyLarge),
-          ),
-          if (imageUrl != null) ...[
-            const SizedBox(height: 12),
-            Image.network(
-              imageUrl,
-              height: 200,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
-          ] else ...[
-            const SizedBox(height: 16),
-          ],
-          const Divider(height: 1, color: AppColors.divider),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                _buildInteractionButton(Icons.thumb_up_alt_outlined, '$likes Likes', false),
-                const SizedBox(width: 24),
-                _buildInteractionButton(Icons.mode_comment_outlined, '$comments Comments', false),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.share_outlined, color: AppColors.textSecondary),
-                  onPressed: () {},
-                ),
-              ],
-            ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              _buildInteractionButton(Icons.arrow_upward_rounded, '$upvotes Upvotes'),
+              const SizedBox(width: 24),
+              _buildInteractionButton(Icons.chat_bubble_outline_rounded, '$comments Comments'),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildInteractionButton(IconData icon, String label, bool isActive) {
+  Widget _buildInteractionButton(IconData icon, String label) {
     return InkWell(
       onTap: () {},
+      borderRadius: BorderRadius.circular(8),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
         child: Row(
           children: [
-            Icon(icon, size: 20, color: isActive ? AppColors.primary : AppColors.textSecondary),
-            const SizedBox(width: 8),
-            Text(label, style: AppTextStyles.bodyMedium.copyWith(
-              color: isActive ? AppColors.primary : AppColors.textSecondary,
-              fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-            )),
+            Icon(icon, size: 18, color: AppColors.textSecondary),
+            const SizedBox(width: 6),
+            Text(label, style: AppTextStyles.bodyMedium),
           ],
         ),
       ),
