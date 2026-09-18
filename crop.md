@@ -120,7 +120,8 @@ Supabase is Postgres with a managed convenience layer on top. That matters becau
 | Weather | **Open-Meteo** | No API key, no quota — simpler than OpenWeatherMap |
 | Localisation | Flutter `intl` + ARB | `en`, `si`, `ta` |
 | Fonts | Noto Sans Sinhala, Noto Sans Tamil | Bundled, not system-dependent |
-| CI | GitHub Actions | `flutter analyze` + `flutter test` on every PR |
+| CI/CD | GitHub Actions | `flutter analyze`, tests, and Firebase App Distribution |
+| Monitoring | **Firebase Crashlytics** | Catch offline sync and camera errors |
 
 ### 3.2 Flutter dependencies
 
@@ -990,6 +991,7 @@ Supabase absorbed the CRUD work, so this role now goes deeper on the model — w
 - **Author and test every RLS policy**; produce `docs/rls-test-results.md`
 - FastAPI inference service with JWT verification, deployed to Render
 - Model v2 retrain in Sprint 4 using field photos gathered during testing
+- **Model Retraining Pipeline**: Script to export officer verdicts (`status = 'reviewed'`) and images to continuously retrain the model
 
 **Owns:** `ml/`, `inference-service/`, `supabase/`
 **Traces to:** FR-02, FR-05, and the entire data and security layer
@@ -1005,6 +1007,7 @@ Implements the two largest findings from your own research.
 - `OutboxProcessor` with exponential backoff, idempotent retry, and conflict handling
 - Connectivity service plus a calm, persistent offline banner (never a blocking dialog)
 - **Full i18n:** ARB files for `en`/`si`/`ta`, language picker in onboarding, bundled Noto fonts. **Test Sinhala rendering on a real Android 9 device in Week 1** — this breaks in unexpected ways and you do not want to find out in Week 11
+- **Data Privacy & Consent:** Clear UI explaining *why* location/camera access is needed during onboarding, adhering to privacy best practices
 - Treatment detail screen: step-by-step, organic/chemical/cultural tabs, precautions, estimated cost (FR-04)
 - Disease comparison view for visually similar symptoms (FR-05, HMW3)
 - Offline content bundle + delta sync
@@ -1022,6 +1025,7 @@ Owns the second persona end to end, which gives you a two-device demo.
 - **Mobile:** expert consult flow — attach diagnosis, add note, submit, track status, view officer reply
 - FCM push notification when an officer responds
 - **Mobile:** weather widget via Open-Meteo, district-based (FR-09)
+- **Mobile:** market prices view (integrated via API or admin entry) to help farmers make financial decisions
 - **Mobile:** tips feed and farm activity log (FR-10, open response #7)
 - **Mobile:** onboarding, auth screens, profile, language selection UI
 - **Dashboard:** officer login with role-gated routing
@@ -1133,7 +1137,7 @@ main            ← protected, release tags only
 
 ## 14. Definition of Done
 
-A feature is done when it works offline or degrades gracefully with a clear message; renders correctly in Sinhala at 1.3× font scale; has visible loading, empty, and error states; has at least one unit test on its business logic; passes `flutter analyze` with no warnings; is reviewed and merged to `develop`; and is traced to an FR or NFR ID in the report.
+A feature is done when it works offline or degrades gracefully with a clear message; renders correctly in Sinhala at 1.3× font scale; has visible loading, empty, and error states; has at least one unit test on its business logic; integration tests pass for core offline flows (e.g. Outbox); passes `flutter analyze` with no warnings; is reviewed and merged to `develop`; and is traced to an FR or NFR ID in the report.
 
 ---
 

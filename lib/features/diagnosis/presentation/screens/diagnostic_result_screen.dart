@@ -9,6 +9,12 @@ import 'package:plant_disease_detector/features/home/presentation/screens/main_s
 import 'package:plant_disease_detector/features/treatment/presentation/screens/treatment_detail_screen.dart';
 import 'package:plant_disease_detector/features/treatment/presentation/screens/nearest_officer_screen.dart';
 import 'package:plant_disease_detector/models/agri_officer.dart';
+import 'package:plant_disease_detector/core/providers/database_provider.dart';
+import 'package:plant_disease_detector/features/diagnosis/domain/confidence_gate.dart';
+import 'package:plant_disease_detector/core/database/app_database.dart';
+import 'package:drift/drift.dart' as drift;
+import 'dart:convert';
+import 'dart:io';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DiagnosticResultScreen — Matches Figma ResultsScreen.tsx
@@ -66,6 +72,52 @@ class _DiagnosticResultScreenState extends ConsumerState<DiagnosticResultScreen>
     )..addListener(() => setState(() {}));
     
     _confCtrl.forward();
+
+    _saveDiagnosis();
+  }
+
+  Future<void> _saveDiagnosis() async {
+    final db = ref.read(databaseProvider);
+    final confidenceResult = ConfidenceGate.evaluate(_scan.confidenceScore);
+
+    // Save locally
+    await db.into(db.cachedDiagnoses).insert(
+      CachedDiagnosesCompanion.insert(
+        id: _scan.id,
+        userId: 'local_user', // Mock user id for now
+        imagePath: drift.Value(_scan.imagePath),
+        diseaseId: drift.Value(_scan.diseaseName),
+        confidence: drift.Value(_scan.confidenceScore),
+        clientUuid: _scan.id,
+        status: drift.Value(confidenceResult == ConfidenceResult.escalate ? 'escalated' : 'auto'),
+      ),
+    );
+
+    // Add to outbox for sync
+    await db.into(db.outbox).insert(
+      OutboxCompanion.insert(
+        clientUuid: _scan.id,
+        payload: jsonEncode({
+          'id': _scan.id,
+          'disease': _scan.diseaseName,
+          'confidence': _scan.confidenceScore,
+          'image': _scan.imagePath,
+        }),
+        type: 'diagnosis',
+      ),
+    );
+
+    // Trigger sync
+    ref.read(outboxProcessorProvider).processOutbox();
+
+    if (confidenceResult == ConfidenceResult.escalate && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Low confidence score. Please consult an officer.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
   }
 
   @override
@@ -372,12 +424,19 @@ class _DiagnosticResultScreenState extends ConsumerState<DiagnosticResultScreen>
                     tag: 'scan_image_${_scan.id}',
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(10),
-                      child: Image.network(
-                        _scan.imageUrl,
-                        width: 40,
-                        height: 40,
-                        fit: BoxFit.cover,
-                      ),
+                      child: _scan.imagePath.startsWith('assets/')
+                          ? Image.asset(
+                              _scan.imagePath,
+                              width: 40,
+                              height: 40,
+                              fit: BoxFit.cover,
+                            )
+                          : Image.file(
+                              File(_scan.imagePath),
+                              width: 40,
+                              height: 40,
+                              fit: BoxFit.cover,
+                            ),
                     ),
                   ),
                   const SizedBox(width: 12),

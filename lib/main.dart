@@ -8,6 +8,7 @@ import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/routing/app_router.dart';
 import 'package:plant_disease_detector/core/providers/locale_provider.dart';
 import 'package:plant_disease_detector/l10n/app_localizations.dart';
+import 'package:plant_disease_detector/core/providers/tflite_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,10 +28,14 @@ Future<void> main() async {
     // Silently ignore in dev — placeholder credentials will fail gracefully.
   }
 
+  final container = ProviderContainer();
+  // Initialize TFLite service
+  await container.read(tfliteProvider).initialize();
+
   runApp(
-    // ProviderScope is required by Riverpod — wraps the entire widget tree.
-    const ProviderScope(
-      child: CropGuardApp(),
+    UncontrolledProviderScope(
+      container: container,
+      child: const CropGuardApp(),
     ),
   );
 }

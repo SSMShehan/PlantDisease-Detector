@@ -2,17 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/features/diagnosis/presentation/screens/diagnostic_result_screen.dart';
 
+import 'dart:io';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:plant_disease_detector/core/providers/tflite_provider.dart';
+import 'package:plant_disease_detector/features/diagnosis/domain/confidence_gate.dart';
+import 'package:plant_disease_detector/models/disease_result.dart';
+
 // ─────────────────────────────────────────────────────────────────────────────
 // ScanningScreen — Matches Figma ScanningScreen.tsx
 // ─────────────────────────────────────────────────────────────────────────────
-class ScanningScreen extends StatefulWidget {
-  const ScanningScreen({super.key});
+class ScanningScreen extends ConsumerStatefulWidget {
+  final String imagePath;
+  const ScanningScreen({super.key, required this.imagePath});
 
   @override
-  State<ScanningScreen> createState() => _ScanningScreenState();
+  ConsumerState<ScanningScreen> createState() => _ScanningScreenState();
 }
 
-class _ScanningScreenState extends State<ScanningScreen>
+class _ScanningScreenState extends ConsumerState<ScanningScreen>
     with TickerProviderStateMixin {
   late AnimationController _progressCtrl;
   late AnimationController _lineCtrl;
@@ -45,15 +52,46 @@ class _ScanningScreenState extends State<ScanningScreen>
     _progressAnim = Tween<double>(begin: 0, end: 1).animate(_progressCtrl)
       ..addListener(() => setState(() {}));
 
-    _progressCtrl.forward().then((_) {
-      Future.delayed(const Duration(milliseconds: 400), () {
-        if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const DiagnosticResultScreen()),
-          );
-        }
-      });
-    });
+    _progressCtrl.forward();
+
+    // Start background inference while animation plays
+    _runInference();
+  }
+
+  Future<void> _runInference() async {
+    final tflite = ref.read(tfliteProvider);
+    final result = await tflite.analyzeImage(widget.imagePath);
+
+    // Give animation at least some time to play
+    await Future.delayed(const Duration(milliseconds: 2000));
+
+    if (mounted) {
+      ScanRecord scan;
+      if (result != null) {
+        scan = ScanRecord(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          imagePath: widget.imagePath,
+          diseaseName: result['label'] as String,
+          confidenceScore: result['confidence'] as double,
+          date: DateTime.now(),
+        );
+      } else {
+        // Fallback if model fails
+        scan = ScanRecord(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          imagePath: widget.imagePath,
+          diseaseName: 'Unknown',
+          confidenceScore: 0.0,
+          date: DateTime.now(),
+        );
+      }
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => DiagnosticResultScreen(scan: scan),
+        ),
+      );
+    }
   }
 
   @override
@@ -178,14 +216,24 @@ class _ScanningScreenState extends State<ScanningScreen>
             child: ClipOval(
               child: Stack(
                 children: [
-                  Image.network(
-                    'https://images.unsplash.com/photo-1606321620984-201c81c23e69?w=256&h=256&fit=crop&auto=format',
-                    width: 128,
-                    height: 128,
-                    fit: BoxFit.cover,
-                    color: Colors.black.withOpacity(0.05),
-                    colorBlendMode: BlendMode.darken,
-                  ),
+                  if (widget.imagePath.isNotEmpty)
+                    Image.file(
+                      File(widget.imagePath),
+                      width: 128,
+                      height: 128,
+                      fit: BoxFit.cover,
+                      color: Colors.black.withOpacity(0.05),
+                      colorBlendMode: BlendMode.darken,
+                    )
+                  else
+                    Image.asset(
+                      'assets/images/leaf_sample.png',
+                      width: 128,
+                      height: 128,
+                      fit: BoxFit.cover,
+                      color: Colors.black.withOpacity(0.05),
+                      colorBlendMode: BlendMode.darken,
+                    ),
                   // Animated Radar Scan Sweep
                   AnimatedBuilder(
                     animation: _lineCtrl,

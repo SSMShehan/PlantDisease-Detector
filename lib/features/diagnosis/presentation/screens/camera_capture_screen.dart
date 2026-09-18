@@ -85,18 +85,19 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen> with 
         await Future.delayed(const Duration(milliseconds: 100));
         setState(() => _flashOn = false);
         
-        // In a real app we'd capture the image here:
-        // final XFile imageFile = await cameraState.controller!.takePicture();
+        final XFile imageFile = await cameraState.controller!.takePicture();
+        
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ScanningScreen(imagePath: imageFile.path),
+            ),
+          );
+        }
       } catch (e) {
         debugPrint('Error taking picture: $e');
       }
-    }
-    
-    if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const ScanningScreen()),
-      );
     }
   }
 
@@ -108,7 +109,7 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen> with 
       if (image != null && mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const ScanningScreen()),
+          MaterialPageRoute(builder: (_) => ScanningScreen(imagePath: image.path)),
         );
       }
     } catch (e) {
