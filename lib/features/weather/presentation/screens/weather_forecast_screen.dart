@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'package:plant_disease_detector/core/providers/location_provider.dart';
 import 'package:plant_disease_detector/features/weather/presentation/providers/weather_provider.dart';
 import 'dart:ui';
@@ -67,6 +68,8 @@ class WeatherForecastScreen extends ConsumerWidget {
                         icon: const Icon(Icons.search_rounded, color: Colors.white),
                         onPressed: () {},
                       ),
+                      const SizedBox(width: 4),
+                      const LanguageSelectorButton(isDark: true, isCompact: true),
                     ],
                   ),
                 ),

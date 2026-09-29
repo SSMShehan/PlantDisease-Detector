@@ -5,6 +5,7 @@ import 'package:plant_disease_detector/features/diagnosis/presentation/screens/c
 import 'package:plant_disease_detector/features/farm_log/presentation/screens/yield_tracker_screen.dart';
 import 'package:plant_disease_detector/features/farm_log/presentation/screens/add_farm_log_screen.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FarmScreen — Matches Figma FarmScreen.tsx
@@ -109,6 +110,8 @@ class _FarmScreenState extends State<FarmScreen> {
                       ],
                     ),
                   ),
+                  const LanguageSelectorButton(isCompact: true),
+                  const SizedBox(width: 8),
                   GestureDetector(
                     onTap: _onScan,
                     child: Container(

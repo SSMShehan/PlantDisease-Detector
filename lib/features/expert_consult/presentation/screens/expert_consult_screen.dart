@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 
+import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
+
 class ExpertConsultScreen extends StatefulWidget {
   const ExpertConsultScreen({super.key});
 
@@ -22,12 +25,12 @@ class _ExpertConsultScreenState extends State<ExpertConsultScreen> {
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => context.pop(),
         ),
-        title: Text('Expert Consult', style: AppTextStyles.titleMedium),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.menu_rounded),
-            onPressed: () {},
-          ),
+        title: Text(
+          context.tr(en: 'Expert Consult', si: 'විශේෂඥ උපදෙස්', ta: 'நிபுணர் ஆலோசனை'),
+          style: AppTextStyles.titleMedium,
+        ),
+        actions: const [
+          LanguageSelectorButton(),
         ],
         elevation: 0,
         backgroundColor: Colors.transparent,

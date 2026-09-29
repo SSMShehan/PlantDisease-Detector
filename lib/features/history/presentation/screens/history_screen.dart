@@ -6,6 +6,7 @@ import 'package:plant_disease_detector/features/diagnosis/application/scan_histo
 import 'package:plant_disease_detector/features/diagnosis/presentation/screens/diagnostic_result_screen.dart';
 import 'package:plant_disease_detector/shared/widgets/smart_image.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HistoryScreen — Matches Figma HistoryScreen.tsx
@@ -49,22 +50,28 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
             // Header
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    context.tr(en: 'Scan History', si: 'පරීක්ෂණ ඉතිහාසය', ta: 'ஸ்கேன் வரலாறு'),
-                    style: AppTextStyles.headlineMedium.copyWith(letterSpacing: -0.5, fontSize: 24),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        context.tr(en: 'Scan History', si: 'පරීක්ෂණ ඉතිහාසය', ta: 'ஸ்கேன் வரலாறு'),
+                        style: AppTextStyles.headlineMedium.copyWith(letterSpacing: -0.5, fontSize: 24),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        context.tr(
+                          en: '${all.length} total scans',
+                          si: 'සම්පූර්ණ පරීක්ෂණ ${all.length}ක්',
+                          ta: 'மொத்தம் ${all.length} ஸ்கேன்கள்',
+                        ),
+                        style: AppTextStyles.bodySmall.copyWith(color: AppColors.settingsIcon),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    context.tr(
-                      en: '${all.length} total scans',
-                      si: 'සම්පූර්ණ පරීක්ෂණ ${all.length}ක්',
-                      ta: 'மொத்தம் ${all.length} ஸ்கேன்கள்',
-                    ),
-                    style: AppTextStyles.bodySmall.copyWith(color: AppColors.settingsIcon),
-                  ),
+                  const LanguageSelectorButton(isCompact: true),
                 ],
               ),
             ),

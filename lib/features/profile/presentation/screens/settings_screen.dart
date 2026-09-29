@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/providers/locale_provider.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'package:plant_disease_detector/features/profile/presentation/screens/language_selection_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -26,6 +27,9 @@ class SettingsScreen extends ConsumerWidget {
           context.tr(en: 'Settings', si: 'සැකසීම්', ta: 'அமைப்புகள்'),
           style: AppTextStyles.titleMedium,
         ),
+        actions: const [
+          LanguageSelectorButton(isCompact: true),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(24.0),

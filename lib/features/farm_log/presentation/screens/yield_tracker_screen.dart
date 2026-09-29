@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class YieldTrackerScreen extends StatefulWidget {
@@ -27,6 +28,9 @@ class _YieldTrackerScreenState extends State<YieldTrackerScreen> {
         title: Text(context.tr(en: 'Yield Tracker', si: 'අස්වැන්න ලුහුබැඳීම', ta: 'விளைச்சல் கண்காணிப்பாளர்'), style: AppTextStyles.titleMedium),
         elevation: 0,
         backgroundColor: Colors.transparent,
+        actions: const [
+          LanguageSelectorButton(),
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(

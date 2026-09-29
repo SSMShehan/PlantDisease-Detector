@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'package:plant_disease_detector/shared/widgets/smart_image.dart';
 
 class TipDetailScreen extends StatelessWidget {
@@ -17,11 +18,14 @@ class TipDetailScreen extends StatelessWidget {
             leading: IconButton(
               icon: Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: Colors.black.withOpacity(0.4), shape: BoxShape.circle),
+                decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.4), shape: BoxShape.circle),
                 child: const Icon(Icons.arrow_back_rounded, color: Colors.white),
               ),
               onPressed: () => Navigator.pop(context),
             ),
+            actions: const [
+              LanguageSelectorButton(isDark: true),
+            ],
             flexibleSpace: FlexibleSpaceBar(
               background: SmartImage(
                 src: 'https://images.unsplash.com/photo-1628183189955-467f53a25301?w=800&h=400&fit=crop',

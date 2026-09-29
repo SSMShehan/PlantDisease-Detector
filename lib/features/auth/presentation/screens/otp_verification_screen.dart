@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/features/auth/presentation/screens/signup_screen.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 
 class OtpVerificationScreen extends StatelessWidget {
   const OtpVerificationScreen({super.key});
@@ -14,6 +15,9 @@ class OtpVerificationScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: const [
+          LanguageSelectorButton(isCompact: true),
+        ],
       ),
       body: SafeArea(
         child: Padding(

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'dart:ui';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -92,6 +93,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
               child: Container(color: Colors.white.withValues(alpha: 0.2)),
+            ),
+          ),
+
+          // Top Right Language Selector
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8, right: 16),
+                child: const LanguageSelectorButton(),
+              ),
             ),
           ),
 

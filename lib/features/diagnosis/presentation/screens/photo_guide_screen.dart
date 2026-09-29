@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 
 class PhotoGuideScreen extends StatelessWidget {
   const PhotoGuideScreen({super.key});
@@ -25,6 +26,9 @@ class PhotoGuideScreen extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: const [
+          LanguageSelectorButton(isDark: true, isCompact: true),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),

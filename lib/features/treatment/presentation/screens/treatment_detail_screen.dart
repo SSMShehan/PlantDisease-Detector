@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'package:plant_disease_detector/features/treatment/presentation/screens/treatment_reminder_screen.dart';
 import 'package:plant_disease_detector/shared/widgets/smart_image.dart';
 
@@ -189,6 +190,9 @@ class _TreatmentDetailScreenState extends State<TreatmentDetailScreen> {
                 expandedHeight: 220,
                 pinned: true,
                 backgroundColor: AppColors.primary,
+                actions: const [
+                  LanguageSelectorButton(isDark: true, isCompact: true),
+                ],
                 leading: IconButton(
                   icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
                   onPressed: () => context.pop(),

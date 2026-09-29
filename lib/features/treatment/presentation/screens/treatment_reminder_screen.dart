@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 
 class TreatmentReminderScreen extends StatefulWidget {
   final String treatmentTitle;
@@ -32,6 +33,9 @@ class _TreatmentReminderScreenState extends State<TreatmentReminderScreen> {
         title: Text(context.tr(en: 'Schedule Reminder', si: 'මතක් කිරීමක් සකසන්න', ta: 'நினைவூட்டலை திட்டமிடுங்கள்'), style: AppTextStyles.titleMedium),
         backgroundColor: Colors.white,
         elevation: 0,
+        actions: const [
+          LanguageSelectorButton(isCompact: true),
+        ],
       ),
       body: SafeArea(
         child: Column(

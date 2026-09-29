@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:plant_disease_detector/core/providers/user_provider.dart';
@@ -234,6 +235,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
+        actions: const [
+          LanguageSelectorButton(),
+        ],
       ),
       body: Form(
         key: _formKey,

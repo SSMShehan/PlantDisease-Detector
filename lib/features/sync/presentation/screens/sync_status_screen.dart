@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
+import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 
 class SyncStatusScreen extends StatelessWidget {
   const SyncStatusScreen({super.key});
@@ -9,7 +11,13 @@ class SyncStatusScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Offline Sync Status', style: AppTextStyles.titleMedium),
+        title: Text(
+          context.tr(en: 'Offline Sync Status', si: 'නොබැඳි සමමුහුර්තකරණ තත්ත්වය', ta: 'இணைப்பற்ற ஒத்திசைவு நிலை'),
+          style: AppTextStyles.titleMedium,
+        ),
+        actions: const [
+          LanguageSelectorButton(),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),

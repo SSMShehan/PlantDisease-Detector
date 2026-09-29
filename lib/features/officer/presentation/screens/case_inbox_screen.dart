@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 
+import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
+
 class CaseInboxScreen extends StatelessWidget {
   const CaseInboxScreen({super.key});
 
@@ -10,7 +13,10 @@ class CaseInboxScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Case Inbox', style: AppTextStyles.headlineMedium),
+        title: Text(
+          context.tr(en: 'Case Inbox', si: 'නඩු ලිපිගොනු', ta: 'வழக்குகள்'),
+          style: AppTextStyles.headlineMedium,
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
@@ -18,6 +24,7 @@ class CaseInboxScreen extends StatelessWidget {
             icon: const Icon(Icons.filter_list_rounded, color: AppColors.textPrimary),
             onPressed: () {},
           ),
+          const LanguageSelectorButton(),
         ],
       ),
       body: ListView.separated(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -59,25 +60,28 @@ class _SignupScreenState extends State<SignupScreen> {
           SafeArea(
             child: Column(
               children: [
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: IconButton(
-                      icon: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          shape: BoxShape.circle,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        icon: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.arrow_back_rounded, color: Colors.white),
                         ),
-                        child: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+                        onPressed: () {
+                          if (context.canPop()) {
+                            context.pop();
+                          }
+                        },
                       ),
-                      onPressed: () {
-                        if (context.canPop()) {
-                          context.pop();
-                        }
-                      },
-                    ),
+                      const LanguageSelectorButton(isDark: true),
+                    ],
                   ),
                 ),
                 const Spacer(),

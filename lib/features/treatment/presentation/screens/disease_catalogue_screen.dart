@@ -6,6 +6,7 @@ import 'package:plant_disease_detector/features/treatment/presentation/screens/d
 import 'package:plant_disease_detector/features/treatment/data/disease_model.dart';
 import 'package:plant_disease_detector/l10n/app_localizations.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class DiseaseCatalogueScreen extends StatefulWidget {
@@ -139,6 +140,7 @@ class _DiseaseCatalogueScreenState extends State<DiseaseCatalogueScreen> {
           style: AppTextStyles.titleMedium.copyWith(color: AppColors.textOnDark, fontWeight: FontWeight.w700),
         ),
         actions: [
+          const LanguageSelectorButton(isDark: true, isCompact: true),
           IconButton(
             icon: const Icon(Icons.compare_arrows_rounded, color: AppColors.textOnDark),
             onPressed: () {

@@ -15,6 +15,7 @@ import 'package:plant_disease_detector/core/database/app_database.dart';
 import 'package:plant_disease_detector/shared/widgets/smart_image.dart';
 import 'package:plant_disease_detector/l10n/app_localizations.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'package:drift/drift.dart' as drift;
 import 'dart:convert';
 
@@ -351,11 +352,18 @@ class _DiagnosticResultScreenState extends ConsumerState<DiagnosticResultScreen>
             AppLocalizations.of(context)?.diagnosisResult ?? 'Diagnosis Result',
             style: AppTextStyles.titleMedium.copyWith(fontSize: 16),
           ),
-          _buildSquareButton(
-            icon: _isSaved ? Icons.bookmark_rounded : Icons.ios_share_rounded,
-            iconColor: _isSaved ? AppColors.primary : AppColors.settingsIcon,
-            bgColor: _isSaved ? AppColors.signOutBg : AppColors.surface,
-            onTap: () => setState(() => _showShareModal = true),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const LanguageSelectorButton(isCompact: true),
+              const SizedBox(width: 8),
+              _buildSquareButton(
+                icon: _isSaved ? Icons.bookmark_rounded : Icons.ios_share_rounded,
+                iconColor: _isSaved ? AppColors.primary : AppColors.settingsIcon,
+                bgColor: _isSaved ? AppColors.signOutBg : AppColors.surface,
+                onTap: () => setState(() => _showShareModal = true),
+              ),
+            ],
           ),
         ],
       ),

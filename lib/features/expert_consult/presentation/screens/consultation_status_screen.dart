@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
+import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 
 class ConsultationStatusScreen extends StatelessWidget {
   const ConsultationStatusScreen({super.key});
@@ -13,7 +15,13 @@ class ConsultationStatusScreen extends StatelessWidget {
           icon: const Icon(Icons.close_rounded),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('Consultation Status', style: AppTextStyles.titleMedium),
+        title: Text(
+          context.tr(en: 'Consultation Status', si: 'උපදේශන තත්ත්වය', ta: 'ஆலோசனை நிலை'),
+          style: AppTextStyles.titleMedium,
+        ),
+        actions: const [
+          LanguageSelectorButton(),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),

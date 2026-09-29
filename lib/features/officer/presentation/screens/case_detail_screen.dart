@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
+import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'dart:ui';
 
 class CaseDetailScreen extends StatefulWidget {
@@ -95,10 +97,19 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
               if (context.canPop()) context.pop();
             },
           ),
-          Text('Case Details', style: AppTextStyles.titleMedium.copyWith(color: Colors.white)),
-          IconButton(
-            icon: const Icon(Icons.more_vert_rounded, color: Colors.white),
-            onPressed: () {},
+          Text(
+            context.tr(en: 'Case Details', si: 'නඩු විස්තර', ta: 'வழக்கு விவரங்கள்'),
+            style: AppTextStyles.titleMedium.copyWith(color: Colors.white),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const LanguageSelectorButton(isDark: true, isCompact: true),
+              IconButton(
+                icon: const Icon(Icons.more_vert_rounded, color: Colors.white),
+                onPressed: () {},
+              ),
+            ],
           ),
         ],
       ),

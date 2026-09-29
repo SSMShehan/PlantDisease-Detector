@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'package:plant_disease_detector/shared/widgets/smart_image.dart';
 
 class CommunityFeedScreen extends StatefulWidget {
@@ -31,6 +32,9 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
         title: Text(context.tr(en: 'Community Forum', si: 'ගොවි සංසදය', ta: 'விவசாயிகள் மன்றம்'), style: AppTextStyles.titleMedium),
         elevation: 0,
         backgroundColor: Colors.transparent,
+        actions: const [
+          LanguageSelectorButton(),
+        ],
       ),
       body: Stack(
         children: [

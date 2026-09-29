@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
+import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'dart:ui';
 
 class SavedItemsScreen extends StatefulWidget {
@@ -64,7 +66,7 @@ class _SavedItemsScreenState extends State<SavedItemsScreen> {
           ),
           const SizedBox(width: 8),
           Text(
-            'Saved Items',
+            context.tr(en: 'Saved Items', si: 'සුරැකි අයිතම', ta: 'சேமிக்கப்பட்டவை'),
             style: AppTextStyles.headlineMedium.copyWith(fontSize: 22, letterSpacing: -0.5),
           ),
           const Spacer(),
@@ -76,6 +78,8 @@ class _SavedItemsScreenState extends State<SavedItemsScreen> {
             ),
             child: const Icon(Icons.search_rounded, color: AppColors.primary, size: 22),
           ),
+          const SizedBox(width: 6),
+          const LanguageSelectorButton(isCompact: true),
         ],
       ),
     );

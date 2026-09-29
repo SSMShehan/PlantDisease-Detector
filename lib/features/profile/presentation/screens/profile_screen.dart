@@ -9,6 +9,7 @@ import 'package:plant_disease_detector/core/providers/locale_provider.dart';
 import 'package:plant_disease_detector/features/profile/presentation/screens/language_selection_screen.dart';
 import 'package:plant_disease_detector/l10n/app_localizations.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
 
@@ -107,18 +108,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     context.tr(en: 'Profile', si: 'පැතිකඩ', ta: 'சுயவிவரம்'),
                     style: AppTextStyles.headlineMedium.copyWith(letterSpacing: -0.5, fontSize: 24),
                   ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
-                    },
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [
-                        BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
-                      ]),
-                      child: const Icon(Icons.settings_outlined, color: AppColors.settingsIcon, size: 20),
-                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const LanguageSelectorButton(isCompact: true),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
+                        },
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [
+                            BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
+                          ]),
+                          child: const Icon(Icons.settings_outlined, color: AppColors.settingsIcon, size: 20),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

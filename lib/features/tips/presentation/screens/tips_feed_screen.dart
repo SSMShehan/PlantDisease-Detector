@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
+import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'package:plant_disease_detector/shared/widgets/smart_image.dart';
 import 'package:plant_disease_detector/features/tips/presentation/screens/tip_detail_screen.dart';
 
@@ -11,7 +13,13 @@ class TipsFeedScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Farming Tips', style: AppTextStyles.titleMedium),
+        title: Text(
+          context.tr(en: 'Farming Tips', si: 'ගොවිතැන් උපදෙස්', ta: 'விவசாய குறிப்புகள்'),
+          style: AppTextStyles.titleMedium,
+        ),
+        actions: const [
+          LanguageSelectorButton(),
+        ],
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(24.0),

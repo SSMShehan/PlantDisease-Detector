@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 
+import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
+
 class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
 
@@ -14,7 +17,10 @@ class NotificationsScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => context.pop(),
         ),
-        title: Text('Notifications', style: AppTextStyles.titleMedium),
+        title: Text(
+          context.tr(en: 'Notifications', si: 'දැනුම්දීම්', ta: 'அறிவிப்புகள்'),
+          style: AppTextStyles.titleMedium,
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.done_all_rounded, color: AppColors.primary),
@@ -25,6 +31,7 @@ class NotificationsScreen extends StatelessWidget {
             },
             tooltip: 'Mark all as read',
           ),
+          const LanguageSelectorButton(),
         ],
       ),
       body: ListView(

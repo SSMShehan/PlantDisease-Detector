@@ -12,6 +12,7 @@ import 'package:plant_disease_detector/core/providers/user_provider.dart';
 import 'package:plant_disease_detector/shared/widgets/smart_image.dart';
 import 'package:plant_disease_detector/l10n/app_localizations.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 
@@ -91,19 +92,24 @@ class HomeScreen extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          context.tr(
-                            en: 'CropGuard: AI Disease Identification',
-                            si: 'CropGuard: AI බෝග රෝග හඳුනාගැනීම',
-                            ta: 'CropGuard: AI பயிர் நோய் கண்டறிதல்',
-                          ),
-                          style: const TextStyle(
-                            color: AppColors.emeraldMist,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.3,
+                        Expanded(
+                          child: Text(
+                            context.tr(
+                              en: 'CropGuard: AI Disease Identification',
+                              si: 'CropGuard: AI බෝග රෝග හඳුනාගැනීම',
+                              ta: 'CropGuard: AI பயிர் நோய் கண்டறிதல்',
+                            ),
+                            style: const TextStyle(
+                              color: AppColors.emeraldMist,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.3,
+                            ),
                           ),
                         ),
+                        const SizedBox(width: 8),
+                        const LanguageSelectorButton(isDark: true, isCompact: true),
+                        const SizedBox(width: 8),
                         Container(
                           width: 44,
                           height: 44,

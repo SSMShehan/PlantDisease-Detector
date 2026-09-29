@@ -3,6 +3,7 @@ import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/shared/widgets/smart_image.dart';
 import 'package:plant_disease_detector/features/treatment/data/disease_model.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'dart:ui';
 
 class DiseaseDetailScreen extends StatelessWidget {
@@ -21,6 +22,9 @@ class DiseaseDetailScreen extends StatelessWidget {
             pinned: true,
             stretch: true,
             backgroundColor: AppColors.primary,
+            actions: const [
+              LanguageSelectorButton(isDark: true, isCompact: true),
+            ],
             leading: Padding(
               padding: const EdgeInsets.all(8.0),
               child: ClipRRect(

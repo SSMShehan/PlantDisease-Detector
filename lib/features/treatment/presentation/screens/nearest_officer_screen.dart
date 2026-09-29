@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/shared/widgets/smart_image.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'package:plant_disease_detector/models/agri_officer.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -100,6 +101,8 @@ class _NearestOfficerScreenState extends ConsumerState<NearestOfficerScreen>
                         ),
                       ),
                       const Spacer(),
+                      const LanguageSelectorButton(isDark: true, isCompact: true),
+                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                         decoration: BoxDecoration(

@@ -10,6 +10,7 @@ import 'package:plant_disease_detector/features/diagnosis/presentation/screens/s
 import 'package:plant_disease_detector/features/diagnosis/presentation/screens/photo_guide_screen.dart';
 import 'package:plant_disease_detector/core/providers/camera_provider.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 
 class CameraCaptureScreen extends ConsumerStatefulWidget {
   const CameraCaptureScreen({super.key});
@@ -322,40 +323,46 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen> with 
                         ),
                       ),
                     ),
-                    // Wireframe 3: [ GUIDE ? ] button triggering PhotoGuideScreen
-                    GestureDetector(
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const PhotoGuideScreen()),
-                        );
-                      },
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(30),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.5),
-                              borderRadius: BorderRadius.circular(30),
-                              border: Border.all(color: AppColors.copper.withValues(alpha: 0.6)),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.help_outline_rounded, color: AppColors.copperLight, size: 16),
-                                const SizedBox(width: 4),
-                                Text(
-                                  context.tr(en: 'GUIDE ?', si: 'මඟපෙන්වීම ?', ta: 'வழிகாட்டி ?'),
-                                  style: AppTextStyles.titleSmall.copyWith(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.8),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            HapticFeedback.lightImpact();
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const PhotoGuideScreen()),
+                            );
+                          },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(30),
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withValues(alpha: 0.5),
+                                  borderRadius: BorderRadius.circular(30),
+                                  border: Border.all(color: AppColors.copper.withValues(alpha: 0.6)),
                                 ),
-                              ],
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.help_outline_rounded, color: AppColors.copperLight, size: 16),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      context.tr(en: 'GUIDE ?', si: 'මඟපෙන්වීම ?', ta: 'வழிகாட்டி ?'),
+                                      style: AppTextStyles.titleSmall.copyWith(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.8),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
+                        const SizedBox(width: 8),
+                        const LanguageSelectorButton(isDark: true, isCompact: true),
+                      ],
                     ),
                   ],
                 ),

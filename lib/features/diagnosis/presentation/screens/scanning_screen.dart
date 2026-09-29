@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'package:plant_disease_detector/features/diagnosis/presentation/screens/diagnostic_result_screen.dart';
 
 import 'dart:io';
@@ -121,12 +122,21 @@ class _ScanningScreenState extends ConsumerState<ScanningScreen>
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // 1. Scanned Image Preview
-              _buildImagePreview(),
+        child: Stack(
+          children: [
+            const Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: EdgeInsets.only(top: 8, right: 16),
+                child: LanguageSelectorButton(isCompact: true),
+              ),
+            ),
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // 1. Scanned Image Preview
+                  _buildImagePreview(),
 
               const SizedBox(height: 40),
 
@@ -165,8 +175,10 @@ class _ScanningScreenState extends ConsumerState<ScanningScreen>
             ],
           ),
         ),
-      ),
-    );
+      ],
+    ),
+  ),
+);
   }
 
   Widget _buildImagePreview() {

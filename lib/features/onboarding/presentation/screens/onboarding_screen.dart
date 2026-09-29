@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/providers/locale_provider.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -248,33 +249,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     ),
                     onPressed: () => context.go('/language'),
                   ),
-                  // Quick Language Switcher Pill
-                  GestureDetector(
-                    onTap: () => context.go('/language'),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.45),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.language_rounded, color: Colors.white, size: 16),
-                          const SizedBox(width: 6),
-                          Text(
-                            currentLang == 'si'
-                                ? 'සිංහල'
-                                : (currentLang == 'ta' ? 'தமிழ்' : 'English'),
-                            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(width: 4),
-                          const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white, size: 16),
-                        ],
-                      ),
-                    ),
-                  ),
+                  const LanguageSelectorButton(isDark: true),
                 ],
               ),
             ),

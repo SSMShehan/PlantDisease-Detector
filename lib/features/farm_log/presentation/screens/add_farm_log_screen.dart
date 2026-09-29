@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 
 class AddFarmLogScreen extends StatefulWidget {
   const AddFarmLogScreen({super.key});
@@ -28,6 +29,9 @@ class _AddFarmLogScreenState extends State<AddFarmLogScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(context.tr(en: 'New Farm Log', si: 'නව ගොවිපල සටහන', ta: 'புதிய பண்ணை பதிவு'), style: AppTextStyles.titleMedium),
+        actions: const [
+          LanguageSelectorButton(),
+        ],
       ),
       body: SafeArea(
         child: Column(

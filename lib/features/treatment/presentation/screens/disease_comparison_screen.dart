@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/shared/widgets/smart_image.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'package:plant_disease_detector/features/treatment/data/disease_model.dart';
 import 'package:plant_disease_detector/features/treatment/presentation/screens/treatment_detail_screen.dart';
 
@@ -89,6 +90,9 @@ class DiseaseComparisonScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textOnDark),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: const [
+          LanguageSelectorButton(isDark: true, isCompact: true),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
