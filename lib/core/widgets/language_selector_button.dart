@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:plant_disease_detector/core/localization/app_strings.dart';
 import 'package:plant_disease_detector/core/providers/locale_provider.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 
-/// A reusable top-right Language Selector button.
-/// Tapping it opens a sleek bottom sheet to switch between English, සිංහල, and தமிழ் instantly.
+/// A reusable top-right Language Selector Dropdown button.
+/// Clicking it opens a dropdown popup menu with the 3 languages (English, සිංහල, தமிழ்).
+/// It changes the language instantly in-place without navigating away.
 class LanguageSelectorButton extends ConsumerWidget {
   final bool isDark;
   final bool isCompact;
@@ -20,7 +20,7 @@ class LanguageSelectorButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Watch locale so the label and button update dynamically
+    // Watch locale so the current language label updates dynamically
     final locale = ref.watch(localeProvider);
     final currentLang = locale.languageCode;
 
@@ -31,8 +31,10 @@ class LanguageSelectorButton extends ConsumerWidget {
     };
 
     final Color foregroundColor = isDark ? Colors.white : AppColors.textPrimary;
+    final Color iconColor = isDark ? Colors.white : AppColors.primary;
+    final Color arrowColor = isDark ? Colors.white70 : AppColors.textSecondary;
     final Color backgroundColor = isDark
-        ? Colors.black.withValues(alpha: 0.35)
+        ? Colors.black.withValues(alpha: 0.4)
         : AppColors.primary.withValues(alpha: 0.08);
     final Color borderColor = isDark
         ? Colors.white.withValues(alpha: 0.25)
@@ -40,11 +42,54 @@ class LanguageSelectorButton extends ConsumerWidget {
 
     return Padding(
       padding: padding ?? const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => showLanguageBottomSheet(context, ref),
-          borderRadius: BorderRadius.circular(20),
+      child: Theme(
+        // Ensure popup menu theme is crisp and modern
+        data: Theme.of(context).copyWith(
+          popupMenuTheme: PopupMenuThemeData(
+            color: Colors.white,
+            surfaceTintColor: Colors.transparent,
+            elevation: 10,
+            shadowColor: Colors.black.withValues(alpha: 0.2),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+              side: BorderSide(
+                color: Colors.black.withValues(alpha: 0.06),
+                width: 1,
+              ),
+            ),
+          ),
+        ),
+        child: PopupMenuButton<String>(
+          tooltip: 'Select Language / භාෂාව තෝරන්න',
+          offset: const Offset(0, 42),
+          position: PopupMenuPosition.under,
+          onSelected: (String langCode) async {
+            if (langCode != currentLang) {
+              await ref.read(localeProvider.notifier).setLocale(Locale(langCode));
+            }
+          },
+          itemBuilder: (BuildContext popupContext) => [
+            _buildPopupItem(
+              code: 'en',
+              title: 'English',
+              badge: 'EN',
+              isSelected: currentLang == 'en',
+            ),
+            const PopupMenuDivider(height: 1),
+            _buildPopupItem(
+              code: 'si',
+              title: 'සිංහල',
+              badge: 'SI',
+              isSelected: currentLang == 'si',
+            ),
+            const PopupMenuDivider(height: 1),
+            _buildPopupItem(
+              code: 'ta',
+              title: 'தமிழ்',
+              badge: 'TA',
+              isSelected: currentLang == 'ta',
+            ),
+          ],
           child: Container(
             padding: EdgeInsets.symmetric(
               horizontal: isCompact ? 10 : 12,
@@ -61,7 +106,7 @@ class LanguageSelectorButton extends ConsumerWidget {
                 Icon(
                   Icons.language_rounded,
                   size: isCompact ? 16 : 18,
-                  color: isDark ? Colors.white : AppColors.primary,
+                  color: iconColor,
                 ),
                 const SizedBox(width: 5),
                 Text(
@@ -76,7 +121,7 @@ class LanguageSelectorButton extends ConsumerWidget {
                 Icon(
                   Icons.keyboard_arrow_down_rounded,
                   size: isCompact ? 16 : 18,
-                  color: isDark ? Colors.white70 : AppColors.textSecondary,
+                  color: arrowColor,
                 ),
               ],
             ),
@@ -86,213 +131,55 @@ class LanguageSelectorButton extends ConsumerWidget {
     );
   }
 
-  /// Opens an elegant modal bottom sheet to select language
-  static void showLanguageBottomSheet(BuildContext context, WidgetRef ref) {
-    final currentCode = ref.read(localeProvider).languageCode;
-
-    final List<Map<String, String>> languages = [
-      {'code': 'en', 'name': 'English', 'localName': 'English', 'badge': 'EN'},
-      {'code': 'si', 'name': 'Sinhala', 'localName': 'සිංහල', 'badge': 'SI'},
-      {'code': 'ta', 'name': 'Tamil', 'localName': 'தமிழ்', 'badge': 'TA'},
-    ];
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (sheetContext) {
-        return Container(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 20,
-                offset: Offset(0, -4),
+  PopupMenuItem<String> _buildPopupItem({
+    required String code,
+    required String title,
+    required String badge,
+    required bool isSelected,
+  }) {
+    return PopupMenuItem<String>(
+      value: code,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? AppColors.primary
+                  : Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              badge,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                color: isSelected ? Colors.white : AppColors.textSecondary,
               ),
-            ],
-          ),
-          child: SafeArea(
-            top: false,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Drag handle
-                Center(
-                  child: Container(
-                    width: 44,
-                    height: 5,
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
-
-                // Header
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.language_rounded,
-                        color: AppColors.primary,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            context.tr(
-                              en: 'Choose Language',
-                              si: 'භාෂාව තෝරන්න',
-                              ta: 'மொழியைத் தேர்ந்தெடுக்கவும்',
-                            ),
-                            style: AppTextStyles.titleLarge.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            context.tr(
-                              en: 'Change language at any time',
-                              si: 'ඕනෑම අවස්ථාවක භාෂාව මාරු කරන්න',
-                              ta: 'எந்த நேரத்திலும் மொழியை மாற்றலாம்',
-                            ),
-                            style: AppTextStyles.bodySmall.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary),
-                      onPressed: () => Navigator.pop(sheetContext),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-
-                // Language options list
-                ...languages.map((lang) {
-                  final isSelected = lang['code'] == currentCode;
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12.0),
-                    child: InkWell(
-                      onTap: () async {
-                        await ref
-                            .read(localeProvider.notifier)
-                            .setLocale(Locale(lang['code']!));
-                        if (sheetContext.mounted) {
-                          Navigator.pop(sheetContext);
-                        }
-                      },
-                      borderRadius: BorderRadius.circular(16),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? AppColors.surface
-                              : AppColors.cardSurface,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: isSelected
-                                ? AppColors.copper
-                                : AppColors.cardBorder,
-                            width: isSelected ? 2 : 1,
-                          ),
-                          boxShadow: isSelected
-                              ? [
-                                  BoxShadow(
-                                    color: AppColors.copper.withValues(alpha: 0.15),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 3),
-                                  )
-                                ]
-                              : null,
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? AppColors.primary
-                                    : Colors.grey.shade200,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              alignment: Alignment.center,
-                              child: Text(
-                                lang['badge']!,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
-                                  color: isSelected ? Colors.white : AppColors.textPrimary,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    lang['localName']!,
-                                    style: AppTextStyles.titleMedium.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      color: isSelected
-                                          ? AppColors.primary
-                                          : AppColors.textPrimary,
-                                    ),
-                                  ),
-                                  Text(
-                                    lang['name']!,
-                                    style: AppTextStyles.bodySmall.copyWith(
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (isSelected)
-                              Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(
-                                  color: AppColors.copper,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.check_rounded,
-                                  size: 16,
-                                  color: Colors.white,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-              ],
             ),
           ),
-        );
-      },
+          const SizedBox(width: 12),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              color: isSelected ? AppColors.primary : AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(width: 16),
+          if (isSelected)
+            const Icon(
+              Icons.check_circle_rounded,
+              size: 18,
+              color: AppColors.primary,
+            )
+          else
+            const SizedBox(width: 18),
+        ],
+      ),
     );
   }
 }
