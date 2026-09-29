@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:plant_disease_detector/core/localization/app_strings.dart';
+
 // ─────────────────────────────────────────────────────────────────────────────
 // LocaleNotifier — manages the app's current locale and persists it.
 // Reads/writes to SharedPreferences so the choice survives app restarts.
@@ -13,16 +15,18 @@ class LocaleNotifier extends Notifier<Locale> {
   Locale build() {
     // Start with English; _loadSaved will update after SharedPreferences reads.
     _loadSaved();
-    return const Locale('en');
+    return Locale(AppStrings.currentLocaleCode);
   }
 
   Future<void> _loadSaved() async {
     final prefs = await SharedPreferences.getInstance();
     final code = prefs.getString(_prefKey) ?? 'en';
+    AppStrings.currentLocaleCode = code;
     state = Locale(code);
   }
 
   Future<void> setLocale(Locale locale) async {
+    AppStrings.currentLocaleCode = locale.languageCode;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_prefKey, locale.languageCode);
     state = locale;

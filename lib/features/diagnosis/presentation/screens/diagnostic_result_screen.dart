@@ -470,7 +470,6 @@ class _DiagnosticResultScreenState extends ConsumerState<DiagnosticResultScreen>
                                 );
                               },
                             ),
-                            ),
                           ),
                         ),
                         Column(

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:ui';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
+import 'package:plant_disease_detector/core/providers/locale_provider.dart';
 import 'package:plant_disease_detector/features/home/presentation/screens/home_screen.dart';
 import 'package:plant_disease_detector/features/history/presentation/screens/history_screen.dart';
 import 'package:plant_disease_detector/features/farm_log/presentation/screens/farm_screen.dart';
@@ -13,32 +15,33 @@ import 'package:plant_disease_detector/core/localization/app_strings.dart';
 // ─────────────────────────────────────────────────────────────────────────────
 // MainScreen — Handles Bottom Navigation (Glassmorphism)
 // ─────────────────────────────────────────────────────────────────────────────
-class MainScreen extends StatefulWidget {
+class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({super.key});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  ConsumerState<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends ConsumerState<MainScreen> {
   int _currentIndex = 0;
-
-  final List<Widget> _pages = const [
-    HomeScreen(),
-    FarmScreen(),
-    HistoryScreen(),
-    ProfileScreen(),
-  ];
 
   @override
   Widget build(BuildContext context) {
+    final currentLocale = ref.watch(localeProvider);
+    final List<Widget> pages = [
+      HomeScreen(key: ValueKey('home_tab_${currentLocale.languageCode}')),
+      FarmScreen(key: ValueKey('farm_tab_${currentLocale.languageCode}')),
+      HistoryScreen(key: ValueKey('history_tab_${currentLocale.languageCode}')),
+      ProfileScreen(key: ValueKey('profile_tab_${currentLocale.languageCode}')),
+    ];
+
     return Scaffold(
       body: Stack(
         children: [
           // The active page
           IndexedStack(
             index: _currentIndex,
-            children: _pages,
+            children: pages,
           ),
           
           // Glassmorphism Bottom Nav

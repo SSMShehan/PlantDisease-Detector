@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 /// Dynamically updates whenever the app locale changes (en, si, ta).
 extension AppLocalizationContext on BuildContext {
   String tr({required String en, required String si, required String ta}) {
-    final code = Localizations.localeOf(this).languageCode;
+    final code = AppStrings.currentLocaleCode;
     if (code == 'si') return si;
     if (code == 'ta') return ta;
     return en;
@@ -12,20 +12,17 @@ extension AppLocalizationContext on BuildContext {
 
   /// Translates common disease names automatically across all screens
   String trDisease(String diseaseName) {
-    final code = Localizations.localeOf(this).languageCode;
-    return AppStrings.translateDisease(diseaseName, code);
+    return AppStrings.translateDisease(diseaseName, AppStrings.currentLocaleCode);
   }
 
   /// Translates symptom descriptions
   String trSymptom(String symptom) {
-    final code = Localizations.localeOf(this).languageCode;
-    return AppStrings.translateSymptom(symptom, code);
+    return AppStrings.translateSymptom(symptom, AppStrings.currentLocaleCode);
   }
 
   /// Translates treatment texts
   String trTreatment(String text) {
-    final code = Localizations.localeOf(this).languageCode;
-    return AppStrings.translateTreatment(text, code);
+    return AppStrings.translateTreatment(text, AppStrings.currentLocaleCode);
   }
 
   /// Translates severity labels
@@ -60,12 +57,14 @@ extension AppLocalizationContext on BuildContext {
     return dateLabel;
   }
 
-  bool get isSinhala => Localizations.localeOf(this).languageCode == 'si';
-  bool get isTamil => Localizations.localeOf(this).languageCode == 'ta';
+  bool get isSinhala => AppStrings.currentLocaleCode == 'si';
+  bool get isTamil => AppStrings.currentLocaleCode == 'ta';
 }
 
 /// Static helper for cases outside of direct widget build trees.
 class AppStrings {
+  static String currentLocaleCode = 'en';
+
   static String tr(String langCode, {required String en, required String si, required String ta}) {
     if (langCode == 'si') return si;
     if (langCode == 'ta') return ta;

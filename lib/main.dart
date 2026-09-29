@@ -55,6 +55,7 @@ class CropGuardApp extends ConsumerWidget {
 
       // ── Localisation ────────────────────────────────────────────────────
       locale: locale,
+      localeResolutionCallback: (deviceLocale, supportedLocales) => locale,
       supportedLocales: const [
         Locale('en'),
         Locale('si'),
@@ -68,12 +69,15 @@ class CropGuardApp extends ConsumerWidget {
       ],
 
       builder: (context, child) {
-        return Container(
-          color: AppColors.webOuterBg,
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 450),
-              child: ClipRect(child: child!),
+        return KeyedSubtree(
+          key: ValueKey('app_root_locale_${locale.languageCode}'),
+          child: Container(
+            color: AppColors.webOuterBg,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 450),
+                child: ClipRect(child: child!),
+              ),
             ),
           ),
         );

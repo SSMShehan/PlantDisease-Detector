@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'dart:ui';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/providers/locale_provider.dart';
+import 'package:plant_disease_detector/core/localization/app_strings.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -16,58 +17,45 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  List<Map<String, String>> _getOnboardingData(String lang) {
-    if (lang == 'si') {
-      return [
-        {
-          'title': 'බෝග රෝග ක්ෂණිකව හඳුනාගන්න',
-          'description': 'ඕනෑම රෝගී පැළෑටියක ඡායාරූපයක් ගෙන අපගේ AI මඟින් තත්පර කිහිපයකින් එය හඳුනාගන්න.',
-          'image': 'https://images.unsplash.com/photo-1622383563227-04401ab4e5ea?q=80&w=800&auto=format&fit=crop',
-        },
-        {
-          'title': 'විශේෂඥ ප්‍රතිකාර ලබාගන්න',
-          'description': 'ඔබේ බෝගයට ගැලපෙන පියවරෙන් පියවර කාබනික හා රසායනික ප්‍රතිකාර සැලසුම් ලබාගන්න.',
-          'image': 'https://images.unsplash.com/photo-1592841200221-a6898f307baa?q=80&w=800&auto=format&fit=crop',
-        },
-        {
-          'title': 'අස්වැන්න ලුහුබඳින්න සහ එක්වන්න',
-          'description': 'ඔබේ ගොවිපල වියදම් කළමනාකරණය කර සාර්ථක ගොවි ප්‍රජාවකට එකතු වන්න.',
-          'image': 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?q=80&w=800&auto=format&fit=crop',
-        },
-      ];
-    } else if (lang == 'ta') {
-      return [
-        {
-          'title': 'பயிர் நோய்களை உடனடியாகக் கண்டறியவும்',
-          'description': 'பாதிக்கப்பட்ட பயிரின் புகைப்படத்தை எடுத்து நொடிகளில் எங்கள் AI மூலம் கண்டறியவும்.',
-          'image': 'https://images.unsplash.com/photo-1622383563227-04401ab4e5ea?q=80&w=800&auto=format&fit=crop',
-        },
-        {
-          'title': 'நிபுணர் சிகிச்சை முறைகளைப் பெறுங்கள்',
-          'description': 'உங்கள் பயிருக்கான இயற்கை மற்றும் ரசாயன சிகிச்சை முறைகளைப் பெறுங்கள்.',
-          'image': 'https://images.unsplash.com/photo-1592841200221-a6898f307baa?q=80&w=800&auto=format&fit=crop',
-        },
-        {
-          'title': 'விளைச்சலைக் கண்காணித்து இணையுங்கள்',
-          'description': 'பண்ணை செலவுகளை நிர்வகித்து முன்னணி விவசாயிகளுடன் இணையுங்கள்.',
-          'image': 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?q=80&w=800&auto=format&fit=crop',
-        },
-      ];
-    }
+  List<Map<String, String>> _getOnboardingData(BuildContext context) {
     return [
       {
-        'title': 'Identify Diseases Instantly',
-        'description': 'Take a photo of any sick plant and let our AI diagnose it in seconds.',
+        'title': context.tr(
+          en: 'Identify Diseases Instantly',
+          si: 'බෝග රෝග ක්ෂණිකව හඳුනාගන්න',
+          ta: 'பயிர் நோய்களை உடனடியாகக் கண்டறியவும்',
+        ),
+        'description': context.tr(
+          en: 'Take a photo of any sick plant and let our AI diagnose it in seconds.',
+          si: 'ඕනෑම රෝගී පැළෑටියක ඡායාරූපයක් ගෙන අපගේ AI මඟින් තත්පර කිහිපයකින් එය හඳුනාගන්න.',
+          ta: 'பாதிக்கப்பட்ட பயிரின் புகைப்படத்தை எடுத்து நொடிகளில் எங்கள் AI மூலம் கண்டறியவும்.',
+        ),
         'image': 'https://images.unsplash.com/photo-1622383563227-04401ab4e5ea?q=80&w=800&auto=format&fit=crop',
       },
       {
-        'title': 'Get Expert Treatments',
-        'description': 'Receive step-by-step organic and chemical treatment plans tailored for your crop.',
+        'title': context.tr(
+          en: 'Get Expert Treatments',
+          si: 'විශේෂඥ ප්‍රතිකාර ලබාගන්න',
+          ta: 'நிபுணர் சிகிச்சை முறைகளைப் பெறுங்கள்',
+        ),
+        'description': context.tr(
+          en: 'Receive step-by-step organic and chemical treatment plans tailored for your crop.',
+          si: 'ඔබේ බෝගයට ගැලපෙන පියවරෙන් පියවර කාබනික හා රසායනික ප්‍රතිකාර සැලසුම් ලබාගන්න.',
+          ta: 'உங்கள் பயிருக்கான இயற்கை மற்றும் ரசாயன சிகிச்சை முறைகளைப் பெறுங்கள்.',
+        ),
         'image': 'https://images.unsplash.com/photo-1592841200221-a6898f307baa?q=80&w=800&auto=format&fit=crop',
       },
       {
-        'title': 'Track Yield & Connect',
-        'description': 'Manage your farm expenses and join a community of thriving farmers.',
+        'title': context.tr(
+          en: 'Track Yield & Connect',
+          si: 'අස්වැන්න ලුහුබඳින්න සහ එක්වන්න',
+          ta: 'விளைச்சலைக் கண்காணித்து இணையுங்கள்',
+        ),
+        'description': context.tr(
+          en: 'Manage your farm expenses and join a community of thriving farmers.',
+          si: 'ඔබේ ගොවිපල වියදම් කළමනාකරණය කර සාර්ථක ගොවි ප්‍රජාවකට එකතු වන්න.',
+          ta: 'பண்ணை செலவுகளை நிர்வகித்து முன்னணி விவசாயிகளுடன் இணையுங்கள்.',
+        ),
         'image': 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?q=80&w=800&auto=format&fit=crop',
       },
     ];
@@ -75,10 +63,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currentLocale = ref.watch(localeProvider);
-    final onboardingData = _getOnboardingData(currentLocale.languageCode);
-    final isSinhala = currentLocale.languageCode == 'si';
-    final isTamil = currentLocale.languageCode == 'ta';
+    // Watch locale so this entire screen rebuilds instantly when language changes
+    ref.watch(localeProvider);
+    final onboardingData = _getOnboardingData(context);
+    final currentLang = AppStrings.currentLocaleCode;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -94,18 +82,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             },
             itemCount: onboardingData.length,
             itemBuilder: (context, index) {
-              // Fallback gradient colors per slide
               final gradients = AppGradients.onboardingSlides;
               return Stack(
                 fit: StackFit.expand,
                 children: [
-                  // Gradient fallback always rendered first
                   Container(
                     decoration: BoxDecoration(
                       gradient: gradients[index % gradients.length],
                     ),
                   ),
-                  // Network image overlaid on top with progress indicator
                   Image.network(
                     onboardingData[index]['image']!,
                     fit: BoxFit.cover,
@@ -130,7 +115,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       ),
                     ),
                   ),
-                  // Gradient overlay to ensure text readability
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -188,12 +172,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         ),
                         const SizedBox(height: 32),
                         
-                        // Text Content
+                        // Text Content (keyed with locale so it dynamically transitions)
                         AnimatedSwitcher(
                           duration: const Duration(milliseconds: 300),
                           child: Text(
                             onboardingData[_currentPage]['title']!,
-                            key: ValueKey<int>(_currentPage),
+                            key: ValueKey<String>('title_${_currentPage}_$currentLang'),
                             style: AppTextStyles.headlineMedium.copyWith(color: Colors.white),
                             textAlign: TextAlign.center,
                           ),
@@ -203,7 +187,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           duration: const Duration(milliseconds: 300),
                           child: Text(
                             onboardingData[_currentPage]['description']!,
-                            key: ValueKey<int>(_currentPage + 10),
+                            key: ValueKey<String>('desc_${_currentPage}_$currentLang'),
                             style: AppTextStyles.bodyLarge.copyWith(color: Colors.white.withValues(alpha: 0.9)),
                             textAlign: TextAlign.center,
                           ),
@@ -233,8 +217,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           ),
                           child: Text(
                             _currentPage == onboardingData.length - 1
-                                ? (isSinhala ? 'ආරම්භ කරන්න' : (isTamil ? 'தொடங்குங்கள்' : 'Get Started'))
-                                : (isSinhala ? 'ඊළඟ' : (isTamil ? 'அடுத்து' : 'Next')),
+                                ? context.tr(en: 'Get Started', si: 'ආරම්භ කරන්න', ta: 'தொடங்குங்கள்')
+                                : context.tr(en: 'Next', si: 'ඊළඟ', ta: 'அடுத்து'),
                             style: AppTextStyles.titleMedium.copyWith(color: Colors.white, fontSize: 18),
                           ),
                         ),
@@ -245,10 +229,58 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               ),
             ),
           ),
+
+          // Top Header Bar with Back & Language Switcher Pill
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    icon: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.35),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 20),
+                    ),
+                    onPressed: () => context.go('/language'),
+                  ),
+                  // Quick Language Switcher Pill
+                  GestureDetector(
+                    onTap: () => context.go('/language'),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.45),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.language_rounded, color: Colors.white, size: 16),
+                          const SizedBox(width: 6),
+                          Text(
+                            currentLang == 'si'
+                                ? 'සිංහල'
+                                : (currentLang == 'ta' ? 'தமிழ்' : 'English'),
+                            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white, size: 16),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 }
-
-

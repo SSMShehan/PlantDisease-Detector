@@ -132,6 +132,7 @@ class _LanguageSelectionScreenState
     final bool isSelected = _selectedCode == code;
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () async {
         setState(() => _selectedCode = code);
         await ref.read(localeProvider.notifier).setLocale(Locale(code));
