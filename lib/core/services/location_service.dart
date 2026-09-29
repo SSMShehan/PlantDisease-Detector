@@ -24,12 +24,14 @@ class LocationService {
         return null;
       }
 
-      Position? position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.medium,
-      ).timeout(
-        const Duration(seconds: 5),
-        onTimeout: () => throw Exception('Location timeout'),
-      ).catchError((_) => null);
+      Position? position;
+      try {
+        position = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(accuracy: LocationAccuracy.medium),
+        ).timeout(const Duration(seconds: 5));
+      } catch (_) {
+        position = null;
+      }
 
       position ??= await Geolocator.getLastKnownPosition();
       return position;

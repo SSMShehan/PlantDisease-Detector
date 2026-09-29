@@ -113,13 +113,13 @@ class DiseaseDetailScreen extends StatelessWidget {
                   // Symptoms
                   _buildSectionHeader(context.tr(en: 'Symptoms', si: 'රෝග ලක්ෂණ', ta: 'அறிகுறிகள்'), Icons.coronavirus_outlined, Colors.red.shade400),
                   const SizedBox(height: 12),
-                  ...disease.symptoms.map((s) => _buildBulletPoint(context.trSymptom(s))).toList(),
+                  ...disease.symptoms.map((s) => _buildBulletPoint(context.trSymptom(s))),
                   const SizedBox(height: 32),
 
                   // Causes
                   _buildSectionHeader(context.tr(en: 'Causes & Spread', si: 'හේතු සහ ව්‍යාප්තිය', ta: 'காரணங்கள் & பரவல்'), Icons.air_rounded, Colors.blue.shade400),
                   const SizedBox(height: 12),
-                  ...disease.causes.map((c) => _buildBulletPoint(context.trSymptom(c))).toList(),
+                  ...disease.causes.map((c) => _buildBulletPoint(context.trSymptom(c))),
                   const SizedBox(height: 32),
 
                   // Treatments (Timeline format)

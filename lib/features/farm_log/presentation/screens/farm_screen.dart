@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/shared/widgets/smart_image.dart';
 import 'package:plant_disease_detector/features/diagnosis/presentation/screens/camera_capture_screen.dart';
@@ -120,7 +120,7 @@ class _FarmScreenState extends State<FarmScreen> {
                         gradient: AppGradients.profileCard,
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
-                          BoxShadow(color: AppColors.severityHigh.withOpacity(0.35), blurRadius: 16, offset: const Offset(0, 6)),
+                          BoxShadow(color: AppColors.severityHigh.withValues(alpha: 0.35), blurRadius: 16, offset: const Offset(0, 6)),
                         ],
                       ),
                       child: Text(
@@ -172,7 +172,7 @@ class _FarmScreenState extends State<FarmScreen> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withOpacity(0.1),
+                              color: AppColors.primary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Row(
@@ -215,7 +215,7 @@ class _FarmScreenState extends State<FarmScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 4))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 4))],
         ),
         child: Column(
           children: [
@@ -294,7 +294,7 @@ class _FarmScreenState extends State<FarmScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
         ),
         child: Column(
           children: [
@@ -315,7 +315,7 @@ class _FarmScreenState extends State<FarmScreen> {
                       ),
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withValues(alpha: 0.2),
                           borderRadius: const BorderRadius.only(topLeft: Radius.circular(16), bottomLeft: Radius.circular(16)),
                         ),
                         alignment: Alignment.center,
@@ -351,7 +351,7 @@ class _FarmScreenState extends State<FarmScreen> {
                             ),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(color: field.statusColor.withOpacity(0.15), borderRadius: BorderRadius.circular(50)),
+                              decoration: BoxDecoration(color: field.statusColor.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(50)),
                               child: Text(
                                 field.status,
                                 style: TextStyle(color: field.statusColor, fontSize: 10, fontWeight: FontWeight.bold),
@@ -454,7 +454,7 @@ class _FarmScreenState extends State<FarmScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
         ),
         child: Opacity(
           opacity: task.done ? 0.6 : 1.0,
@@ -464,7 +464,7 @@ class _FarmScreenState extends State<FarmScreen> {
                 width: 24,
                 height: 24,
                 decoration: BoxDecoration(
-                  color: task.done ? AppColors.severityDefault : task.color.withOpacity(0.1),
+                  color: task.done ? AppColors.severityDefault : task.color.withValues(alpha: 0.1),
                   border: task.done ? null : Border.all(color: task.color, width: 1.5),
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -492,7 +492,7 @@ class _FarmScreenState extends State<FarmScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: task.color.withOpacity(0.15),
+                  color: task.color.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(50),
                 ),
                 child: Text(

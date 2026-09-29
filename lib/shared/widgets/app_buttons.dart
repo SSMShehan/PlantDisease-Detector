@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -31,7 +31,7 @@ class PrimaryButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.35),
+            color: AppColors.primary.withValues(alpha: 0.35),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -96,14 +96,14 @@ class SecondaryButton extends StatelessWidget {
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primary,
           side: BorderSide(
-            color: AppColors.primary.withOpacity(0.3),
+            color: AppColors.primary.withValues(alpha: 0.3),
             width: 1.5,
           ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
           elevation: 0,
-          backgroundColor: AppColors.primary.withOpacity(0.04),
+          backgroundColor: AppColors.primary.withValues(alpha: 0.04),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

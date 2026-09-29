@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 
 import 'package:plant_disease_detector/core/localization/app_strings.dart';

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'dart:ui';

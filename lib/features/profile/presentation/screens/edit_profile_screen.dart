@@ -174,7 +174,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           final user = client.auth.currentUser;
           if (user != null) {
             final fileExt = finalImagePath.split('.').last;
-            final fileName = '${user.id}_avatar.${fileExt}';
+            final fileName = '${user.id}_avatar.$fileExt';
             
             // For web support, we need bytes.
             if (kIsWeb) {

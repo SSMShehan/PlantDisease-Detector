@@ -48,7 +48,7 @@ class _YieldTrackerScreenState extends State<YieldTrackerScreen> {
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: _tabs.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  separatorBuilder: (_, _) => const SizedBox(width: 8),
                   itemBuilder: (context, index) {
                     final isSelected = _selectedTabIndex == index;
                     final tabLabels = [

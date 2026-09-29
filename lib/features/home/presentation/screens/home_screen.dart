@@ -118,7 +118,7 @@ class HomeScreen extends ConsumerWidget {
                             border: Border.all(color: AppColors.copper, width: 2),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.copper.withOpacity(0.3),
+                                color: AppColors.copper.withValues(alpha: 0.3),
                                 blurRadius: 8,
                               ),
                             ],
@@ -130,7 +130,7 @@ class HomeScreen extends ConsumerWidget {
                                     ? Image.network(
                                         userData.imagePath!,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => _buildInitialsAvatar(userData.fullName, 44),
+                                        errorBuilder: (_, _, _) => _buildInitialsAvatar(userData.fullName, 44),
                                       )
                                     : Image.file(File(userData.imagePath!), fit: BoxFit.cover))
                                 : _buildInitialsAvatar(userData.fullName, 44),
@@ -159,12 +159,12 @@ class HomeScreen extends ConsumerWidget {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.12),
+                          color: Colors.white.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.white.withOpacity(0.25), width: 1.2),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.25), width: 1.2),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.15),
+                              color: Colors.black.withValues(alpha: 0.15),
                               blurRadius: 16,
                               offset: const Offset(0, 4),
                             ),
@@ -337,7 +337,7 @@ class HomeScreen extends ConsumerWidget {
                     border: Border.all(color: AppColors.border, width: 1.5),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.06),
+                        color: Colors.black.withValues(alpha: 0.06),
                         blurRadius: 16,
                         offset: const Offset(0, 6),
                       ),
@@ -356,7 +356,7 @@ class HomeScreen extends ConsumerWidget {
                               width: 38,
                               height: 38,
                               decoration: BoxDecoration(
-                                color: AppColors.copperLight.withOpacity(0.15),
+                                color: AppColors.copperLight.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Icon(Icons.lightbulb_outline_rounded, color: AppColors.copper, size: 22),
@@ -390,7 +390,7 @@ class HomeScreen extends ConsumerWidget {
                             border: Border.all(color: AppColors.copper, width: 2),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primary.withOpacity(0.4),
+                                color: AppColors.primary.withValues(alpha: 0.4),
                                 blurRadius: 14,
                                 offset: const Offset(0, 6),
                               ),
@@ -443,7 +443,7 @@ class HomeScreen extends ConsumerWidget {
                               width: 38,
                               height: 38,
                               decoration: BoxDecoration(
-                                color: AppColors.primaryLight.withOpacity(0.15),
+                                color: AppColors.primaryLight.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Icon(Icons.people_outline_rounded, color: AppColors.primaryLight, size: 22),
@@ -480,10 +480,10 @@ class HomeScreen extends ConsumerWidget {
                   decoration: BoxDecoration(
                     gradient: AppGradients.proUpgradeBanner,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppColors.copperLight.withOpacity(0.4), width: 1.2),
+                    border: Border.all(color: AppColors.copperLight.withValues(alpha: 0.4), width: 1.2),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
+                        color: Colors.black.withValues(alpha: 0.04),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -560,7 +560,7 @@ class HomeScreen extends ConsumerWidget {
         border: Border.all(color: AppColors.border, width: 1.2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -621,7 +621,7 @@ class HomeScreen extends ConsumerWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: isSelected ? AppColors.copper.withOpacity(0.15) : Colors.black.withOpacity(0.04),
+            color: isSelected ? AppColors.copper.withValues(alpha: 0.15) : Colors.black.withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -643,7 +643,7 @@ class HomeScreen extends ConsumerWidget {
                       child: CircularProgressIndicator(
                         value: score,
                         strokeWidth: 6,
-                        backgroundColor: AppColors.copper.withOpacity(0.2),
+                        backgroundColor: AppColors.copper.withValues(alpha: 0.2),
                         valueColor: const AlwaysStoppedAnimation<Color>(AppColors.copper),
                       ),
                     ),

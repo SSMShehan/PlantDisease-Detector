@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
@@ -46,7 +46,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Colors.black.withOpacity(0.2),
+                        Colors.black.withValues(alpha: 0.2),
                         AppColors.background,
                       ],
                       stops: const [0.4, 1.0],
@@ -69,7 +69,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         icon: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(Icons.arrow_back_rounded, color: Colors.white),
@@ -244,7 +244,7 @@ class _SignupScreenState extends State<SignupScreen> {
         border: bgColor == Colors.white ? Border.all(color: Colors.grey.shade300) : null,
         boxShadow: [
           if (bgColor == Colors.white)
-            BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 4, offset: const Offset(0, 2)),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 4, offset: const Offset(0, 2)),
         ],
       ),
       child: Material(

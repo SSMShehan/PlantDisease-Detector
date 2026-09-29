@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
 import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
-import 'dart:ui';
 
 class SavedItemsScreen extends StatefulWidget {
   const SavedItemsScreen({super.key});

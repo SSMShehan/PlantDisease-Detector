@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
 import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
@@ -34,7 +34,7 @@ class ConsultationStatusScreen extends StatelessWidget {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 12, offset: const Offset(0, 4)),
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4)),
                 ],
               ),
               child: Column(
@@ -43,7 +43,7 @@ class ConsultationStatusScreen extends StatelessWidget {
                     width: 64,
                     height: 64,
                     decoration: BoxDecoration(
-                      color: AppColors.secondary.withOpacity(0.1),
+                      color: AppColors.secondary.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.check_circle_rounded, color: AppColors.secondary, size: 32),

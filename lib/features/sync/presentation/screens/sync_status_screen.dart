@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
 import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
@@ -30,7 +30,7 @@ class SyncStatusScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 12, offset: const Offset(0, 4))],
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4))],
               ),
               child: Column(
                 children: [
@@ -38,7 +38,7 @@ class SyncStatusScreen extends StatelessWidget {
                     width: 64,
                     height: 64,
                     decoration: BoxDecoration(
-                      color: AppColors.warning.withOpacity(0.1),
+                      color: AppColors.warning.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.wifi_off_rounded, color: AppColors.warning, size: 32),
@@ -102,7 +102,7 @@ class SyncStatusScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.textSecondary.withOpacity(0.1),
+              color: AppColors.textSecondary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(Icons.cloud_upload_outlined, color: AppColors.textSecondary),

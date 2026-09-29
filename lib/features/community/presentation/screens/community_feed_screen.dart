@@ -75,7 +75,7 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   scrollDirection: Axis.horizontal,
                   itemCount: _filters.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  separatorBuilder: (_, _) => const SizedBox(width: 12),
                   itemBuilder: (context, index) {
                     final isSelected = _selectedFilterIndex == index;
                     final filterTitles = [

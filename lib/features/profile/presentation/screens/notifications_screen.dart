@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 
@@ -90,38 +90,38 @@ class NotificationsScreen extends StatelessWidget {
       case 'alert':
         icon = Icons.warning_amber_rounded;
         iconColor = AppColors.error;
-        bgColor = AppColors.error.withOpacity(0.1);
+        bgColor = AppColors.error.withValues(alpha: 0.1);
         break;
       case 'reminder':
         icon = Icons.medication_liquid_rounded;
         iconColor = AppColors.secondary;
-        bgColor = AppColors.secondary.withOpacity(0.1);
+        bgColor = AppColors.secondary.withValues(alpha: 0.1);
         break;
       case 'success':
         icon = Icons.check_circle_outline_rounded;
         iconColor = AppColors.success;
-        bgColor = AppColors.success.withOpacity(0.1);
+        bgColor = AppColors.success.withValues(alpha: 0.1);
         break;
       default:
         icon = Icons.info_outline_rounded;
         iconColor = AppColors.primary;
-        bgColor = AppColors.primary.withOpacity(0.1);
+        bgColor = AppColors.primary.withValues(alpha: 0.1);
     }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isUnread ? Colors.white : Colors.white.withOpacity(0.6),
+        color: isUnread ? Colors.white : Colors.white.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isUnread ? AppColors.primary.withOpacity(0.2) : Colors.transparent,
+          color: isUnread ? AppColors.primary.withValues(alpha: 0.2) : Colors.transparent,
           width: 1,
         ),
         boxShadow: [
           if (isUnread)
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),

@@ -8,8 +8,6 @@ import 'package:plant_disease_detector/features/history/presentation/screens/his
 import 'package:plant_disease_detector/features/farm_log/presentation/screens/farm_screen.dart';
 import 'package:plant_disease_detector/features/profile/presentation/screens/profile_screen.dart';
 import 'package:plant_disease_detector/features/diagnosis/presentation/screens/camera_capture_screen.dart';
-import 'package:plant_disease_detector/l10n/app_localizations.dart';
-
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -56,11 +54,11 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                 child: Container(
                   height: 72,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.85),
+                    color: Colors.white.withValues(alpha: 0.85),
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 1.5),
                     boxShadow: [
-                      BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 24, offset: const Offset(0, 8)),
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 24, offset: const Offset(0, 8)),
                     ],
                   ),
                   child: Row(
@@ -100,12 +98,12 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                     border: Border.all(color: AppColors.copper, width: 2),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withOpacity(0.5),
+                        color: AppColors.primary.withValues(alpha: 0.5),
                         blurRadius: 18,
                         offset: const Offset(0, 8),
                       ),
                       BoxShadow(
-                        color: AppColors.copper.withOpacity(0.3),
+                        color: AppColors.copper.withValues(alpha: 0.3),
                         blurRadius: 10,
                         spreadRadius: 1,
                       ),

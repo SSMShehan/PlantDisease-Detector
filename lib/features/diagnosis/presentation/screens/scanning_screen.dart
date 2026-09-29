@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'package:plant_disease_detector/features/diagnosis/presentation/screens/diagnostic_result_screen.dart';
@@ -196,7 +196,7 @@ class _ScanningScreenState extends ConsumerState<ScanningScreen>
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  AppColors.primary.withOpacity(0.15),
+                  AppColors.primary.withValues(alpha: 0.15),
                   Colors.transparent,
                 ],
                 stops: const [0, 0.7],
@@ -231,7 +231,7 @@ class _ScanningScreenState extends ConsumerState<ScanningScreen>
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: AppColors.primary.withOpacity(0.2),
+                color: AppColors.primary.withValues(alpha: 0.2),
                 width: 3,
               ),
             ),
@@ -245,7 +245,7 @@ class _ScanningScreenState extends ConsumerState<ScanningScreen>
                             width: 128,
                             height: 128,
                             fit: BoxFit.cover,
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             colorBlendMode: BlendMode.darken,
                           )
                         : Image.file(
@@ -253,7 +253,7 @@ class _ScanningScreenState extends ConsumerState<ScanningScreen>
                             width: 128,
                             height: 128,
                             fit: BoxFit.cover,
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             colorBlendMode: BlendMode.darken,
                           )
                   else
@@ -262,7 +262,7 @@ class _ScanningScreenState extends ConsumerState<ScanningScreen>
                       width: 128,
                       height: 128,
                       fit: BoxFit.cover,
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       colorBlendMode: BlendMode.darken,
                     ),
                   // Animated Radar Scan Sweep
@@ -280,8 +280,8 @@ class _ScanningScreenState extends ConsumerState<ScanningScreen>
                               begin: Alignment.bottomCenter,
                               end: Alignment.topCenter,
                               colors: [
-                                AppColors.primary.withOpacity(0.9), // Bright leading edge
-                                AppColors.primary.withOpacity(0.0), // Fading tail
+                                AppColors.primary.withValues(alpha: 0.9), // Bright leading edge
+                                AppColors.primary.withValues(alpha: 0.0), // Fading tail
                               ],
                             ),
                           ),
@@ -289,7 +289,7 @@ class _ScanningScreenState extends ConsumerState<ScanningScreen>
                             alignment: Alignment.bottomCenter,
                             child: Container(
                               height: 2,
-                              color: Colors.white.withOpacity(0.8), // Core laser beam
+                              color: Colors.white.withValues(alpha: 0.8), // Core laser beam
                             ),
                           ),
                         ),

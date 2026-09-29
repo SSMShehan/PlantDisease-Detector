@@ -14,7 +14,7 @@ class OutboxProcessor {
     if (_isProcessing) return;
     
     final connectivityResult = await Connectivity().checkConnectivity();
-    if (connectivityResult == ConnectivityResult.none) {
+    if (connectivityResult.isEmpty || connectivityResult.contains(ConnectivityResult.none)) {
       return; // No network, skip processing
     }
 

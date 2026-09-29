@@ -7,7 +7,6 @@ import 'package:plant_disease_detector/core/providers/location_provider.dart';
 import 'package:plant_disease_detector/core/providers/user_provider.dart';
 import 'package:plant_disease_detector/core/providers/locale_provider.dart';
 import 'package:plant_disease_detector/features/profile/presentation/screens/language_selection_screen.dart';
-import 'package:plant_disease_detector/l10n/app_localizations.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
 import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'package:flutter/foundation.dart';
@@ -121,7 +120,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [
-                            BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
+                            BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
                           ]),
                           child: const Icon(Icons.settings_outlined, color: AppColors.settingsIcon, size: 20),
                         ),
@@ -179,7 +178,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         gradient: AppGradients.profileCard,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
-          BoxShadow(color: AppColors.severityHigh.withOpacity(0.35), blurRadius: 24, offset: const Offset(0, 12)),
+          BoxShadow(color: AppColors.severityHigh.withValues(alpha: 0.35), blurRadius: 24, offset: const Offset(0, 12)),
         ],
       ),
       child: GestureDetector(
@@ -195,7 +194,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               child: Container(
                 width: 144,
                 height: 144,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(0.15)),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: 0.15)),
               ),
             ),
             Column(
@@ -206,7 +205,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       width: 72,
                       height: 72,
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.white.withOpacity(0.4), width: 3),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 3),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: ClipRRect(
@@ -228,14 +227,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         children: [
                           Text(userData.fullName, style: AppTextStyles.headlineMedium.copyWith(color: Colors.white, fontSize: 20)),
                           const SizedBox(height: 2),
-                          Text('Premium Farmer · Zone 4', style: AppTextStyles.bodySmall.copyWith(color: Colors.white.withOpacity(0.75))),
+                          Text('Premium Farmer · Zone 4', style: AppTextStyles.bodySmall.copyWith(color: Colors.white.withValues(alpha: 0.75))),
                           const SizedBox(height: 8),
                           Row(
                             children: [
                               Container(
                                 width: 16,
                                 height: 16,
-                                decoration: BoxDecoration(color: Colors.white.withOpacity(0.25), shape: BoxShape.circle),
+                                decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.25), shape: BoxShape.circle),
                                 child: const Icon(Icons.star_rounded, color: Colors.white, size: 10),
                               ),
                               const SizedBox(width: 4),
@@ -269,11 +268,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget _buildProfileStat(String val, String label) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(color: Colors.white.withOpacity(0.18), borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.18), borderRadius: BorderRadius.circular(16)),
       child: Column(
         children: [
           Text(val, style: AppTextStyles.headlineMedium.copyWith(color: Colors.white, fontSize: 18)),
-          Text(label, style: AppTextStyles.bodySmall.copyWith(color: Colors.white.withOpacity(0.75), fontSize: 9, fontWeight: FontWeight.w600)),
+          Text(label, style: AppTextStyles.bodySmall.copyWith(color: Colors.white.withValues(alpha: 0.75), fontSize: 9, fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -301,7 +300,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     color: a.earned ? Colors.white : AppColors.achievementInactive,
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
-                      if (a.earned) BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
+                      if (a.earned) BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
                     ],
                   ),
                   child: Column(
@@ -342,7 +341,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -399,7 +398,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
             ),
             child: Column(
               children: List.generate(settings.length, (i) {
@@ -461,7 +460,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                           decoration: BoxDecoration(
                                             color: Colors.white,
                                             shape: BoxShape.circle,
-                                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 4, offset: const Offset(0, 1))],
+                                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 4, offset: const Offset(0, 1))],
                                           ),
                                         ),
                                       ),

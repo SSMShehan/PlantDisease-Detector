@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
+
 class TfLiteService {
   Future<void> initialize() async {
     // Stub for Web
-    print('TFLite initialization skipped on Web');
+    debugPrint('TFLite initialization skipped on Web');
   }
 
   Future<Map<String, dynamic>?> analyzeImage(String imagePath) async {

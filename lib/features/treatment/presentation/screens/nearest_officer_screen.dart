@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/shared/widgets/smart_image.dart';
@@ -145,7 +144,7 @@ class _NearestOfficerScreenState extends ConsumerState<NearestOfficerScreen>
                             width: 80,
                             height: 80,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
+                            errorBuilder: (_, _, _) => Container(
                               width: 80,
                               height: 80,
                               color: AppColors.secondary,
@@ -253,7 +252,7 @@ class _NearestOfficerScreenState extends ConsumerState<NearestOfficerScreen>
                                       fit: BoxFit.cover,
                                       width: double.infinity,
                                       height: double.infinity,
-                                      errorBuilder: (_, __, ___) => Container(
+                                      errorBuilder: (_, _, _) => Container(
                                         color: AppColors.secondary.withValues(alpha: 0.2),
                                         child: const Center(child: Icon(Icons.map_rounded, size: 48, color: AppColors.secondary)),
                                       ),

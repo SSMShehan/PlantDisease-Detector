@@ -6,7 +6,6 @@ import 'package:plant_disease_detector/core/localization/app_strings.dart';
 import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'package:plant_disease_detector/core/providers/location_provider.dart';
 import 'package:plant_disease_detector/features/weather/presentation/providers/weather_provider.dart';
-import 'dart:ui';
 
 class WeatherForecastScreen extends ConsumerWidget {
   const WeatherForecastScreen({super.key});

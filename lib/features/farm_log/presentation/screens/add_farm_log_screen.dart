@@ -57,11 +57,13 @@ class _AddFarmLogScreenState extends State<AddFarmLogScreen> {
                       itemBuilder: (context, index) {
                         final act = _activities[index];
                         final isSelected = _selectedActivity == act['name'];
-                        String actLabel = act['name'] as String;
-                        if (actLabel == 'Watering') actLabel = context.tr(en: 'Watering', si: 'ජලය දැමීම', ta: 'நீர்ப்பாசனம்');
-                        else if (actLabel == 'Fertilizer') actLabel = context.tr(en: 'Fertilizer', si: 'පොහොර යෙදීම', ta: 'உரமிடுதல்');
-                        else if (actLabel == 'Spraying') actLabel = context.tr(en: 'Spraying', si: 'බෙහෙත් ඉසීම', ta: 'தெளித்தல்');
-                        else if (actLabel == 'Harvesting') actLabel = context.tr(en: 'Harvesting', si: 'අස්වනු නෙලීම', ta: 'அறுவடை');
+                        final actLabel = switch (act['name'] as String) {
+                          'Watering' => context.tr(en: 'Watering', si: 'ජලය දැමීම', ta: 'நீர்ப்பாசனம்'),
+                          'Fertilizer' => context.tr(en: 'Fertilizer', si: 'පොහොර යෙදීම', ta: 'உரமிடுதல்'),
+                          'Spraying' => context.tr(en: 'Spraying', si: 'බෙහෙත් ඉසීම', ta: 'தெளித்தல்'),
+                          'Harvesting' => context.tr(en: 'Harvesting', si: 'අස්වනු නෙලීම', ta: 'அறுவடை'),
+                          _ => act['name'] as String,
+                        };
 
                         return GestureDetector(
                           onTap: () {
@@ -71,14 +73,14 @@ class _AddFarmLogScreenState extends State<AddFarmLogScreen> {
                           },
                           child: Container(
                             decoration: BoxDecoration(
-                              color: isSelected ? (act['color'] as Color).withOpacity(0.1) : Colors.white,
+                              color: isSelected ? (act['color'] as Color).withValues(alpha: 0.1) : Colors.white,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: isSelected ? act['color'] as Color : Colors.transparent,
                                 width: 2,
                               ),
                               boxShadow: isSelected ? [] : [
-                                BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
+                                BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
                               ],
                             ),
                             child: Column(
@@ -108,7 +110,7 @@ class _AddFarmLogScreenState extends State<AddFarmLogScreen> {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
-                          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
+                          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
                         ],
                       ),
                       child: Row(
@@ -128,7 +130,7 @@ class _AddFarmLogScreenState extends State<AddFarmLogScreen> {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
-                          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
+                          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
                         ],
                       ),
                       child: TextField(

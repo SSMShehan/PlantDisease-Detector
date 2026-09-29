@@ -83,16 +83,17 @@ class _LanguageSelectionScreenState
               const Spacer(),
               ElevatedButton(
                 onPressed: () async {
+                  final canPop = context.canPop();
+                  final router = GoRouter.of(context);
                   // Persist & propagate the chosen locale via Riverpod
                   await ref
                       .read(localeProvider.notifier)
                       .setLocale(Locale(_selectedCode));
-                  if (mounted) {
-                    if (context.canPop()) {
-                      context.pop();
-                    } else {
-                      context.go('/onboarding');
-                    }
+                  if (!mounted) return;
+                  if (canPop) {
+                    router.pop();
+                  } else {
+                    router.go('/onboarding');
                   }
                 },
                 style: ElevatedButton.styleFrom(

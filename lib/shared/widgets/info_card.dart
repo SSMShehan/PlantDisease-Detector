@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 
 /// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -74,7 +74,7 @@ class _InfoCardState extends State<InfoCard>
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -190,9 +190,9 @@ class SeverityBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, color, bg) = switch (severity.toLowerCase()) {
-      'high' => ('High Risk', AppColors.error, AppColors.error.withOpacity(0.1)),
-      'medium' => ('Medium Risk', AppColors.warning, AppColors.warning.withOpacity(0.1)),
-      _ => ('Low Risk', AppColors.success, AppColors.success.withOpacity(0.1)),
+      'high' => ('High Risk', AppColors.error, AppColors.error.withValues(alpha: 0.1)),
+      'medium' => ('Medium Risk', AppColors.warning, AppColors.warning.withValues(alpha: 0.1)),
+      _ => ('Low Risk', AppColors.success, AppColors.success.withValues(alpha: 0.1)),
     };
 
     return Container(

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:plant_disease_detector/core/theme/app_theme.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -13,7 +12,6 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
   late Animation<double> _scaleAnimation;
-  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
@@ -25,10 +23,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     _scaleAnimation = Tween<double>(begin: 0.95, end: 1.05).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
-
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _pulseController, curve: const Interval(0.0, 0.4, curve: Curves.easeIn)),
     );
 
     Timer(const Duration(milliseconds: 2400), () {
@@ -76,14 +70,14 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         height: 110,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: const Color(0xFF15803D).withOpacity(0.25),
+                          color: const Color(0xFF15803D).withValues(alpha: 0.25),
                           border: Border.all(
-                            color: const Color(0xFF4ADE80).withOpacity(0.6),
+                            color: const Color(0xFF4ADE80).withValues(alpha: 0.6),
                             width: 2.5,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF22C55E).withOpacity(0.35),
+                              color: const Color(0xFF22C55E).withValues(alpha: 0.35),
                               blurRadius: 36,
                               spreadRadius: 8,
                             ),
@@ -102,7 +96,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.3),
+                                  color: Colors.black.withValues(alpha: 0.3),
                                   blurRadius: 12,
                                   offset: const Offset(0, 4),
                                 ),
@@ -132,9 +126,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.08),
+                        color: Colors.white.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withOpacity(0.15)),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
                       ),
                       child: const Text(
                         'AI-POWERED CROP PROTECTION',
@@ -169,7 +163,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     Text(
                       'Empowering Sri Lankan Farmers with AI',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.6),
+                        color: Colors.white.withValues(alpha: 0.6),
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                         letterSpacing: 0.3,

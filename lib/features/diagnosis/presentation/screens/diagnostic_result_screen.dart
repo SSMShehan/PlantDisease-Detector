@@ -1232,7 +1232,7 @@ class _DiagnosticResultScreenState extends ConsumerState<DiagnosticResultScreen>
             ),
           ),
           const Divider(height: 1, color: AppColors.dividerSubtle),
-          ...market.prices.map((p) => _buildPriceRow(p)).toList(),
+          ...market.prices.map((p) => _buildPriceRow(p)),
           const SizedBox(height: 8),
         ],
       ),

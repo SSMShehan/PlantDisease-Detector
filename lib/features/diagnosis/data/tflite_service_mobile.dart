@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart' as img;
@@ -13,7 +14,7 @@ class TfLiteService {
       final labelsData = await rootBundle.loadString('assets/models/labels.txt');
       _labels = labelsData.split('\n').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
     } catch (e) {
-      print('Error initializing TFLite: $e');
+      debugPrint('Error initializing TFLite: $e');
     }
   }
 

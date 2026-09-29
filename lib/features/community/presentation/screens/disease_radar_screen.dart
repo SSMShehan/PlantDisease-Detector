@@ -99,7 +99,7 @@ class _DiseaseRadarScreenState extends ConsumerState<DiseaseRadarScreen> with Ti
             options: MapOptions(
               initialCenter: userLocation,
               initialZoom: locationState.position != null ? 11.0 : 7.0, // Zoom out if fallback
-              onTap: (_, __) => setState(() => _selectedOutbreak = null), // Dismiss card on map tap
+              onTap: (_, _) => setState(() => _selectedOutbreak = null), // Dismiss card on map tap
             ),
             children: [
               // Standard Light Map Tiles (OpenStreetMap) with fallback
@@ -130,7 +130,7 @@ class _DiseaseRadarScreenState extends ConsumerState<DiseaseRadarScreen> with Ti
                       },
                       child: AnimatedBuilder(
                         animation: _pulseAnim,
-                        builder: (_, __) {
+                        builder: (_, _) {
                           final pulse = isSelected ? _pulseAnim.value : 1.0;
                           return CustomPaint(
                             painter: _HeatZonePainter(
@@ -156,7 +156,7 @@ class _DiseaseRadarScreenState extends ConsumerState<DiseaseRadarScreen> with Ti
                       height: 60,
                       child: AnimatedBuilder(
                         animation: _pulseCtrl,
-                        builder: (_, __) => Container(
+                        builder: (_, _) => Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: Colors.blue,
