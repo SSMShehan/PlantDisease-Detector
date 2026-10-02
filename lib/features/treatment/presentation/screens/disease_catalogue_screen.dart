@@ -8,6 +8,7 @@ import 'package:plant_disease_detector/l10n/app_localizations.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
 import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:plant_disease_detector/shared/widgets/premium_app_bar.dart';
 
 class DiseaseCatalogueScreen extends StatefulWidget {
   const DiseaseCatalogueScreen({super.key});
@@ -132,17 +133,12 @@ class _DiseaseCatalogueScreenState extends State<DiseaseCatalogueScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        iconTheme: const IconThemeData(color: AppColors.textOnDark),
-        title: Text(
-          context.tr(en: 'Disease Catalogue', si: 'රෝග නාමාවලිය', ta: 'நோய் பட்டியல்'),
-          style: AppTextStyles.titleMedium.copyWith(color: AppColors.textOnDark, fontWeight: FontWeight.w700),
-        ),
+      appBar: PremiumAppBar(
+        title: Text(context.tr(en: 'Disease Catalogue', si: 'රෝග නාමාවලිය', ta: 'நோய் பட்டியல்')),
         actions: [
-          const LanguageSelectorButton(isDark: true, isCompact: true),
+          const LanguageSelectorButton(isCompact: true),
           IconButton(
-            icon: const Icon(Icons.compare_arrows_rounded, color: AppColors.textOnDark),
+            icon: const Icon(Icons.compare_arrows_rounded, color: AppColors.textPrimary),
             onPressed: () {
               Navigator.push(
                 context,

@@ -7,6 +7,7 @@ import 'package:plant_disease_detector/core/widgets/language_selector_button.dar
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:plant_disease_detector/core/providers/user_provider.dart';
+import 'package:plant_disease_detector/shared/widgets/premium_app_bar.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
@@ -233,11 +234,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
+      appBar: PremiumAppBar(
         title: Text('Edit Profile', style: AppTextStyles.titleMedium),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
         actions: const [
           LanguageSelectorButton(),
         ],

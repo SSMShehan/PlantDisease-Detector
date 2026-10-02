@@ -5,6 +5,8 @@ import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
 import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 
+import 'package:plant_disease_detector/shared/widgets/premium_app_bar.dart';
+
 class ExpertConsultScreen extends StatefulWidget {
   const ExpertConsultScreen({super.key});
 
@@ -20,20 +22,11 @@ class _ExpertConsultScreenState extends State<ExpertConsultScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => context.pop(),
-        ),
-        title: Text(
-          context.tr(en: 'Expert Consult', si: 'විශේෂඥ උපදෙස්', ta: 'நிபுணர் ஆலோசனை'),
-          style: AppTextStyles.titleMedium,
-        ),
+      appBar: PremiumAppBar(
+        title: Text(context.tr(en: 'Expert Consult', si: 'විශේෂඥ උපදෙස්', ta: 'நிபுணர் ஆலோசனை')),
         actions: const [
           LanguageSelectorButton(),
         ],
-        elevation: 0,
-        backgroundColor: Colors.transparent,
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

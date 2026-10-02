@@ -1,10 +1,11 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/providers/locale_provider.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
 import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'package:plant_disease_detector/features/profile/presentation/screens/language_selection_screen.dart';
+import 'package:plant_disease_detector/shared/widgets/premium_app_bar.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -22,11 +23,8 @@ class SettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          context.tr(en: 'Settings', si: 'සැකසීම්', ta: 'அமைப்புகள்'),
-          style: AppTextStyles.titleMedium,
-        ),
+      appBar: PremiumAppBar(
+        title: Text(context.tr(en: 'Settings', si: 'සැකසීම්', ta: 'அமைப்புகள்')),
         actions: const [
           LanguageSelectorButton(isCompact: true),
         ],

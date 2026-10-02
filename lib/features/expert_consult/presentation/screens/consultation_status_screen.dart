@@ -1,7 +1,8 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
 import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
+import 'package:plant_disease_detector/shared/widgets/premium_app_bar.dart';
 
 class ConsultationStatusScreen extends StatelessWidget {
   const ConsultationStatusScreen({super.key});
@@ -10,15 +11,9 @@ class ConsultationStatusScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.close_rounded),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          context.tr(en: 'Consultation Status', si: 'උපදේශන තත්ත්වය', ta: 'ஆலோசனை நிலை'),
-          style: AppTextStyles.titleMedium,
-        ),
+      appBar: PremiumAppBar(
+        onBackPressed: () => Navigator.pop(context),
+        title: Text(context.tr(en: 'Consultation Status', si: 'උපදේශන තත්ත්වය', ta: 'ஆலோசனை நிலை')),
         actions: const [
           LanguageSelectorButton(),
         ],

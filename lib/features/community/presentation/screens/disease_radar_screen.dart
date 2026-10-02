@@ -170,19 +170,40 @@ class _DiseaseRadarScreenState extends ConsumerState<DiseaseRadarScreen> with Ti
                       height: 60,
                       child: AnimatedBuilder(
                         animation: _pulseCtrl,
-                        builder: (_, _) => Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.blue,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.blue.withValues(alpha: 0.6 * _pulseAnim.value),
-                                blurRadius: 20,
-                                spreadRadius: 6,
+                        builder: (_, _) => Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // Pulse/Accuracy circle
+                            Container(
+                              width: 60 * _pulseAnim.value,
+                              height: 60 * _pulseAnim.value,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.blue.withValues(alpha: 0.25),
                               ),
-                            ],
-                          ),
-                          child: const Icon(Icons.my_location_rounded, size: 24, color: Colors.white),
+                            ),
+                            // White border
+                            Container(
+                              width: 22,
+                              height: 22,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white,
+                                boxShadow: [
+                                  BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
+                                ],
+                              ),
+                            ),
+                            // Inner blue dot
+                            Container(
+                              width: 14,
+                              height: 14,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.blue,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
