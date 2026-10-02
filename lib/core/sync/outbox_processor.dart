@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:drift/drift.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../database/app_database.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
@@ -74,11 +75,19 @@ class OutboxProcessor {
   }
 
   Future<bool> _syncDiagnosis(String clientUuid, Map<String, dynamic> payload) async {
-    // TODO: Implement actual Supabase sync logic
-    // This is where you would upload the image and insert into Supabase
-    
-    // For now, simulate success
-    await Future.delayed(const Duration(milliseconds: 500));
-    return true; 
+    try {
+      final supabase = Supabase.instance.client;
+      
+      // Inject client UUID if not already present
+      final dataToInsert = {
+        'client_uuid': clientUuid,
+        ...payload,
+      };
+      
+      await supabase.from('scans').insert(dataToInsert);
+      return true;
+    } catch (e) {
+      return false; // Will retry later
+    }
   }
 }

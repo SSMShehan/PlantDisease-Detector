@@ -1,3 +1,5 @@
+import 'dart:math';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
@@ -8,6 +10,7 @@ import 'package:plant_disease_detector/features/weather/presentation/screens/wea
 import 'package:plant_disease_detector/features/treatment/presentation/screens/disease_catalogue_screen.dart';
 import 'package:plant_disease_detector/features/expert_consult/presentation/screens/expert_consult_screen.dart';
 import 'package:plant_disease_detector/features/community/presentation/screens/community_feed_screen.dart';
+import 'package:plant_disease_detector/features/community/presentation/screens/disease_radar_screen.dart';
 import 'package:plant_disease_detector/core/providers/user_provider.dart';
 import 'package:plant_disease_detector/shared/widgets/smart_image.dart';
 import 'package:plant_disease_detector/l10n/app_localizations.dart';
@@ -18,540 +21,713 @@ import 'package:plant_disease_detector/features/diagnosis/presentation/screens/d
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HomeScreen — Matches Figma HomeScreen.tsx
-// ─────────────────────────────────────────────────────────────────────────────
-// Helper: builds a colored circle with the user's initials as a profile avatar fallback
-Widget _buildInitialsAvatar(String fullName, double size) {
-  final parts = fullName.trim().split(' ');
-  final initials = parts.length >= 2
-      ? '${parts[0][0]}${parts[1][0]}'.toUpperCase()
-      : (parts[0].isNotEmpty ? parts[0][0].toUpperCase() : '?');
-  return Container(
-    width: size,
-    height: size,
-    decoration: const BoxDecoration(
-      shape: BoxShape.circle,
-      gradient: LinearGradient(
-        colors: [AppColors.avatarGradStart, AppColors.avatarGradEnd],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-    ),
-    child: Center(
-      child: Text(
-        initials,
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: size * 0.35,
-          fontWeight: FontWeight.bold,
+// ── Ultra Premium Tokens ───────────────────────────────────────────────────────
+const _bg = Color(0xFFF4F6F5); // Cool, luxury off-white
+const _white = Colors.white;
+const _emDark = Color(0xFF092917);
+const _emMid = Color(0xFF134D2E);
+const _emLight = Color(0xFF1E7045);
+const _copper = Color(0xFFC87D55);
+const _gold = Color(0xFFE8C97A);
+const _textDark = Color(0xFF141F1A);
+const _textMute = Color(0xFF6B7D73);
+
+class HomeScreen extends ConsumerStatefulWidget {
+  const HomeScreen({super.key});
+  @override
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStateMixin {
+  late AnimationController _appear, _pulse, _float;
+  late Animation<double> _fade;
+  late Animation<Offset> _slide;
+
+  @override
+  void initState() {
+    super.initState();
+    _appear = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200));
+    _pulse = AnimationController(vsync: this, duration: const Duration(milliseconds: 3000))..repeat(reverse: true);
+    _float = AnimationController(vsync: this, duration: const Duration(milliseconds: 5000))..repeat(reverse: true);
+    
+    _fade = CurvedAnimation(parent: _appear, curve: Curves.easeOut);
+    _slide = Tween<Offset>(begin: const Offset(0, 0.08), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _appear, curve: Curves.easeOutCubic));
+    
+    _appear.forward();
+  }
+
+  @override
+  void dispose() {
+    _appear.dispose();
+    _pulse.dispose();
+    _float.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = ref.watch(locationProvider);
+    final wx = ref.watch(weatherProvider);
+    final user = ref.watch(userProvider);
+    final scans = ref.watch(scanHistoryProvider).take(3).toList();
+    final l10n = AppLocalizations.of(context);
+
+    final hr = DateTime.now().hour;
+    String greet = l10n?.goodEvening ?? 'Good Evening';
+    if (hr < 12) greet = l10n?.goodMorning ?? 'Good Morning';
+    else if (hr < 17) greet = l10n?.goodAfternoon ?? 'Good Afternoon';
+
+    double health = 0.85;
+    if (scans.isNotEmpty) {
+      health = (scans.map((s) => s.confidenceScore as double).reduce((a, b) => a + b) / scans.length).clamp(0.0, 1.0);
+    }
+
+    return Scaffold(
+      backgroundColor: _bg,
+      body: FadeTransition(
+        opacity: _fade,
+        child: SlideTransition(
+          position: _slide,
+          child: SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
+            padding: const EdgeInsets.only(bottom: 120),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // ① STUNNING HERO
+                _HeroSection(user: user, greet: greet, loc: loc, wx: wx, float: _float),
+                
+                const SizedBox(height: 65), // Spacing for straddling card
+
+                // ② MODERN HEALTH CARD
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: _HealthCard(health: health, count: scans.length),
+                ),
+                const SizedBox(height: 24),
+
+                // ③ GLOWING SCAN CTA
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: _ScanCTA(pulse: _pulse),
+                ),
+                const SizedBox(height: 32),
+
+                // ④ BENTO GRID ACTIONS
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: _BentoActions(),
+                ),
+                const SizedBox(height: 32),
+
+                // ⑤ RECENT SCANS
+                _RecentScans(scans: scans),
+              ],
+            ),
+          ),
         ),
       ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ① HERO & TRUE GLASS WEATHER CARD
+// ══════════════════════════════════════════════════════════════════════════════
+class _HeroSection extends StatelessWidget {
+  final dynamic user, greet, loc, wx;
+  final AnimationController float;
+
+  const _HeroSection({required this.user, required this.greet, required this.loc, required this.wx, required this.float});
+
+  @override
+  Widget build(BuildContext context) {
+    final temp = wx.isLoading ? '--' : '${wx.weather?.temperature.toStringAsFixed(0) ?? 24}';
+    final city = loc.isLoading ? 'Locating...' : loc.address.split(',').first;
+    final now = DateTime.now();
+    final timeStr = '${now.hour % 12 == 0 ? 12 : now.hour % 12}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'PM' : 'AM'}';
+    final firstName = user.fullName.split(' ').first;
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        // DEEP LUXURY GREEN BACKGROUND
+        Container(
+          padding: const EdgeInsets.only(bottom: 50), // reduced padding
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [_emDark, _emMid],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(36)),
+            boxShadow: [
+              BoxShadow(color: Color(0x1F000000), blurRadius: 20, offset: Offset(0, 10)),
+            ],
+          ),
+          child: SafeArea(
+            bottom: false,
+            child: Stack(
+              children: [
+                // Soft Ambient Glows
+                AnimatedBuilder(
+                  animation: float,
+                  builder: (_, __) => Positioned(
+                    right: -50, top: -20 + (float.value * 20),
+                    child: Container(
+                      width: 200, height: 200,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [_emLight.withOpacity(0.3), Colors.transparent],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header Row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: RichText(
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              text: TextSpan(
+                                children: [
+                                  const TextSpan(text: 'CropGuard: ', style: TextStyle(color: _white, fontSize: 13, fontWeight: FontWeight.w800)),
+                                  TextSpan(text: 'AI Disease Identification', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500)),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              const LanguageSelectorButton(isDark: true, isCompact: true),
+                              const SizedBox(width: 12),
+                              // Profile Avatar
+                              Container(
+                                width: 38, height: 38,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: _gold.withOpacity(0.8), width: 1.5),
+                                  boxShadow: [BoxShadow(color: _gold.withOpacity(0.3), blurRadius: 10)],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: user.imagePath != null
+                                      ? Image.network(user.imagePath!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _fallbackAvatar(firstName))
+                                      : _fallbackAvatar(firstName),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      
+                      const SizedBox(height: 24),
+                      
+                      // Premium Typography Greeting - One Line
+                      Text(
+                        '${greet.replaceAll(',', '')}, $firstName!',
+                        style: const TextStyle(
+                          color: _gold,
+                          fontSize: 26,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.5,
+                          shadows: [Shadow(color: Colors.black45, blurRadius: 8, offset: Offset(0, 3))],
+                        ),
+                      ),
+                      const SizedBox(height: 16), // Space before glass card overlap
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        // TRUE GLASS WEATHER CARD (Overlap)
+        Positioned(
+          bottom: -45,
+          left: 24,
+          right: 24,
+          child: GestureDetector(
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WeatherForecastScreen())),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 25, offset: const Offset(0, 10)),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: BackdropFilter(
+                  // True glass blur
+                  filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                    decoration: BoxDecoration(
+                      // Translucent gradient tint for the glass
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.white.withOpacity(0.15),
+                          Colors.white.withOpacity(0.05)
+                        ],
+                        begin: Alignment.topLeft, end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(24),
+                      // Fine metallic copper rim
+                      border: Border.all(
+                        color: const Color(0xFFE2A066).withOpacity(0.4),
+                        width: 1.2,
+                      ),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Metallic Copper Cloud/Sun Icon using ShaderMask
+                        ShaderMask(
+                          shaderCallback: (bounds) => const LinearGradient(
+                            colors: [Color(0xFFFFD194), Color(0xFFB86640), Color(0xFF7A3B20)],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ).createShader(bounds),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              // Sun
+                              Positioned(
+                                top: -4, left: -4,
+                                child: Icon(Icons.wb_sunny_rounded, color: Colors.white, size: 30),
+                              ),
+                              // Cloud
+                              const Padding(
+                                padding: EdgeInsets.only(top: 8, left: 8),
+                                child: Icon(Icons.cloud_rounded, color: Colors.white, size: 40),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 22),
+                        
+                        // Location Info
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(city, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.2)),
+                              const SizedBox(height: 2),
+                              Text(timeStr, style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13, fontWeight: FontWeight.w500)),
+                            ],
+                          ),
+                        ),
+
+                        // Temp Info
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(temp, style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900, height: 1, letterSpacing: -1)),
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4, left: 2),
+                                  child: Text('°C', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w800)),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text('Sunny', style: const TextStyle(color: Color(0xFFE2A066), fontSize: 14, fontWeight: FontWeight.w600)), // Warm copper text
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _fallbackAvatar(String name) => Container(
+    color: _copper,
+    child: Center(
+      child: Text(name[0].toUpperCase(), style: const TextStyle(color: _white, fontSize: 18, fontWeight: FontWeight.bold)),
     ),
   );
 }
 
-class HomeScreen extends ConsumerWidget {
-  const HomeScreen({super.key});
+// ══════════════════════════════════════════════════════════════════════════════
+// ② ULTRA-PREMIUM HEALTH CARD — Editorial Light Theme Layout
+// ══════════════════════════════════════════════════════════════════════════════
+class _HealthCard extends StatelessWidget {
+  final double health;
+  final int count;
+  const _HealthCard({required this.health, required this.count});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final locationState = ref.watch(locationProvider);
-    final weatherState = ref.watch(weatherProvider);
-    final userData = ref.watch(userProvider);
-    final recentScans = ref.watch(scanHistoryProvider).take(3).toList();
-    
-    // Dynamic greeting based on time of day
-    final hour = DateTime.now().hour;
-    final l10n = AppLocalizations.of(context);
-    String greeting = l10n?.goodEvening ?? 'Good Evening,';
-    if (hour < 12) {
-      greeting = l10n?.goodMorning ?? 'Good Morning,';
-    } else if (hour < 17) {
-      greeting = l10n?.goodAfternoon ?? 'Good Afternoon,';
-    }
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 110),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Deep Emerald Top Hero Header
-              Container(
-                decoration: const BoxDecoration(
-                  gradient: AppGradients.emeraldHeader,
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(28),
-                    bottomRight: Radius.circular(28),
-                  ),
-                ),
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Top App Title & Profile Avatar Row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            context.tr(
-                              en: 'CropGuard: AI Disease Identification',
-                              si: 'CropGuard: AI බෝග රෝග හඳුනාගැනීම',
-                              ta: 'CropGuard: AI பயிர் நோய் கண்டறிதல்',
-                            ),
-                            style: const TextStyle(
-                              color: AppColors.emeraldMist,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        const LanguageSelectorButton(isDark: true, isCompact: true),
-                        const SizedBox(width: 8),
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.copper, width: 2),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.copper.withValues(alpha: 0.3),
-                                blurRadius: 8,
-                              ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(22),
-                            child: userData.imagePath != null
-                                ? ((userData.imagePath!.startsWith('http') || kIsWeb)
-                                    ? Image.network(
-                                        userData.imagePath!,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, _, _) => _buildInitialsAvatar(userData.fullName, 44),
-                                      )
-                                    : Image.file(File(userData.imagePath!), fit: BoxFit.cover))
-                                : _buildInitialsAvatar(userData.fullName, 44),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    // Greeting
-                    Text(
-                      '$greeting ${userData.fullName.split(' ').first}!',
-                      style: const TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        letterSpacing: -0.3,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    // Glassmorphic Weather & Location Card with Copper Accents
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => const WeatherForecastScreen()));
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.25), width: 1.2),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.15),
-                              blurRadius: 16,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  width: 44,
-                                  height: 44,
-                                  decoration: BoxDecoration(
-                                    gradient: AppGradients.copper,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Center(
-                                    child: Icon(Icons.wb_sunny_rounded, color: Colors.white, size: 24),
-                                  ),
-                                ),
-                                const SizedBox(width: 14),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      locationState.isLoading ? 'Locating...' : (locationState.address.split(',').first),
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                    Text(
-                                      '${DateTime.now().hour % 12 == 0 ? 12 : DateTime.now().hour % 12}:${DateTime.now().minute.toString().padLeft(2, '0')} ${DateTime.now().hour >= 12 ? 'PM' : 'AM'}',
-                                      style: const TextStyle(
-                                        color: AppColors.emeraldMist,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  weatherState.isLoading ? '--' : '${weatherState.weather?.temperature.toStringAsFixed(0) ?? 24}°C',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 22,
-                                  ),
-                                ),
-                                Text(
-                                  context.tr(en: 'Sunny', si: 'හිරු එළිය', ta: 'வெயில்'),
-                                  style: const TextStyle(
-                                    color: AppColors.copperLight,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+  Widget build(BuildContext context) {
+    final pct = (health * 100).round();
+    final Color glowC = pct >= 80 ? const Color(0xFF238E50)
+        : pct >= 60 ? const Color(0xFFF5C842) : const Color(0xFFFF6B6B);
+    final String lbl  = pct >= 80 ? 'Excellent'
+        : pct >= 60 ? 'Moderate' : 'At Risk';
 
-              const SizedBox(height: 20),
-
-              // Farm Subheading & Section Title
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n != null && l10n.localeName == 'si'
-                          ? "ඔබේ ගොවිපළේ සෞඛ්‍යය කළමනාකරණය කරන්න."
-                          : (l10n != null && l10n.localeName == 'ta'
-                              ? "உங்கள் பண்ணையின் ஆரோக்கியத்தை நிர்வகிக்கவும்."
-                              : "Manage your farm's health."),
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.textSecondary,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Container(
+      height: 118,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+              color: const Color(0xFF042211).withOpacity(0.06),
+              blurRadius: 24, offset: const Offset(0, 10)),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: Stack(
+          children: [
+            // Ambient radial glow behind the big number (soft light)
+            Positioned(left: -30, top: -30,
+              child: Container(width: 180, height: 180,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(colors: [
+                    glowC.withOpacity(0.08), Colors.transparent,
+                  ]),
+                ))),
+            // Layout: big number LEFT | hairline | info RIGHT
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Left panel: editorial huge score
+                SizedBox(
+                  width: 112,
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          (l10n?.recentScans ?? 'Recent Scans').toUpperCase(),
+                        Text('$pct',
                           style: const TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 1.2,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DiseaseCatalogueScreen())),
-                          child: Text(
-                            '${l10n?.seeAll ?? 'View All'} >',
-                            style: const TextStyle(
-                              color: AppColors.copper,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
+                            color: Color(0xFF0A1C11), fontSize: 68,
+                            fontWeight: FontWeight.w900, height: 1,
+                            letterSpacing: -4,
+                          )),
+                        Text('%',
+                          style: TextStyle(
+                            color: const Color(0xFF0A1C11).withOpacity(0.40),
+                            fontSize: 13, fontWeight: FontWeight.w800,
+                            letterSpacing: 2,
+                          )),
+                      ],
+                    ),
+                  ),
+                ),
+                // Hairline vertical divider
+                Container(width: 1,
+                    margin: const EdgeInsets.symmetric(vertical: 22),
+                    color: const Color(0xFF0A1C11).withOpacity(0.06)),
+                // Right panel: label + status + badges
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('FARM HEALTH SCORE',
+                          style: TextStyle(
+                            color: const Color(0xFF0A1C11).withOpacity(0.40),
+                            fontSize: 9, fontWeight: FontWeight.w800,
+                            letterSpacing: 1.8,
+                          )),
+                        Row(children: [
+                          // Glowing dot indicator
+                          Container(width: 8, height: 8,
+                            decoration: BoxDecoration(
+                              color: glowC, shape: BoxShape.circle,
+                              boxShadow: [BoxShadow(color: glowC.withOpacity(0.4),
+                                  blurRadius: 6, spreadRadius: 1)],
+                            )),
+                          const SizedBox(width: 8),
+                          Text(lbl, style: const TextStyle(
+                            color: Color(0xFF0A1C11), fontSize: 19,
+                            fontWeight: FontWeight.w800, letterSpacing: -0.3,
+                          )),
+                        ]),
+                        Row(children: [
+                          _Chip(icon: Icons.document_scanner_rounded,
+                              text: '$count Scans'),
+                          const SizedBox(width: 8),
+                          _Chip(icon: Icons.eco_rounded, text: '3 Crops'),
+                        ]),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Chip extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  const _Chip({required this.icon, required this.text});
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+    decoration: BoxDecoration(
+      color: const Color(0xFFF0F5F2),
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(color: const Color(0xFFE2EBE5), width: 1),
+    ),
+    child: Row(mainAxisSize: MainAxisSize.min, children: [
+      Icon(icon, color: const Color(0xFF1A5C38), size: 11),
+      const SizedBox(width: 4),
+      Text(text, style: const TextStyle(
+          color: Color(0xFF1A5C38), fontSize: 10.5, fontWeight: FontWeight.w700)),
+    ]),
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ③ REFINED SCAN CTA — Light Premium Glow
+// ══════════════════════════════════════════════════════════════════════════════
+class _ScanCTA extends StatelessWidget {
+  final Animation<double> pulse;
+  const _ScanCTA({required this.pulse});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => Navigator.push(context,
+          MaterialPageRoute(builder: (_) => const CameraCaptureScreen())),
+      child: AnimatedBuilder(
+        animation: pulse,
+        builder: (_, child) =>
+            Transform.scale(scale: 0.994 + pulse.value * 0.008, child: child),
+        child: Container(
+          height: 108,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFFE8F5E9), Color(0xFFC8E6C9)],
+              begin: Alignment.topLeft, end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: Colors.white, width: 2),
+            boxShadow: [
+              BoxShadow(color: const Color(0xFF238E50).withOpacity(0.12),
+                  blurRadius: 20, offset: const Offset(0, 8)),
+            ],
+          ),
+          child: Stack(
+            children: [
+              // Ghost watermark
+              Positioned(right: 12, top: 0, bottom: 0,
+                child: Icon(Icons.qr_code_scanner_rounded,
+                    size: 90, color: const Color(0xFF238E50).withOpacity(0.06)),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 22),
+                child: Row(children: [
+                  // Icon with pulsing border ring
+                  AnimatedBuilder(
+                    animation: pulse,
+                    builder: (_, __) => Container(
+                      width: 54, height: 54,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF238E50).withOpacity(0.15 + pulse.value * 0.1),
+                            blurRadius: 16, spreadRadius: pulse.value * 2,
+                          )
+                        ]
+                      ),
+                      child: const Icon(Icons.document_scanner_rounded,
+                          color: Color(0xFF238E50), size: 24),
+                    ),
+                  ),
+                  const SizedBox(width: 18),
+                  // Text
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('Scan Your Crop',
+                          style: TextStyle(color: Color(0xFF0A1C11), fontSize: 20,
+                              fontWeight: FontWeight.w900, letterSpacing: -0.4, height: 1.1)),
+                        const SizedBox(height: 5),
+                        Text('AI-powered diagnosis in seconds',
+                          style: TextStyle(color: const Color(0xFF0A1C11).withOpacity(0.55),
+                              fontSize: 11.5, fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                  ),
+                  // Circular emerald arrow button
+                  Container(
+                    width: 42, height: 42,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF238E50), Color(0xFF145730)],
+                        begin: Alignment.topLeft, end: Alignment.bottomRight,
+                      ),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(color: const Color(0xFF145730).withOpacity(0.40),
+                            blurRadius: 12, offset: const Offset(0, 4)),
+                      ],
+                    ),
+                    child: const Icon(Icons.arrow_forward_rounded,
+                        color: Colors.white, size: 20),
+                  ),
+                ]),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ④ LUXURY ACTIONS — Unified dark base + colored top accent
+// ══════════════════════════════════════════════════════════════════════════════
+class _BentoActions extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('QUICK ACTIONS',
+            style: TextStyle(color: _textMute, fontSize: 10.5,
+                fontWeight: FontWeight.w800, letterSpacing: 1.6)),
+        const SizedBox(height: 14),
+        Row(children: [
+          Expanded(flex: 5, child: _LuxTile(
+            icon: Icons.radar_rounded, label: 'Disease\nRadar', sub: 'Nearby alerts',
+            accent: const Color(0xFFD4637A),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DiseaseRadarScreen())),
+          )),
+          const SizedBox(width: 13),
+          Expanded(flex: 4, child: _LuxTile(
+            icon: Icons.support_agent_rounded, label: 'Expert\nHelp', sub: 'Ask a pro',
+            accent: const Color(0xFFD4943A),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ExpertConsultScreen())),
+          )),
+        ]),
+        const SizedBox(height: 13),
+        Row(children: [
+          Expanded(flex: 4, child: _LuxTile(
+            icon: Icons.menu_book_rounded, label: 'Disease\nLibrary', sub: '200+ entries',
+            accent: const Color(0xFF4A86D4),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DiseaseCatalogueScreen())),
+          )),
+          const SizedBox(width: 13),
+          Expanded(flex: 5, child: _LuxTile(
+            icon: Icons.people_rounded, label: 'Community\nForum', sub: 'Share & learn',
+            accent: const Color(0xFF3CAF70),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CommunityFeedScreen())),
+          )),
+        ]),
+      ],
+    );
+  }
+}
+
+class _LuxTile extends StatelessWidget {
+  final IconData icon;
+  final String label, sub;
+  final Color accent;
+  final VoidCallback onTap;
+  const _LuxTile({
+    required this.icon, required this.label, required this.sub,
+    required this.accent, required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 120,
+        decoration: BoxDecoration(
+          // Pristine white tile
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: Colors.white, width: 2),
+          boxShadow: [
+            BoxShadow(color: const Color(0xFF042211).withOpacity(0.04),
+                blurRadius: 24, offset: const Offset(0, 10)),
+            // Faint colored shadow for that Apple-like glow
+            BoxShadow(color: accent.withOpacity(0.08),
+                blurRadius: 12, offset: const Offset(0, 4)),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Stack(
+            children: [
+              // Ghost icon watermark — right side
+              Positioned(right: -10, bottom: -10,
+                  child: Icon(icon, size: 75,
+                      color: accent.withOpacity(0.04))),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Icon chip with colored background
+                    Container(
+                      width: 38, height: 38,
+                      decoration: BoxDecoration(
+                        color: accent.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(icon, color: accent, size: 20),
+                    ),
+                    // Text block
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(label,
+                          maxLines: 2, overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Color(0xFF0A1C11),
+                              fontSize: 12, fontWeight: FontWeight.w800,
+                              height: 1.25, letterSpacing: 0.1)),
+                        const SizedBox(height: 3),
+                        Text(sub, maxLines: 1,
+                          style: TextStyle(color: const Color(0xFF0A1C11).withOpacity(0.45),
+                              fontSize: 9.5, fontWeight: FontWeight.w600,
+                              letterSpacing: 0.2)),
                       ],
                     ),
                   ],
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // Horizontal Glassmorphic Recent Activity Tiles - Real scan data
-              SizedBox(
-                height: 180,
-                child: recentScans.isEmpty
-                    ? Center(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: Text(
-                            context.tr(
-                              en: 'No scans yet - tap Scan to get started!',
-                              si: 'තවම ස්කෑන් නැත - ස්කෑන් ඔබා ආරම්න කරන්න!',
-                              ta: 'இன்னும் ஸ்கேன் இல்லை - ஸ்கேன் அழுத்தி தொடங்குங்கள்!',
-                            ),
-                            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      )
-                    : ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        itemCount: recentScans.length,
-                        separatorBuilder: (_, __) => const SizedBox(width: 14),
-                        itemBuilder: (context, index) {
-                          final scan = recentScans[index];
-                          return GestureDetector(
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => DiagnosticResultScreen(scan: scan),
-                              ),
-                            ),
-                            child: _buildActivityTile(
-                              cropImage: scan.imageUrl,
-                              diseaseName: context.trDisease(scan.diseaseName),
-                              confidence: context.tr(
-                                en: '${(scan.confidenceScore * 100).round()}% Confirmed',
-                                si: '${(scan.confidenceScore * 100).round()}% තහවුරු කලා',
-                                ta: '${(scan.confidenceScore * 100).round()}% உறுதிப்படுத்தப்பட்டது',
-                              ),
-                              date: context.trDate(scan.dateLabel),
-                              score: scan.confidenceScore,
-                            ),
-                          );
-                        },
-                      ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Centerpiece Control Bar (Expert Insights | Scan Field | Community Hub)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: AppColors.border, width: 1.5),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.06),
-                        blurRadius: 16,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      // Expert Insights
-                      GestureDetector(
-                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ExpertConsultScreen())),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 38,
-                              height: 38,
-                              decoration: BoxDecoration(
-                                color: AppColors.copperLight.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(Icons.lightbulb_outline_rounded, color: AppColors.copper, size: 22),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              l10n != null && l10n.localeName == 'si'
-                                  ? 'විශේෂඥ\nඋපදෙස්'
-                                  : (l10n != null && l10n.localeName == 'ta'
-                                      ? 'நிபுணர்\nஉதவி'
-                                      : 'Expert\nInsights'),
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Centerpiece Scan Button
-                      GestureDetector(
-                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CameraCaptureScreen())),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          decoration: BoxDecoration(
-                            gradient: AppGradients.scanButton,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.copper, width: 2),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.4),
-                                blurRadius: 14,
-                                offset: const Offset(0, 6),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.crop_free_rounded, color: Colors.white, size: 24),
-                              const SizedBox(width: 8),
-                              Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    l10n != null && l10n.localeName == 'si'
-                                        ? 'ස්කෑන්'
-                                        : (l10n != null && l10n.localeName == 'ta' ? 'ஸ்கேன்' : 'Scan'),
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13,
-                                      height: 1.0,
-                                    ),
-                                  ),
-                                  Text(
-                                    l10n != null && l10n.localeName == 'si'
-                                        ? 'ක්ෂේත්‍රය'
-                                        : (l10n != null && l10n.localeName == 'ta' ? 'பயிர்' : 'Field'),
-                                    style: const TextStyle(
-                                      color: AppColors.copperLight,
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 12,
-                                      height: 1.0,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      // Community Hub
-                      GestureDetector(
-                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CommunityFeedScreen())),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 38,
-                              height: 38,
-                              decoration: BoxDecoration(
-                                color: AppColors.primaryLight.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(Icons.people_outline_rounded, color: AppColors.primaryLight, size: 22),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              l10n != null && l10n.localeName == 'si'
-                                  ? 'ගොවි\nප්‍රජාව'
-                                  : (l10n != null && l10n.localeName == 'ta'
-                                      ? 'விவசாயி\nசமூகம்'
-                                      : 'Community\nHub'),
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Upgrade to CropGuard Pro Banner with Metallic Copper Accent
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                  decoration: BoxDecoration(
-                    gradient: AppGradients.proUpgradeBanner,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppColors.copperLight.withValues(alpha: 0.4), width: 1.2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          gradient: AppGradients.copper,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 22),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              context.tr(
-                                en: 'Upgrade to CropGuard Pro',
-                                si: 'CropGuard Pro වෙත යාවත්කාලීන වන්න',
-                                ta: 'CropGuard Pro-க்கு மேம்படுத்தவும்',
-                              ),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              context.tr(
-                                en: 'Unlimited AI scans & priority officer support',
-                                si: 'අසීමිත AI ස්කෑන් සහ කෘෂිකර්ම නිලධාරී ප්‍රමුඛ සහාය',
-                                ta: 'வரம்பற்ற AI ஸ்கேன்கள் & முன்னுரிமை அதிகாரி உதவி',
-                              ),
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.copper, size: 16),
-                    ],
-                  ),
                 ),
               ),
             ],
@@ -560,154 +736,152 @@ class HomeScreen extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _buildActivityTile({
-    required String cropImage,
-    required String diseaseName,
-    required String confidence,
-    required String date,
-    required double score,
-  }) {
-    return Container(
-      width: 140,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border, width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+// ══════════════════════════════════════════════════════════════════════════════
+// ⑤ RECENT SCANS
+// ══════════════════════════════════════════════════════════════════════════════
+class _RecentScans extends StatelessWidget {
+  final List<dynamic> scans;
+  const _RecentScans({required this.scans});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('RECENT SCANS', style: TextStyle(color: _textMute, fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 1.5)),
+              GestureDetector(
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DiseaseCatalogueScreen())),
+                child: const Text('See All', style: TextStyle(color: _copper, fontSize: 13, fontWeight: FontWeight.w800)),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(14),
-            child: SizedBox(
-              height: 75,
-              width: double.infinity,
-              child: SmartImage(src: cropImage, fit: BoxFit.cover),
+        ),
+        const SizedBox(height: 16),
+        if (scans.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(color: _white, borderRadius: BorderRadius.circular(24)),
+              child: const Center(child: Text('No recent scans found.', style: TextStyle(color: _textMute))),
+            ),
+          )
+        else
+          SizedBox(
+            height: 220,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              itemCount: scans.length,
+              itemBuilder: (ctx, i) {
+                final s = scans[i];
+                return Padding(
+                  padding: EdgeInsets.only(right: i < scans.length - 1 ? 20 : 0),
+                  child: GestureDetector(
+                    onTap: () => Navigator.push(ctx, MaterialPageRoute(builder: (_) => DiagnosticResultScreen(scan: s))),
+                    child: _ScanCard(scan: s),
+                  ),
+                );
+              },
             ),
           ),
-          const SizedBox(height: 10),
-          Text(
-            diseaseName,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            confidence,
-            style: const TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              color: AppColors.copper,
-            ),
-          ),
-        ],
-      ),
+      ],
     );
   }
+}
 
-  Widget _buildActivityTileWithRing({
-    required String diseaseName,
-    required String confidence,
-    required String date,
-    required double score,
-    bool isSelected = false,
-  }) {
+class _ScanCard extends StatelessWidget {
+  final dynamic scan;
+  const _ScanCard({required this.scan});
+
+  @override
+  Widget build(BuildContext context) {
+    final pct = (scan.confidenceScore * 100).round();
+    final c = pct >= 80 ? const Color(0xFF27AE60) : pct >= 60 ? const Color(0xFFF2994A) : const Color(0xFFEB5757);
+    
     return Container(
-      width: 140,
-      padding: const EdgeInsets.all(12),
+      width: 170,
       decoration: BoxDecoration(
-        color: isSelected ? AppColors.selectedTileBg : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isSelected ? AppColors.copper : AppColors.border,
-          width: isSelected ? 2 : 1.2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isSelected ? AppColors.copper.withValues(alpha: 0.15) : Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: _white,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, 10))],
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            height: 75,
-            width: double.infinity,
-            child: Center(
-              child: SizedBox(
-                width: 54,
-                height: 54,
-                child: Stack(
-                  children: [
-                    SizedBox.expand(
-                      child: CircularProgressIndicator(
-                        value: score,
-                        strokeWidth: 6,
-                        backgroundColor: AppColors.copper.withValues(alpha: 0.2),
-                        valueColor: const AlwaysStoppedAnimation<Color>(AppColors.copper),
-                      ),
-                    ),
-                    Center(
-                      child: Text(
-                        '${(score * 100).toInt()}%',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.copperDark,
-                        ),
-                      ),
-                    ),
-                  ],
+          Stack(
+            children: [
+              SizedBox(
+                height: 120, width: double.infinity,
+                child: SmartImage(src: scan.imageUrl, fit: BoxFit.cover),
+              ),
+              Positioned(
+                top: 12, right: 12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _white.withOpacity(0.95),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10)],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(width: 8, height: 8, decoration: BoxDecoration(color: c, shape: BoxShape.circle)),
+                      const SizedBox(width: 6),
+                      Text('$pct%', style: const TextStyle(color: _textDark, fontSize: 12, fontWeight: FontWeight.w900)),
+                    ],
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
-          const SizedBox(height: 10),
-          Text(
-            diseaseName,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            confidence,
-            style: const TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              color: AppColors.copper,
-            ),
-          ),
-          Text(
-            date,
-            style: const TextStyle(
-              fontSize: 9,
-              color: AppColors.textMuted,
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(context.trDisease(scan.diseaseName),
+                    maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: _textDark, fontWeight: FontWeight.w900, fontSize: 14)),
+                const SizedBox(height: 4),
+                Text(context.trDate(scan.dateLabel),
+                    style: const TextStyle(color: _textMute, fontSize: 12, fontWeight: FontWeight.w500)),
+              ],
             ),
           ),
         ],
       ),
     );
   }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PAINTERS
+// ══════════════════════════════════════════════════════════════════════════════
+class _Ring extends CustomPainter {
+  final double prog, sw;
+  final Color fg, bg;
+  const _Ring({required this.prog, required this.fg, required this.bg, this.sw = 9});
+
+  @override
+  void paint(Canvas c, Size s) {
+    final center = Offset(s.width / 2, s.height / 2);
+    final r = s.width / 2 - sw / 2;
+    c.drawArc(Rect.fromCircle(center: center, radius: r), 0, 2 * pi, false,
+        Paint()..color = bg..strokeWidth = sw..style = PaintingStyle.stroke..strokeCap = StrokeCap.round);
+    c.drawArc(Rect.fromCircle(center: center, radius: r), -pi / 2, 2 * pi * prog, false,
+        Paint()..color = fg..strokeWidth = sw..style = PaintingStyle.stroke..strokeCap = StrokeCap.round);
+  }
+  @override
+  bool shouldRepaint(covariant _Ring o) => o.prog != prog || o.fg != fg;
 }

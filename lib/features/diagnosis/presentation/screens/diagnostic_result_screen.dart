@@ -410,7 +410,7 @@ class _DiagnosticResultScreenState extends ConsumerState<DiagnosticResultScreen>
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [AppColors.surface, AppColors.signOutBg],
+          colors: [AppColors.surface, AppColors.mintLight],
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
@@ -1044,17 +1044,17 @@ class _DiagnosticResultScreenState extends ConsumerState<DiagnosticResultScreen>
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.copperLight.withValues(alpha: 0.4)),
+                border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
                 boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 12, offset: const Offset(0, 4))],
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.mic_rounded, color: AppColors.copper, size: 20),
+                  const Icon(Icons.mic_rounded, color: AppColors.primary, size: 20),
                   const SizedBox(width: 6),
                   Text(
                     context.tr(en: 'Voice Help', si: 'හඬ සහාය', ta: 'குரல் உதவி'),
-                    style: const TextStyle(color: AppColors.copper, fontSize: 12, fontWeight: FontWeight.bold),
+                    style: const TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),

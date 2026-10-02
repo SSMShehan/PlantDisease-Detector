@@ -144,14 +144,14 @@ class _LanguageSelectionScreenState
         decoration: BoxDecoration(
           color: isSelected ? AppColors.surface : Colors.white,
           border: Border.all(
-            color: isSelected ? AppColors.copper : AppColors.cardBorder,
+            color: isSelected ? AppColors.primary : AppColors.cardBorder,
             width: isSelected ? 2.5 : 1.2,
           ),
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             if (isSelected)
               BoxShadow(
-                color: AppColors.copper.withValues(alpha: 0.15),
+                color: AppColors.primary.withValues(alpha: 0.15),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               )
@@ -202,7 +202,7 @@ class _LanguageSelectionScreenState
                   Text(
                     name,
                     style: AppTextStyles.bodySmall.copyWith(
-                      color: isSelected ? AppColors.copper : AppColors.textSecondary,
+                      color: isSelected ? AppColors.primaryLight : AppColors.textSecondary,
                       fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
@@ -215,10 +215,10 @@ class _LanguageSelectionScreenState
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? AppColors.copper : AppColors.textSecondary.withValues(alpha: 0.5),
+                  color: isSelected ? AppColors.primary : AppColors.textSecondary.withValues(alpha: 0.5),
                   width: 2,
                 ),
-                color: isSelected ? AppColors.copper : Colors.transparent,
+                color: isSelected ? AppColors.primary : Colors.transparent,
               ),
               child: isSelected
                   ? const Icon(Icons.check, size: 16, color: Colors.white)

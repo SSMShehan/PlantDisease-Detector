@@ -1,8 +1,10 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
 import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
+
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -12,6 +14,11 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _isLoading = false;
+  bool _obscurePassword = true;
   String _selectedDistrict = 'Colombo';
   final List<String> _districts = [
     'Ampara', 'Anuradhapura', 'Badulla', 'Batticaloa', 'Colombo', 'Galle', 
@@ -20,6 +27,62 @@ class _SignupScreenState extends State<SignupScreen> {
     'Mullaitivu', 'Nuwara Eliya', 'Polonnaruwa', 'Puttalam', 'Ratnapura', 
     'Trincomalee', 'Vavuniya'
   ];
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _onSignup() async {
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.tr(en: 'Please fill all fields', si: 'කරුණාකර සියලුම විස්තර පුරවන්න', ta: 'அனைத்து விவரங்களையும் நிரப்பவும்')), backgroundColor: Colors.red),
+      );
+      return;
+    }
+    
+    setState(() => _isLoading = true);
+    
+    try {
+      await Supabase.instance.client.auth.signUp(
+        email: email,
+        password: password,
+        data: {
+          'full_name': name,
+          'district': _selectedDistrict,
+        },
+      );
+      
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Account Created Successfully!'), backgroundColor: Colors.green),
+        );
+        context.go('/main');
+      }
+    } on AuthException catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message), backgroundColor: Colors.red),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -96,10 +159,11 @@ class _SignupScreenState extends State<SignupScreen> {
                       topRight: Radius.circular(40),
                     ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
                       Text(
                         context.tr(en: 'Join CropGuard', si: 'CropGuard වෙත එක්වන්න', ta: 'CropGuard இல் இணையுங்கள்'),
                         style: AppTextStyles.headlineMedium,
@@ -120,8 +184,20 @@ class _SignupScreenState extends State<SignupScreen> {
                       // Full Name Field
                       Text(context.tr(en: 'Full Name', si: 'සම්පූර්ණ නම', ta: 'முழு பெயர்'), style: AppTextStyles.titleSmall),
                       const SizedBox(height: 8),
-                      _buildTextField(hint: 'e.g. Sunil Perera', icon: Icons.person_outline_rounded),
-                      const SizedBox(height: 20),
+                      _buildTextField(controller: _nameController, hint: 'e.g. Sunil Perera', icon: Icons.person_outline_rounded),
+                      const SizedBox(height: 16),
+                      
+                      // Email Field
+                      Text(context.tr(en: 'Email', si: 'විද්‍යුත් තැපෑල', ta: 'மின்னஞ்சல்'), style: AppTextStyles.titleSmall),
+                      const SizedBox(height: 8),
+                      _buildTextField(controller: _emailController, hint: 'e.g. sunil@example.com', icon: Icons.email_outlined),
+                      const SizedBox(height: 16),
+
+                      // Password Field
+                      Text(context.tr(en: 'Password', si: 'මුරපදය', ta: 'கடவுச்சொல்'), style: AppTextStyles.titleSmall),
+                      const SizedBox(height: 8),
+                      _buildTextField(controller: _passwordController, hint: '••••••••', icon: Icons.lock_outline_rounded, isPassword: true),
+                      const SizedBox(height: 16),
                       
                       // District Dropdown
                       Text(context.tr(en: 'District', si: 'දිස්ත්‍රික්කය', ta: 'மாவட்டம்'), style: AppTextStyles.titleSmall),
@@ -159,9 +235,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       const SizedBox(height: 32),
                       
                       ElevatedButton(
-                        onPressed: () {
-                          context.go('/main');
-                        },
+                        onPressed: _isLoading ? null : _onSignup,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           padding: const EdgeInsets.symmetric(vertical: 18),
@@ -170,10 +244,12 @@ class _SignupScreenState extends State<SignupScreen> {
                           ),
                           elevation: 0,
                         ),
-                        child: Text(
-                          context.tr(en: 'Complete Registration', si: 'ලියාපදිංචිය සම්පූර්ණ කරන්න', ta: 'பதிவை முடிக்கவும்'),
-                          style: AppTextStyles.titleMedium.copyWith(color: Colors.white, fontSize: 16),
-                        ),
+                        child: _isLoading 
+                          ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
+                          : Text(
+                              context.tr(en: 'Complete Registration', si: 'ලියාපදිංචිය සම්පූර්ණ කරන්න', ta: 'பதிவை முடிக்கவும்'),
+                              style: AppTextStyles.titleMedium.copyWith(color: Colors.white, fontSize: 16),
+                            ),
                       ),
                       const SizedBox(height: 24),
                       
@@ -200,24 +276,31 @@ class _SignupScreenState extends State<SignupScreen> {
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 
-  Widget _buildTextField({required String hint, required IconData icon}) {
+  Widget _buildTextField({required TextEditingController controller, required String hint, required IconData icon, bool isPassword = false}) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.background,
         borderRadius: BorderRadius.circular(16),
       ),
       child: TextField(
+        controller: controller,
+        obscureText: isPassword && _obscurePassword,
         style: AppTextStyles.titleMedium,
         decoration: InputDecoration(
           prefixIcon: Icon(icon, color: AppColors.textSecondary),
+          suffixIcon: isPassword ? IconButton(
+            icon: Icon(_obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: AppColors.textSecondary),
+            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+          ) : null,
           hintText: hint,
           hintStyle: AppTextStyles.titleMedium.copyWith(color: AppColors.textSecondary),
           border: OutlineInputBorder(

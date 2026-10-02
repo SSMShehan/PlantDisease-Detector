@@ -8,17 +8,9 @@ class WeatherApiService {
   // For now, we fallback to mock if no key is provided so the app won't crash.
   Future<WeatherModel> fetchCurrentWeather(double lat, double lon) async {
     try {
-      // String apiKey = dotenv.env['OPENWEATHER_API_KEY'] ?? '';
-      String apiKey = ''; // Leave empty to trigger fallback, or put real key here
-      
-      if (apiKey.isEmpty) {
-        // Fallback to mock data to prevent crashes while testing
-        await Future.delayed(const Duration(seconds: 1)); // simulate network delay
-        return WeatherModel.mock();
-      }
-
+      // Free Open-Meteo API - no API key required
       final url = Uri.parse(
-          'https://api.openweathermap.org/data/2.5/weather?lat=$lat&lon=$lon&units=metric&appid=$apiKey');
+          'https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current_weather=true&hourly=relative_humidity_2m');
           
       final response = await http.get(url);
 
@@ -26,10 +18,10 @@ class WeatherApiService {
         final data = json.decode(response.body);
         return WeatherModel.fromJson(data);
       } else {
-        throw Exception('Failed to load weather data');
+        throw Exception('Failed to load weather data: ${response.statusCode}');
       }
     } catch (e) {
-      // Fallback
+      // Fallback to mock data only if network completely fails
       return WeatherModel.mock();
     }
   }

@@ -47,4 +47,5 @@ app.*.map.json
 .vscode/
 *.pdf
 *.docx
+.env
 

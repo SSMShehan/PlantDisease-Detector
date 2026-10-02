@@ -42,92 +42,101 @@ class _MainScreenState extends ConsumerState<MainScreen> {
             children: pages,
           ),
           
-          // Glassmorphism Bottom Nav
+          // ── LIGHT PREMIUM GLASSMORPHIC NAV BAR ──
           Positioned(
-            left: 24,
-            right: 24,
-            bottom: 24,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                child: Container(
-                  height: 72,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.85),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 1.5),
-                    boxShadow: [
-                      BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 24, offset: const Offset(0, 8)),
-                    ],
+            left: 24, right: 24, bottom: 24,
+            child: Container(
+              padding: const EdgeInsets.all(1.5),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.white.withOpacity(0.9),
+                    const Color(0xFFF7EBE6).withOpacity(0.5), // Earthy warm tint
+                    Colors.white.withOpacity(0.4),
+                    const Color(0xFFF7EBE6).withOpacity(0.5),
+                  ],
+                  begin: Alignment.topLeft, end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(32),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF301608).withOpacity(0.06), // Warm shadow
+                    blurRadius: 30, offset: const Offset(0, 12),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildNavItem(0, Icons.home_rounded, context.tr(en: 'Home', si: 'මුල් පිටුව', ta: 'முகப்பு')),
-                      _buildNavItem(1, Icons.grid_view_rounded, context.tr(en: 'Farm', si: 'ගොවිපළ', ta: 'பண்ணை')),
-                      const SizedBox(width: 56), // Space for FAB
-                      _buildNavItem(2, Icons.history_rounded, context.tr(en: 'History', si: 'ඉතිහාසය', ta: 'வரலாறு')),
-                      _buildNavItem(3, Icons.person_rounded, context.tr(en: 'Profile', si: 'පැතිකඩ', ta: 'சுயவிவரம்')),
-                    ],
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(30),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+                  child: Container(
+                    height: 72,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.85),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildNavItem(0, Icons.home_rounded,      context.tr(en: 'Home',    si: 'මුල් පිටුව', ta: 'முகப்பு')),
+                        _buildNavItem(1, Icons.grid_view_rounded, context.tr(en: 'Farm',    si: 'ගොවිපළ',    ta: 'பண்ணை')),
+                        const SizedBox(width: 58),
+                        _buildNavItem(2, Icons.history_rounded,   context.tr(en: 'History', si: 'ඉතිහාසය',   ta: 'வரலாறு')),
+                        _buildNavItem(3, Icons.person_rounded,    context.tr(en: 'Profile', si: 'පැතිකඩ',    ta: 'சுயவிவரம்')),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-          
-          // Floating Action Button (Pulsing Emerald & Copper Centerpiece)
+
+          // ── PREMIUM LIGHT FAB ──
           Positioned(
             bottom: 40,
-            left: 0,
-            right: 0,
+            left: 0, right: 0,
             child: Center(
               child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const CameraCaptureScreen()),
-                  );
-                },
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CameraCaptureScreen()),
+                ),
                 child: Container(
-                  width: 66,
-                  height: 66,
+                  padding: const EdgeInsets.all(5),
                   decoration: BoxDecoration(
-                    gradient: AppGradients.scanButton,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppColors.copper, width: 2),
+                    color: Colors.white,
+                    shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.5),
-                        blurRadius: 18,
-                        offset: const Offset(0, 8),
-                      ),
-                      BoxShadow(
-                        color: AppColors.copper.withValues(alpha: 0.3),
-                        blurRadius: 10,
-                        spreadRadius: 1,
+                        color: const Color(0xFFBA5A31).withOpacity(0.25), // Terracotta glow
+                        blurRadius: 20, offset: const Offset(0, 8),
                       ),
                     ],
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.qr_code_scanner_rounded,
-                        color: Colors.white,
-                        size: 26,
+                  child: Container(
+                    width: 56, height: 56,
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFFD9734E), Color(0xFF9C4927)], // Terracotta gradient
+                        begin: Alignment.topLeft, end: Alignment.bottomRight,
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        context.tr(en: 'SCAN', si: 'ස්කෑන්', ta: 'ஸ்கேன்'),
-                        style: const TextStyle(
-                          color: AppColors.copperLight,
-                          fontSize: 9,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.5,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.qr_code_scanner_rounded, color: Colors.white, size: 24),
+                        const SizedBox(height: 2),
+                        Text(
+                          context.tr(en: 'SCAN', si: 'ස්කෑන්', ta: 'ஸ்கேன்'),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 8, fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -140,6 +149,9 @@ class _MainScreenState extends ConsumerState<MainScreen> {
 
   Widget _buildNavItem(int index, IconData icon, String label) {
     final isSelected = _currentIndex == index;
+    // Elegant light theme nav colors with Earthy Terracotta
+    const Color activeColor = Color(0xFFBA5A31);   // Rich terracotta
+    const Color inactiveColor = Color(0xFF9BA6AE); // Soft premium silver/grey
     return Expanded(
       child: GestureDetector(
         onTap: () => setState(() => _currentIndex = index),
@@ -147,20 +159,19 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              color: isSelected ? AppColors.copper : AppColors.navInactive,
+            Icon(icon,
+              color: isSelected ? activeColor : inactiveColor,
               size: 26,
             ),
             const SizedBox(height: 4),
-            Text(
-              label,
+            Text(label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: 10,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected ? AppColors.copper : AppColors.navInactive,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                color: isSelected ? activeColor : inactiveColor,
+                letterSpacing: 0.2,
               ),
             ),
           ],

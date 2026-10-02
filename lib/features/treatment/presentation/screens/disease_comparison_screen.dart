@@ -225,12 +225,12 @@ class DiseaseComparisonScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: AppColors.copperLight.withValues(alpha: 0.15),
+                    color: AppColors.primaryLight.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     context.trCrop(d.cropName).toUpperCase(),
-                    style: const TextStyle(color: AppColors.copper, fontSize: 9, fontWeight: FontWeight.bold),
+                    style: const TextStyle(color: AppColors.primary, fontSize: 9, fontWeight: FontWeight.bold),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -340,7 +340,7 @@ class DiseaseComparisonScreen extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('• ', style: TextStyle(color: AppColors.copper, fontWeight: FontWeight.bold)),
+          const Text('• ', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
           Expanded(
             child: Text(
               displayText,

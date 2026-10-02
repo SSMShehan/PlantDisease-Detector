@@ -10,6 +10,8 @@ import 'package:plant_disease_detector/core/providers/locale_provider.dart';
 import 'package:plant_disease_detector/l10n/app_localizations.dart';
 import 'package:plant_disease_detector/core/providers/tflite_provider.dart';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -17,6 +19,9 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+
+  // Load environment variables
+  await dotenv.load(fileName: ".env");
 
   // Initialise Supabase. Will be a no-op until real credentials are supplied.
   try {

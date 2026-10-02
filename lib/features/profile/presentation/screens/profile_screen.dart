@@ -189,7 +189,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         gradient: AppGradients.profileCard,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
-          BoxShadow(color: AppColors.severityHigh.withValues(alpha: 0.35), blurRadius: 24, offset: const Offset(0, 12)),
+          BoxShadow(color: AppColors.primary.withValues(alpha: 0.35), blurRadius: 24, offset: const Offset(0, 12)),
         ],
       ),
       child: GestureDetector(
@@ -455,7 +455,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                   width: 44,
                                   height: 26,
                                   decoration: BoxDecoration(
-                                    color: s.on ? AppColors.severityHigh : AppColors.settingsToggleOff,
+                                    color: s.on ? AppColors.primary : AppColors.settingsToggleOff,
                                     borderRadius: BorderRadius.circular(50),
                                   ),
                                   child: Stack(

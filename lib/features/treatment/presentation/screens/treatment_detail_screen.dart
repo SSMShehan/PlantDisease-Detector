@@ -259,10 +259,10 @@ class _TreatmentDetailScreenState extends State<TreatmentDetailScreen> {
                               width: 54,
                               height: 54,
                               decoration: BoxDecoration(
-                                color: AppColors.copper.withValues(alpha: 0.12),
+                                color: AppColors.primary.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(16),
                               ),
-                              child: const Icon(Icons.monetization_on_outlined, color: AppColors.copper, size: 28),
+                              child: const Icon(Icons.monetization_on_outlined, color: AppColors.primary, size: 28),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
@@ -368,7 +368,7 @@ class _TreatmentDetailScreenState extends State<TreatmentDetailScreen> {
                                     : Colors.white,
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
-                                  color: isDone ? AppColors.copper : AppColors.cardBorder,
+                                  color: isDone ? AppColors.primary : AppColors.cardBorder,
                                   width: isDone ? 1.5 : 1.0,
                                 ),
                                 boxShadow: [
@@ -386,7 +386,7 @@ class _TreatmentDetailScreenState extends State<TreatmentDetailScreen> {
                                     isDone
                                         ? Icons.check_circle_rounded
                                         : Icons.circle_outlined,
-                                    color: isDone ? AppColors.copper : AppColors.textSecondary,
+                                    color: isDone ? AppColors.primary : AppColors.textSecondary,
                                     size: 22,
                                   ),
                                   const SizedBox(width: 14),
@@ -435,7 +435,7 @@ class _TreatmentDetailScreenState extends State<TreatmentDetailScreen> {
                                             Text(
                                               task['cost'] as String,
                                               style: AppTextStyles.labelSmall.copyWith(
-                                                color: AppColors.copper,
+                                                color: AppColors.primary,
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
@@ -460,7 +460,7 @@ class _TreatmentDetailScreenState extends State<TreatmentDetailScreen> {
                             context.tr(en: 'Recommended Inputs (LKR)', si: 'නිර්දේශිත ද්‍රව්‍ය (රු.)', ta: 'பரிந்துரைக்கப்பட்ட பொருட்கள் (ரூ.)'),
                             style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.bold),
                           ),
-                          Text('Sri Lanka Ag', style: AppTextStyles.bodySmall.copyWith(color: AppColors.copper, fontWeight: FontWeight.bold)),
+                          Text('Sri Lanka Ag', style: AppTextStyles.bodySmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)),
                         ],
                       ),
                       const SizedBox(height: 14),
@@ -591,7 +591,7 @@ class _TreatmentDetailScreenState extends State<TreatmentDetailScreen> {
                 Text(
                   price,
                   style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.copper,
+                    color: AppColors.primary,
                     fontWeight: FontWeight.w800,
                     fontSize: 13,
                   ),

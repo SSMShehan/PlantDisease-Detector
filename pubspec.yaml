@@ -86,3 +86,8 @@ flutter:
     - assets/animations/
     - assets/images/
     - assets/models/
+    - .env
+
+
+
+

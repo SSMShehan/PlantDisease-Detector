@@ -16,8 +16,8 @@ class AppColors {
   static const Color copper        = Color(0xFFC87D55);
   static const Color copperLight   = Color(0xFFD98A5F);
   static const Color copperDark    = Color(0xFFA65B34);
-  static const Color secondary     = copper;
-  static const Color accent        = copperLight;
+  static const Color secondary     = primaryLight;
+  static const Color accent        = emeraldLeaf;
 
   // ── Backgrounds & Surfaces ────────────────────────────────────────────────
   static const Color background    = Color(0xFFF4F6F4);
@@ -103,10 +103,10 @@ class AppColors {
   static const Color emeraldDeep        = Color(0xFF5A9E7C);
 
   // ── Gradient Endpoints (used by AppGradients) ─────────────────────────────
-  static const Color profileGradStart   = Color(0xFFE07A5F);
-  static const Color profileGradEnd     = Color(0xFFC96A4F);
-  static const Color avatarGradStart    = Color(0xFFE07A5F);
-  static const Color avatarGradEnd      = Color(0xFFF2A98A);
+  static const Color profileGradStart   = Color(0xFF0B3C2D);
+  static const Color profileGradEnd     = Color(0xFF165A45);
+  static const Color avatarGradStart    = Color(0xFF165A45);
+  static const Color avatarGradEnd      = Color(0xFF2E7D32);
   static const Color bannerWarmStart    = Color(0xFFEDE5DF);
   static const Color bannerWarmEnd      = Color(0xFFF7F2EE);
   static const Color officerOverlayStart= Color(0x80000000);

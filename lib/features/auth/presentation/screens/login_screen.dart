@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
 import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -28,18 +29,47 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _onLogin() async {
-    if (_emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) return;
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    
+    if (email.isEmpty || password.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.tr(en: 'Please enter email and password', si: 'කරුණාකර විද්‍යුත් තැපෑල සහ මුරපදය ඇතුළත් කරන්න', ta: 'மின்னஞ்சல் மற்றும் கடவுச்சொல்லை உள்ளிடவும்')), backgroundColor: Colors.red),
+        );
+      }
+      return;
+    }
+    
     setState(() => _isLoading = true);
     
-    // Simulate network delay
-    await Future.delayed(const Duration(seconds: 1)); 
-    
-    if (mounted) {
-      setState(() => _isLoading = false);
-      if (_selectedRole == 'Officer') {
-        context.go('/officer_dashboard');
-      } else {
-        context.go('/main');
+    try {
+      await Supabase.instance.client.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+      
+      if (mounted) {
+        setState(() => _isLoading = false);
+        if (_selectedRole == 'Officer') {
+          context.go('/officer_dashboard');
+        } else {
+          context.go('/main');
+        }
+      }
+    } on AuthException catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message), backgroundColor: Colors.red),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
       }
     }
   }

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -27,7 +28,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     Timer(const Duration(milliseconds: 2400), () {
       if (mounted) {
-        context.go('/language');
+        final session = Supabase.instance.client.auth.currentSession;
+        if (session != null) {
+          context.go('/main');
+        } else {
+          context.go('/language');
+        }
       }
     });
   }

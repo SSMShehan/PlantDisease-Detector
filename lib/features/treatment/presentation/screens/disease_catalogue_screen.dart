@@ -337,13 +337,13 @@ class _DiseaseCatalogueScreenState extends State<DiseaseCatalogueScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isSelectedForCompare ? AppColors.copper : AppColors.border,
+          color: isSelectedForCompare ? AppColors.primary : AppColors.border,
           width: isSelectedForCompare ? 1.5 : 1.0,
         ),
         boxShadow: [
           BoxShadow(
             color: isSelectedForCompare
-                ? AppColors.copper.withValues(alpha: 0.12)
+                ? AppColors.primary.withValues(alpha: 0.12)
                 : Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
@@ -410,17 +410,17 @@ class _DiseaseCatalogueScreenState extends State<DiseaseCatalogueScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: isSelectedForCompare
-                        ? AppColors.copper
-                        : AppColors.copper.withValues(alpha: 0.1),
+                        ? AppColors.primary
+                        : AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppColors.copper.withValues(alpha: 0.4)),
+                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         isSelectedForCompare ? Icons.check_rounded : Icons.add_rounded,
-                        color: isSelectedForCompare ? Colors.white : AppColors.copper,
+                        color: isSelectedForCompare ? Colors.white : AppColors.primary,
                         size: 13,
                       ),
                       const SizedBox(width: 3),
@@ -429,7 +429,7 @@ class _DiseaseCatalogueScreenState extends State<DiseaseCatalogueScreen> {
                             ? context.tr(en: 'Selected', si: 'තෝරාගත්', ta: 'தேர்ந்தெடுக்கப்பட்டது')
                             : context.tr(en: 'Compare', si: 'සංසන්දනය', ta: 'ஒப்பிடுக'),
                         style: TextStyle(
-                          color: isSelectedForCompare ? Colors.white : AppColors.copper,
+                          color: isSelectedForCompare ? Colors.white : AppColors.primary,
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
                         ),
