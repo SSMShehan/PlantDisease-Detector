@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
 import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'package:plant_disease_detector/shared/widgets/smart_image.dart';
 import 'package:plant_disease_detector/shared/widgets/premium_app_bar.dart';
+import 'package:plant_disease_detector/features/community/application/community_provider.dart';
+import 'package:plant_disease_detector/features/community/data/community_models.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
-class CommunityFeedScreen extends StatefulWidget {
+class CommunityFeedScreen extends ConsumerStatefulWidget {
   const CommunityFeedScreen({super.key});
 
   @override
-  State<CommunityFeedScreen> createState() => _CommunityFeedScreenState();
+  ConsumerState<CommunityFeedScreen> createState() => _CommunityFeedScreenState();
 }
 
-class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
+class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
   int _selectedFilterIndex = 0;
   final List<Map<String, dynamic>> _filters = [
     {'title': 'Trending', 'icon': Icons.local_fire_department_rounded},
@@ -23,12 +27,14 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final postsAsync = ref.watch(communityFeedProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: PremiumAppBar(
-        title: Text(context.tr(en: 'Community Forum', si: 'ගොවි සංසදය', ta: 'விவசாயிகள் மன்றம்')),
+        title: Text(context.tr(en: 'Farmer Community', si: 'ගොවි සංසදය', ta: 'விவசாயிகள் மன்றம்')),
         actions: const [
-          LanguageSelectorButton(),
+          LanguageSelectorButton(isCompact: true),
         ],
       ),
       body: Stack(
@@ -122,38 +128,31 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
 
               // Feed List
               Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  children: [
-                    _buildFeedCard(
-                      'Farmer Tom',
-                      '3h ago',
-                      'First signs of blight on my tomatoes... need advice ASAP.',
-                      15,
-                      4,
-                      'https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?q=80&w=200&auto=format&fit=crop',
-                      'https://images.unsplash.com/photo-1582298538104-fe2e74c878f1?q=80&w=300&auto=format&fit=crop', // Tomato blight
-                    ),
-                    _buildFeedCard(
-                      'Green_Thumb',
-                      '5h ago',
-                      'Thinking of rotating my corn crop this season. Pros and cons?',
-                      8,
-                      2,
-                      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop',
-                      'https://images.unsplash.com/photo-1601646271927-466d6a2f8c05?q=80&w=300&auto=format&fit=crop', // Corn field
-                    ),
-                    _buildFeedCard(
-                      'AgriExpert',
-                      '1d ago',
-                      'New fertilizer comparison study published today. Very interesting results for wheat yields.',
-                      42,
-                      12,
-                      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
-                      null, // No image
-                    ),
-                    const SizedBox(height: 100), // Space for FAB
-                  ],
+                child: postsAsync.when(
+                  data: (posts) {
+                    if (posts.isEmpty) {
+                      return Center(
+                        child: Text(
+                          context.tr(en: 'No posts yet.', si: 'පළකිරීම් කිසිවක් නැත.', ta: 'இடுகைகள் எதுவும் இல்லை.'),
+                          style: AppTextStyles.bodyLarge,
+                        ),
+                      );
+                    }
+                    return RefreshIndicator(
+                      onRefresh: () => ref.read(communityFeedProvider.notifier).refresh(),
+                      color: AppColors.primary,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+                        itemCount: posts.length,
+                        itemBuilder: (context, index) {
+                          final post = posts[index];
+                          return _buildFeedCard(post);
+                        },
+                      ),
+                    );
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                  error: (error, _) => Center(child: Text('Error: $error')),
                 ),
               ),
             ],
@@ -178,7 +177,10 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                   ],
                 ),
                 child: FloatingActionButton(
-                  onPressed: () {},
+                  heroTag: 'create_post',
+                  onPressed: () {
+                    context.push('/create_post');
+                  },
                   backgroundColor: Colors.transparent,
                   elevation: 0,
                   highlightElevation: 0,
@@ -192,87 +194,139 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
     );
   }
 
-  Widget _buildFeedCard(String username, String timeAgo, String content, int upvotes, int comments, String avatarUrl, String? contentImageUrl) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade100),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 16,
-                backgroundColor: Colors.grey.shade200,
-                backgroundImage: NetworkImage(avatarUrl),
-                onBackgroundImageError: (exception, stackTrace) {},
-              ),
-              const SizedBox(width: 12),
-              Text(username, style: AppTextStyles.titleSmall),
-              const Spacer(),
-              Text(timeAgo, style: AppTextStyles.bodySmall),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
+  Widget _buildFeedCard(CommunityPost post) {
+    final authorName = post.author?.fullName ?? 'Farmer';
+    final avatarUrl = post.author?.imagePath;
+    final timeAgoStr = timeago.format(post.createdAt, locale: 'en_short');
+
+    return GestureDetector(
+      onTap: () {
+        context.push('/post_detail', extra: post);
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.grey.shade100),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.grey.shade200,
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: avatarUrl != null
+                      ? SmartImage(src: avatarUrl, fit: BoxFit.cover)
+                      : const Icon(Icons.person, color: Colors.grey, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(authorName, style: AppTextStyles.titleSmall),
+                    if (post.category.isNotEmpty)
+                      Text(
+                        post.category,
+                        style: const TextStyle(fontSize: 10, color: AppColors.primary, fontWeight: FontWeight.bold),
+                      ),
+                  ],
+                ),
+                const Spacer(),
+                Text(timeAgoStr, style: AppTextStyles.bodySmall),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (post.title != null && post.title!.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
                 child: Text(
-                  content,
-                  style: AppTextStyles.bodyLarge.copyWith(height: 1.4),
+                  post.title!,
+                  style: AppTextStyles.titleMedium.copyWith(fontSize: 16),
                 ),
               ),
-              if (contentImageUrl != null) ...[
-                const SizedBox(width: 16),
-                SmartImage(
-                  src: contentImageUrl,
-                  width: 70,
-                  height: 70,
+            Text(
+              post.content,
+              style: AppTextStyles.bodyLarge.copyWith(height: 1.4),
+              maxLines: 4,
+              overflow: TextOverflow.ellipsis,
+            ),
+            if (post.imageUrl != null && post.imageUrl!.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SmartImage(
+                  src: post.imageUrl!,
+                  width: double.infinity,
+                  height: 180,
                   fit: BoxFit.cover,
-                  borderRadius: BorderRadius.circular(12),
                 ),
-              ]
+              ),
             ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              _buildInteractionButton(Icons.arrow_upward_rounded, '$upvotes ${context.tr(en: 'Upvotes', si: 'මනාප', ta: 'வாக்குகள்')}'),
-              const SizedBox(width: 24),
-              _buildInteractionButton(Icons.chat_bubble_outline_rounded, '$comments ${context.tr(en: 'Comments', si: 'අදහස්', ta: 'கருத்துகள்')}'),
-            ],
-          ),
-        ],
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                _buildActionButton(
+                  icon: post.isLikedByMe ? Icons.thumb_up_rounded : Icons.thumb_up_alt_outlined,
+                  label: '${post.likesCount}',
+                  color: post.isLikedByMe ? AppColors.primary : AppColors.textSecondary,
+                  onTap: () {
+                    ref.read(communityFeedProvider.notifier).toggleLike(post.id);
+                  },
+                ),
+                const SizedBox(width: 24),
+                _buildActionButton(
+                  icon: Icons.chat_bubble_outline_rounded,
+                  label: '${post.commentsCount}',
+                  color: AppColors.textSecondary,
+                  onTap: () {
+                    context.push('/post_detail', extra: post);
+                  },
+                ),
+                const Spacer(),
+                _buildActionButton(
+                  icon: Icons.share_rounded,
+                  label: '',
+                  color: AppColors.textSecondary,
+                  onTap: () {},
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildInteractionButton(IconData icon, String label) {
-    return InkWell(
-      onTap: () {},
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-        child: Row(
-          children: [
-            Icon(icon, size: 18, color: AppColors.textSecondary),
+  Widget _buildActionButton({required IconData icon, required String label, required Color color, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: color),
+          if (label.isNotEmpty) ...[
             const SizedBox(width: 6),
-            Text(label, style: AppTextStyles.bodyMedium),
+            Text(
+              label,
+              style: AppTextStyles.bodyMedium.copyWith(color: color, fontWeight: FontWeight.w600),
+            ),
           ],
-        ),
+        ],
       ),
     );
   }

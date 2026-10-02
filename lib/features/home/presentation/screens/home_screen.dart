@@ -163,12 +163,12 @@ class _HeroSection extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        // DEEP LUXURY GREEN BACKGROUND
+        // PREMIUM MESH GREEN BACKGROUND
         Container(
-          padding: const EdgeInsets.only(bottom: 50), // reduced padding
+          padding: const EdgeInsets.only(bottom: 50),
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [_emDark, _emMid],
+              colors: [Color(0xFF0F3820), Color(0xFF16502D)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -177,26 +177,59 @@ class _HeroSection extends StatelessWidget {
               BoxShadow(color: Color(0x1F000000), blurRadius: 20, offset: Offset(0, 10)),
             ],
           ),
-          child: SafeArea(
-            bottom: false,
+          child: ClipRRect(
+            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(36)),
             child: Stack(
               children: [
-                // Soft Ambient Glows
-                AnimatedBuilder(
-                  animation: float,
-                  builder: (_, __) => Positioned(
-                    right: -50, top: -20 + (float.value * 20),
-                    child: Container(
-                      width: 200, height: 200,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: RadialGradient(
-                          colors: [_emLight.withOpacity(0.3), Colors.transparent],
-                        ),
+                // Abstract Mesh Shapes
+                Positioned(
+                  top: -50,
+                  right: -50,
+                  child: Container(
+                    width: 250,
+                    height: 250,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [const Color(0xFF2E8B57).withOpacity(0.4), Colors.transparent],
                       ),
                     ),
                   ),
                 ),
+                Positioned(
+                  bottom: -100,
+                  left: -80,
+                  child: Container(
+                    width: 300,
+                    height: 300,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [const Color(0xFFF5C842).withOpacity(0.15), Colors.transparent],
+                      ),
+                    ),
+                  ),
+                ),
+                SafeArea(
+                  bottom: false,
+                  child: Stack(
+                    children: [
+                      // Floating Glows
+                      AnimatedBuilder(
+                        animation: float,
+                        builder: (_, __) => Positioned(
+                          right: 20, top: 40 + (float.value * 15),
+                          child: Container(
+                            width: 100, height: 100,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: RadialGradient(
+                                colors: [_gold.withOpacity(0.2), Colors.transparent],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
 
                 Padding(
                   padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
@@ -260,6 +293,9 @@ class _HeroSection extends StatelessWidget {
                     ],
                   ),
                 ),
+              ],
+            ),
+          ),
               ],
             ),
           ),
@@ -377,7 +413,7 @@ class _HeroSection extends StatelessWidget {
   Widget _fallbackAvatar(String name) => Container(
     color: _copper,
     child: Center(
-      child: Text(name[0].toUpperCase(), style: const TextStyle(color: _white, fontSize: 18, fontWeight: FontWeight.bold)),
+      child: Text(name.isNotEmpty ? name[0].toUpperCase() : 'U', style: const TextStyle(color: _white, fontSize: 18, fontWeight: FontWeight.bold)),
     ),
   );
 }

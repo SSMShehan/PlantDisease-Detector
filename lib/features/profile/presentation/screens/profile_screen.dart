@@ -5,6 +5,7 @@ import 'package:plant_disease_detector/features/profile/presentation/screens/set
 import 'package:plant_disease_detector/features/profile/presentation/screens/edit_profile_screen.dart';
 import 'package:plant_disease_detector/core/providers/location_provider.dart';
 import 'package:plant_disease_detector/core/providers/user_provider.dart';
+import 'package:plant_disease_detector/features/diagnosis/application/scan_history_provider.dart';
 import 'package:plant_disease_detector/core/providers/locale_provider.dart';
 import 'package:plant_disease_detector/features/profile/presentation/screens/language_selection_screen.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
@@ -41,13 +42,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       languageLabel = 'தமிழ் (Tamil)';
     }
 
+    final scanHistory = ref.watch(scanHistoryProvider);
+    final scanCount = scanHistory.maybeWhen(data: (scans) => scans.length, orElse: () => 0);
+
     final achievements = [
-      _Achievement(icon: "🌾", label: context.tr(en: "50 Scans", si: "ස්කෑන් 50", ta: "50 ஸ்கேன்கள்"), earned: true),
-      _Achievement(icon: "🔬", label: context.tr(en: "Disease Expert", si: "රෝග විශේෂඥ", ta: "நோய் நிபுணர்"), earned: true),
-      _Achievement(icon: "⭐", label: context.tr(en: "Top Farmer", si: "විශිෂ්ට ගොවියා", ta: "சிறந்த விவசாயி"), earned: true),
-      _Achievement(icon: "🏆", label: context.tr(en: "100 Scans", si: "ස්කෑන් 100", ta: "100 ஸ்கேன்கள்"), earned: false),
-      _Achievement(icon: "🌿", label: context.tr(en: "Zero Disease", si: "රෝග රහිත", ta: "பூஜ்ஜிய நோய்"), earned: false),
-      _Achievement(icon: "📊", label: context.tr(en: "Data Pro", si: "දත්ත ප්‍රවීණ", ta: "தரவு நிபுணர்"), earned: false),
+      _Achievement(icon: "🌱", label: context.tr(en: "First Scan", si: "පළමු ස්කෑන්", ta: "முதல் ஸ்கேன்"), earned: scanCount >= 1),
+      _Achievement(icon: "🌿", label: context.tr(en: "10 Scans", si: "ස්කෑන් 10", ta: "10 ஸ்கேன்கள்"), earned: scanCount >= 10),
+      _Achievement(icon: "🌾", label: context.tr(en: "50 Scans", si: "ස්කෑන් 50", ta: "50 ஸ்கேன்கள்"), earned: scanCount >= 50),
+      _Achievement(icon: "🏆", label: context.tr(en: "100 Scans", si: "ස්කෑන් 100", ta: "100 ஸ்கேன்கள்"), earned: scanCount >= 100),
+      _Achievement(icon: "🔬", label: context.tr(en: "Disease Expert", si: "රෝග විශේෂඥ", ta: "நோய் நிபுணர்"), earned: scanCount >= 200),
+      _Achievement(icon: "⭐", label: context.tr(en: "Top Farmer", si: "විශිෂ්ට ගොවියා", ta: "சிறந்த விவசாயி"), earned: scanCount >= 500),
     ];
 
     final settings = [
@@ -221,13 +225,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(13),
-                        child: userData.imagePath != null
+                        child: userData.imagePath != null && userData.imagePath!.isNotEmpty
                             ? ((userData.imagePath!.startsWith('http') || kIsWeb)
                                 ? Image.network(userData.imagePath!, fit: BoxFit.cover)
                                 : Image.file(File(userData.imagePath!), fit: BoxFit.cover))
-                            : Image.network(
-                                'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=144&h=144&fit=crop&auto=format',
-                                fit: BoxFit.cover,
+                            : Container(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                child: Center(
+                                  child: Text(
+                                    userData.fullName.isNotEmpty ? userData.fullName[0].toUpperCase() : 'U',
+                                    style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
+                                  ),
+                                ),
                               ),
                       ),
                     ),
@@ -236,9 +245,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(userData.fullName, style: AppTextStyles.headlineMedium.copyWith(color: Colors.white, fontSize: 20)),
+                          Text(userData.fullName.isNotEmpty ? userData.fullName : 'Unknown Farmer', style: AppTextStyles.headlineMedium.copyWith(color: Colors.white, fontSize: 20)),
                           const SizedBox(height: 2),
-                          Text('Premium Farmer · Zone 4', style: AppTextStyles.bodySmall.copyWith(color: Colors.white.withValues(alpha: 0.75))),
+                          Text('${userData.farmName.isNotEmpty ? userData.farmName : 'Independent Farmer'} · ${userData.district.isNotEmpty ? userData.district : 'Unknown Zone'}', style: AppTextStyles.bodySmall.copyWith(color: Colors.white.withValues(alpha: 0.75))),
                           const SizedBox(height: 8),
                           Row(
                             children: [
@@ -249,7 +258,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                 child: const Icon(Icons.star_rounded, color: Colors.white, size: 10),
                               ),
                               const SizedBox(width: 4),
-                              Text('Premium Member since 2023', style: AppTextStyles.bodySmall.copyWith(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 10)),
+                              Text('Active Member', style: AppTextStyles.bodySmall.copyWith(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 10)),
                             ],
                           ),
                         ],
@@ -261,11 +270,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 const SizedBox(height: 20),
                 Row(
                   children: [
-                    Expanded(child: _buildProfileStat('64', 'Total Scans')),
+                    Expanded(child: _buildProfileStat(scanCount.toString(), 'Total Scans')),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildProfileStat('8.5', 'Acres Managed')),
+                    Expanded(child: _buildProfileStat(userData.farmSize.isNotEmpty ? userData.farmSize : '0', 'Acres Managed')),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildProfileStat('4.8', 'Accuracy Score')),
+                    Expanded(child: _buildProfileStat(userData.primaryCrops.length.toString(), 'Crops Grown')),
                   ],
                 ),
               ],
@@ -366,9 +375,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             const Divider(color: AppColors.dividerSubtle, height: 1),
             _buildDetailRow(context.tr(en: 'Location', si: 'ස්ථානය', ta: 'இடம்'), userData.district),
             const Divider(color: AppColors.dividerSubtle, height: 1),
-            _buildDetailRow(context.tr(en: 'Main Crops', si: 'ප්‍රධාන බෝග', ta: 'முக்கிய பயிர்கள்'), userData.primaryCrops.join(', ')),
+            _buildDetailRow(context.tr(en: 'Main Crops', si: 'ප්‍රධාන බෝග', ta: 'முக்கிய பயிர்கள்'), userData.primaryCrops.isNotEmpty ? userData.primaryCrops.join(', ') : 'Not set'),
             const Divider(color: AppColors.dividerSubtle, height: 1),
-            _buildDetailRow(context.tr(en: 'Soil Type', si: 'පස් වර්ගය', ta: 'மண் வகை'), 'Red-Yellow Podzolic'),
+            _buildDetailRow(context.tr(en: 'Farm Size', si: 'ගොවිපලේ ප්‍රමාණය', ta: 'பண்ணை அளவு'), userData.farmSize.isNotEmpty ? '${userData.farmSize} Acres' : 'Not set'),
           ],
         ),
       ),

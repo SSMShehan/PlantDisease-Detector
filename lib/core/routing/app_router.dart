@@ -23,6 +23,9 @@ import 'package:plant_disease_detector/features/farm_log/presentation/screens/ad
 import 'package:plant_disease_detector/features/profile/presentation/screens/language_selection_screen.dart';
 import 'package:plant_disease_detector/features/profile/presentation/screens/notifications_screen.dart';
 import 'package:plant_disease_detector/features/community/presentation/screens/community_feed_screen.dart';
+import 'package:plant_disease_detector/features/community/presentation/screens/create_post_screen.dart';
+import 'package:plant_disease_detector/features/community/presentation/screens/post_detail_screen.dart';
+import 'package:plant_disease_detector/features/community/data/community_models.dart';
 import 'package:plant_disease_detector/features/farm_log/presentation/screens/yield_tracker_screen.dart';
 import 'package:plant_disease_detector/models/disease_result.dart';
 
@@ -127,6 +130,17 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/yield',
       builder: (context, state) => const YieldTrackerScreen(),
+    ),
+    GoRoute(
+      path: '/create_post',
+      builder: (context, state) => const CreatePostScreen(),
+    ),
+    GoRoute(
+      path: '/post_detail',
+      builder: (context, state) {
+        final post = state.extra as CommunityPost;
+        return PostDetailScreen(post: post);
+      },
     ),
   ],
 );
