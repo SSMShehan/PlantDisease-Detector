@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/shared/widgets/smart_image.dart';
 import 'package:plant_disease_detector/features/diagnosis/presentation/screens/camera_capture_screen.dart';
@@ -7,68 +7,22 @@ import 'package:plant_disease_detector/features/farm_log/presentation/screens/ad
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
 import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:plant_disease_detector/features/farm_log/data/farm_models.dart';
+import 'package:plant_disease_detector/features/farm_log/application/farm_provider.dart';
+
 // ─────────────────────────────────────────────────────────────────────────────
 // FarmScreen — Matches Figma FarmScreen.tsx
 // ─────────────────────────────────────────────────────────────────────────────
-class FarmScreen extends StatefulWidget {
+class FarmScreen extends ConsumerStatefulWidget {
   const FarmScreen({super.key});
 
   @override
-  State<FarmScreen> createState() => _FarmScreenState();
+  ConsumerState<FarmScreen> createState() => _FarmScreenState();
 }
 
-class _FarmScreenState extends State<FarmScreen> {
+class _FarmScreenState extends ConsumerState<FarmScreen> {
   String? _selectedFieldId;
-
-  final List<_FieldBlock> _fields = const [
-    _FieldBlock(
-      id: "A",
-      name: "Field Block A",
-      crop: "Tomatoes",
-      area: "2.4 acres",
-      health: 62,
-      status: "At Risk",
-      statusColor: AppColors.severityHigh,
-      img: "https://images.unsplash.com/photo-1508175688576-0c076b47b5b5?w=300&h=200&fit=crop&auto=format",
-    ),
-    _FieldBlock(
-      id: "B",
-      name: "Field Block B",
-      crop: "Bell Peppers",
-      area: "1.8 acres",
-      health: 91,
-      status: "Healthy",
-      statusColor: AppColors.severityDefault,
-      img: "https://images.unsplash.com/photo-1557139582-4206cd15c69a?w=300&h=200&fit=crop&auto=format",
-    ),
-    _FieldBlock(
-      id: "C",
-      name: "Field Block C",
-      crop: "Cucumbers",
-      area: "3.1 acres",
-      health: 78,
-      status: "Monitor",
-      statusColor: AppColors.severityMedium,
-      img: "https://images.unsplash.com/photo-1524553496250-1a722745ae00?w=300&h=200&fit=crop&auto=format",
-    ),
-    _FieldBlock(
-      id: "D",
-      name: "Field Block D",
-      crop: "Eggplant",
-      area: "1.2 acres",
-      health: 55,
-      status: "At Risk",
-      statusColor: AppColors.severityHigh,
-      img: "https://images.unsplash.com/photo-1508175688576-0c076b47b5b5?w=300&h=200&fit=crop&auto=format",
-    ),
-  ];
-
-  final List<_FarmTask> _tasks = [
-    _FarmTask(label: "Spray Field A with fungicide", due: "Today", priority: "High", color: AppColors.severityHigh),
-    _FarmTask(label: "Irrigate Field B rows 1–6", due: "Yesterday", priority: "Done", color: AppColors.severityDefault, done: true),
-    _FarmTask(label: "Soil test Field C", due: "Sep 15", priority: "Medium", color: AppColors.severityMedium),
-    _FarmTask(label: "Harvest check Field B", due: "Sep 16", priority: "Low", color: AppColors.severityLow),
-  ];
 
   void _onScan() {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const CameraCaptureScreen()));
@@ -76,6 +30,9 @@ class _FarmScreenState extends State<FarmScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final fieldsAsync = ref.watch(fieldBlocksProvider);
+    final tasksAsync = ref.watch(farmTaskNotifierProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -150,7 +107,13 @@ class _FarmScreenState extends State<FarmScreen> {
                       style: AppTextStyles.titleSmall.copyWith(color: AppColors.textPrimary),
                     ),
                     const SizedBox(height: 12),
-                    ..._fields.map((f) => _buildFieldCard(f)),
+                    fieldsAsync.when(
+                      data: (fields) => Column(
+                        children: fields.map((f) => _buildFieldCard(f)).toList(),
+                      ),
+                      loading: () => const Center(child: CircularProgressIndicator()),
+                      error: (err, _) => Text('Error loading fields: $err'),
+                    ),
 
                     const SizedBox(height: 20),
 
@@ -194,7 +157,13 @@ class _FarmScreenState extends State<FarmScreen> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    ..._tasks.map((t) => _buildTaskCard(t)),
+                    tasksAsync.when(
+                      data: (tasks) => Column(
+                        children: tasks.map((t) => _buildTaskCard(t)).toList(),
+                      ),
+                      loading: () => const Center(child: CircularProgressIndicator()),
+                      error: (err, _) => Text('Error loading tasks: $err'),
+                    ),
                   ],
                 ),
               ),
@@ -284,8 +253,16 @@ class _FarmScreenState extends State<FarmScreen> {
     );
   }
 
-  Widget _buildFieldCard(_FieldBlock field) {
+  Color _getStatusColor(String status) {
+    final s = status.toLowerCase();
+    if (s.contains("risk")) return AppColors.severityHigh;
+    if (s.contains("healthy")) return AppColors.severityDefault;
+    return AppColors.severityMedium;
+  }
+
+  Widget _buildFieldCard(FieldBlock field) {
     final isExpanded = _selectedFieldId == field.id;
+    final statusColor = _getStatusColor(field.status);
 
     return GestureDetector(
       onTap: () => setState(() => _selectedFieldId = isExpanded ? null : field.id),
@@ -294,7 +271,7 @@ class _FarmScreenState extends State<FarmScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
         ),
         child: Column(
           children: [
@@ -307,7 +284,7 @@ class _FarmScreenState extends State<FarmScreen> {
                   child: Stack(
                     children: [
                       SmartImage(
-                        src: field.img,
+                        src: field.imageUrl ?? '',
                         width: double.infinity,
                         height: double.infinity,
                         fit: BoxFit.cover,
@@ -315,12 +292,12 @@ class _FarmScreenState extends State<FarmScreen> {
                       ),
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.2),
+                          color: Colors.black.withOpacity(0.2),
                           borderRadius: const BorderRadius.only(topLeft: Radius.circular(16), bottomLeft: Radius.circular(16)),
                         ),
                         alignment: Alignment.center,
                         child: Text(
-                          field.id,
+                          field.name.isNotEmpty ? field.name.split(' ').last.toUpperCase() : '',
                           style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Colors.white, shadows: [
                             Shadow(color: Colors.black45, blurRadius: 8, offset: Offset(0, 2)),
                           ]),
@@ -351,10 +328,10 @@ class _FarmScreenState extends State<FarmScreen> {
                             ),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(color: field.statusColor.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(50)),
+                              decoration: BoxDecoration(color: statusColor.withOpacity(0.15), borderRadius: BorderRadius.circular(50)),
                               child: Text(
                                 field.status,
-                                style: TextStyle(color: field.statusColor, fontSize: 10, fontWeight: FontWeight.bold),
+                                style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold),
                               ),
                             ),
                           ],
@@ -369,15 +346,15 @@ class _FarmScreenState extends State<FarmScreen> {
                                   height: 5,
                                   child: Row(
                                     children: [
-                                      Expanded(flex: field.health, child: Container(color: field.statusColor)),
-                                      Expanded(flex: 100 - field.health, child: Container(color: AppColors.imageLoadingBg)),
+                                      Expanded(flex: field.healthScore, child: Container(color: statusColor)),
+                                      Expanded(flex: 100 - field.healthScore, child: Container(color: AppColors.imageLoadingBg)),
                                     ],
                                   ),
                                 ),
                               ),
                             ),
                             const SizedBox(width: 8),
-                            Text('${field.health}%', style: TextStyle(color: field.statusColor, fontSize: 11, fontWeight: FontWeight.bold)),
+                            Text('${field.healthScore}%', style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold)),
                           ],
                         ),
                       ],
@@ -443,10 +420,19 @@ class _FarmScreenState extends State<FarmScreen> {
     );
   }
 
-  Widget _buildTaskCard(_FarmTask task) {
+  Color _getTaskColor(String priority) {
+    final p = priority.toLowerCase();
+    if (p == 'high') return AppColors.severityHigh;
+    if (p == 'done') return AppColors.severityDefault;
+    if (p == 'low') return AppColors.severityLow;
+    return AppColors.severityMedium;
+  }
+
+  Widget _buildTaskCard(FarmTask task) {
+    final color = _getTaskColor(task.priority);
     return GestureDetector(
       onTap: () {
-        setState(() => task.done = !task.done);
+        ref.read(farmTaskNotifierProvider.notifier).toggleTask(task.id, !task.isDone);
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
@@ -454,21 +440,21 @@ class _FarmScreenState extends State<FarmScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
         ),
         child: Opacity(
-          opacity: task.done ? 0.6 : 1.0,
+          opacity: task.isDone ? 0.6 : 1.0,
           child: Row(
             children: [
               Container(
                 width: 24,
                 height: 24,
                 decoration: BoxDecoration(
-                  color: task.done ? AppColors.severityDefault : task.color.withValues(alpha: 0.1),
-                  border: task.done ? null : Border.all(color: task.color, width: 1.5),
+                  color: task.isDone ? AppColors.severityDefault : color.withOpacity(0.1),
+                  border: task.isDone ? null : Border.all(color: color, width: 1.5),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: task.done ? const Icon(Icons.check_rounded, color: Colors.white, size: 16) : null,
+                child: task.isDone ? const Icon(Icons.check_rounded, color: Colors.white, size: 16) : null,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -482,22 +468,22 @@ class _FarmScreenState extends State<FarmScreen> {
                       style: AppTextStyles.bodyMedium.copyWith(
                         color: AppColors.textPrimary,
                         fontWeight: FontWeight.w500,
-                        decoration: task.done ? TextDecoration.lineThrough : TextDecoration.none,
+                        decoration: task.isDone ? TextDecoration.lineThrough : TextDecoration.none,
                       ),
                     ),
-                    Text(task.due, style: AppTextStyles.bodySmall.copyWith(fontSize: 11)),
+                    Text(task.dueDate, style: AppTextStyles.bodySmall.copyWith(fontSize: 11)),
                   ],
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: task.color.withValues(alpha: 0.15),
+                  color: color.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(50),
                 ),
                 child: Text(
-                  task.done ? "Done" : task.priority,
-                  style: TextStyle(color: task.color, fontSize: 10, fontWeight: FontWeight.w600),
+                  task.isDone ? "Done" : task.priority,
+                  style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w600),
                 ),
               ),
             ],
@@ -506,18 +492,4 @@ class _FarmScreenState extends State<FarmScreen> {
       ),
     );
   }
-}
-
-class _FieldBlock {
-  final String id, name, crop, area, status, img;
-  final int health;
-  final Color statusColor;
-  const _FieldBlock({required this.id, required this.name, required this.crop, required this.area, required this.health, required this.status, required this.statusColor, required this.img});
-}
-
-class _FarmTask {
-  final String label, due, priority;
-  final Color color;
-  bool done;
-  _FarmTask({required this.label, required this.due, required this.priority, required this.color, this.done = false});
 }

@@ -96,17 +96,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // ① STUNNING HERO
-                _HeroSection(user: user, greet: greet, loc: loc, wx: wx, float: _float),
+                // ① STUNNING HERO WITH GLASS HEALTH CARD
+                _HeroSection(user: user, greet: greet, loc: loc, wx: wx, float: _float, health: health, scanCount: scans.length, cropCount: user.primaryCrops.length),
                 
                 const SizedBox(height: 65), // Spacing for straddling card
-
-                // ② MODERN HEALTH CARD
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: _HealthCard(health: health, count: scans.length),
-                ),
-                const SizedBox(height: 24),
 
                 // ③ GLOWING SCAN CTA
                 Padding(
@@ -149,8 +142,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
 class _HeroSection extends StatelessWidget {
   final dynamic user, greet, loc, wx;
   final AnimationController float;
+  final double health;
+  final int scanCount, cropCount;
 
-  const _HeroSection({required this.user, required this.greet, required this.loc, required this.wx, required this.float});
+  const _HeroSection({required this.user, required this.greet, required this.loc, required this.wx, required this.float, required this.health, required this.scanCount, required this.cropCount});
 
   @override
   Widget build(BuildContext context) {
@@ -289,7 +284,49 @@ class _HeroSection extends StatelessWidget {
                           shadows: [Shadow(color: Colors.black45, blurRadius: 8, offset: Offset(0, 3))],
                         ),
                       ),
-                      const SizedBox(height: 16), // Space before glass card overlap
+                      const SizedBox(height: 12),
+                      
+                      // PREMIUM INLINE WEATHER PILL (Clickable)
+                      GestureDetector(
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WeatherForecastScreen())),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Colors.white.withOpacity(0.15), Colors.white.withOpacity(0.05)],
+                              begin: Alignment.topLeft, end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(color: Colors.white.withOpacity(0.3), width: 1.2),
+                            boxShadow: [
+                              BoxShadow(color: const Color(0xFFF5C842).withOpacity(0.15), blurRadius: 15, spreadRadius: 1)
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.location_on_rounded, color: _gold, size: 14),
+                              const SizedBox(width: 4),
+                              Text(city, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: -0.2)),
+                              const SizedBox(width: 12),
+                              Container(width: 1, height: 12, color: Colors.white30),
+                              const SizedBox(width: 12),
+                              Icon(wx.weather?.isDay != false ? Icons.wb_sunny_rounded : Icons.nights_stay_rounded, color: wx.weather?.isDay != false ? Colors.orangeAccent : Colors.indigo.shade200, size: 14),
+                              const SizedBox(width: 4),
+                              Text('$temp°C', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900)),
+                              const SizedBox(width: 12),
+                              Container(width: 1, height: 12, color: Colors.white30),
+                              const SizedBox(width: 12),
+                              const Icon(Icons.access_time_rounded, color: Colors.white70, size: 14),
+                              const SizedBox(width: 4),
+                              Text(timeStr, style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
+                              const SizedBox(width: 10),
+                              Icon(Icons.chevron_right_rounded, color: Colors.white.withOpacity(0.9), size: 18),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24), // Space for straddling health card
                     ],
                   ),
                 ),
@@ -301,110 +338,12 @@ class _HeroSection extends StatelessWidget {
           ),
         ),
 
-        // TRUE GLASS WEATHER CARD (Overlap)
+        // GLASSMORPHIC HEALTH CARD (Straddling the Edge)
         Positioned(
           bottom: -45,
           left: 24,
           right: 24,
-          child: GestureDetector(
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WeatherForecastScreen())),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 25, offset: const Offset(0, 10)),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(24),
-                child: BackdropFilter(
-                  // True glass blur
-                  filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                    decoration: BoxDecoration(
-                      // Translucent gradient tint for the glass
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.white.withOpacity(0.15),
-                          Colors.white.withOpacity(0.05)
-                        ],
-                        begin: Alignment.topLeft, end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(24),
-                      // Fine metallic copper rim
-                      border: Border.all(
-                        color: const Color(0xFFE2A066).withOpacity(0.4),
-                        width: 1.2,
-                      ),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // Metallic Copper Cloud/Sun Icon using ShaderMask
-                        ShaderMask(
-                          shaderCallback: (bounds) => const LinearGradient(
-                            colors: [Color(0xFFFFD194), Color(0xFFB86640), Color(0xFF7A3B20)],
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                          ).createShader(bounds),
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              // Sun
-                              Positioned(
-                                top: -4, left: -4,
-                                child: Icon(Icons.wb_sunny_rounded, color: Colors.white, size: 30),
-                              ),
-                              // Cloud
-                              const Padding(
-                                padding: EdgeInsets.only(top: 8, left: 8),
-                                child: Icon(Icons.cloud_rounded, color: Colors.white, size: 40),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 22),
-                        
-                        // Location Info
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(city, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.2)),
-                              const SizedBox(height: 2),
-                              Text(timeStr, style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13, fontWeight: FontWeight.w500)),
-                            ],
-                          ),
-                        ),
-
-                        // Temp Info
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(temp, style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900, height: 1, letterSpacing: -1)),
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 4, left: 2),
-                                  child: Text('°C', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w800)),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text('Sunny', style: const TextStyle(color: Color(0xFFE2A066), fontSize: 14, fontWeight: FontWeight.w600)), // Warm copper text
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
+          child: _HealthCard(health: health, count: scanCount, cropCount: cropCount),
         ),
       ],
     );
@@ -424,7 +363,8 @@ class _HeroSection extends StatelessWidget {
 class _HealthCard extends StatelessWidget {
   final double health;
   final int count;
-  const _HealthCard({required this.health, required this.count});
+  final int cropCount;
+  const _HealthCard({required this.health, required this.count, required this.cropCount});
 
   @override
   Widget build(BuildContext context) {
@@ -437,18 +377,27 @@ class _HealthCard extends StatelessWidget {
     return Container(
       height: 118,
       decoration: BoxDecoration(
-        color: Colors.white,
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
-          BoxShadow(
-              color: const Color(0xFF042211).withOpacity(0.06),
-              blurRadius: 24, offset: const Offset(0, 10)),
+          BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 30, offset: const Offset(0, 15)),
         ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(28),
-        child: Stack(
-          children: [
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.white.withOpacity(0.15), Colors.white.withOpacity(0.05)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(color: const Color(0xFFE2A066).withOpacity(0.4), width: 1.2),
+            ),
+            child: Stack(
+              children: [
             // Ambient radial glow behind the big number (soft light)
             Positioned(left: -30, top: -30,
               child: Container(width: 180, height: 180,
@@ -471,15 +420,17 @@ class _HealthCard extends StatelessWidget {
                       children: [
                         Text('$pct',
                           style: const TextStyle(
-                            color: Color(0xFF0A1C11), fontSize: 68,
+                            color: Colors.white, fontSize: 68,
                             fontWeight: FontWeight.w900, height: 1,
                             letterSpacing: -4,
+                            shadows: [Shadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 4))],
                           )),
                         Text('%',
-                          style: TextStyle(
-                            color: const Color(0xFF0A1C11).withOpacity(0.40),
-                            fontSize: 13, fontWeight: FontWeight.w800,
+                          style: const TextStyle(
+                            color: Color(0xFFF5C842),
+                            fontSize: 14, fontWeight: FontWeight.w800,
                             letterSpacing: 2,
+                            shadows: [Shadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))],
                           )),
                       ],
                     ),
@@ -488,7 +439,7 @@ class _HealthCard extends StatelessWidget {
                 // Hairline vertical divider
                 Container(width: 1,
                     margin: const EdgeInsets.symmetric(vertical: 22),
-                    color: const Color(0xFF0A1C11).withOpacity(0.06)),
+                    color: Colors.white.withOpacity(0.12)),
                 // Right panel: label + status + badges
                 Expanded(
                   child: Padding(
@@ -498,10 +449,10 @@ class _HealthCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('FARM HEALTH SCORE',
-                          style: TextStyle(
-                            color: const Color(0xFF0A1C11).withOpacity(0.40),
-                            fontSize: 9, fontWeight: FontWeight.w800,
-                            letterSpacing: 1.8,
+                          style: const TextStyle(
+                            color: Color(0xFFF5C842),
+                            fontSize: 9.5, fontWeight: FontWeight.w900,
+                            letterSpacing: 2.0,
                           )),
                         Row(children: [
                           // Glowing dot indicator
@@ -513,7 +464,7 @@ class _HealthCard extends StatelessWidget {
                             )),
                           const SizedBox(width: 8),
                           Text(lbl, style: const TextStyle(
-                            color: Color(0xFF0A1C11), fontSize: 19,
+                            color: Colors.white, fontSize: 19,
                             fontWeight: FontWeight.w800, letterSpacing: -0.3,
                           )),
                         ]),
@@ -521,7 +472,7 @@ class _HealthCard extends StatelessWidget {
                           _Chip(icon: Icons.document_scanner_rounded,
                               text: '$count Scans'),
                           const SizedBox(width: 8),
-                          _Chip(icon: Icons.eco_rounded, text: '3 Crops'),
+                          _Chip(icon: Icons.eco_rounded, text: '$cropCount Crops'),
                         ]),
                       ],
                     ),
@@ -532,7 +483,9 @@ class _HealthCard extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 }
 
@@ -544,15 +497,15 @@ class _Chip extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
     decoration: BoxDecoration(
-      color: const Color(0xFFF0F5F2),
+      color: Colors.white.withOpacity(0.08),
       borderRadius: BorderRadius.circular(10),
-      border: Border.all(color: const Color(0xFFE2EBE5), width: 1),
+      border: Border.all(color: Colors.white.withOpacity(0.25), width: 1),
     ),
     child: Row(mainAxisSize: MainAxisSize.min, children: [
-      Icon(icon, color: const Color(0xFF1A5C38), size: 11),
+      Icon(icon, color: const Color(0xFFF5C842), size: 12),
       const SizedBox(width: 4),
       Text(text, style: const TextStyle(
-          color: Color(0xFF1A5C38), fontSize: 10.5, fontWeight: FontWeight.w700)),
+          color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.w700)),
     ]),
   );
 }
