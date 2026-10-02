@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
@@ -171,35 +172,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       // Show loading overlay or something, but for simplicity just await
       
       String? finalImagePath = _imageFile?.path;
-      if (finalImagePath != null && !finalImagePath.startsWith('http')) {
-        // It's a local file, upload to Supabase
+      if (finalImagePath != null && !finalImagePath.startsWith('http') && !finalImagePath.startsWith('data:image')) {
         try {
-          final client = Supabase.instance.client;
-          final user = client.auth.currentUser;
-          if (user != null) {
-            final fileExt = finalImagePath.split('.').last;
-            final fileName = '${user.id}_avatar.$fileExt';
-            
-            // For web support, we need bytes.
-            if (kIsWeb) {
-               final bytes = await _imageFile!.readAsBytes();
-               await client.storage.from('avatars').uploadBinary(
-                 fileName, 
-                 bytes, 
-                 fileOptions: const FileOptions(upsert: true)
-               );
-               finalImagePath = client.storage.from('avatars').getPublicUrl(fileName);
-            } else {
-               await client.storage.from('avatars').upload(
-                 fileName, 
-                 File(finalImagePath), 
-                 fileOptions: const FileOptions(upsert: true)
-               );
-               finalImagePath = client.storage.from('avatars').getPublicUrl(fileName);
-            }
-          }
+          final bytes = await _imageFile!.readAsBytes();
+          final extension = finalImagePath.split('.').last.toLowerCase();
+          final mimeType = extension == 'png' ? 'image/png' : 'image/jpeg';
+          final base64String = base64Encode(bytes);
+          finalImagePath = 'data:$mimeType;base64,$base64String';
         } catch (e) {
-          debugPrint('Error uploading image: $e');
+          debugPrint('Error converting image to base64: $e');
         }
       }
 
@@ -258,11 +239,21 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                         height: 120,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.grey.shade200,
-                          image: _buildProfileImage(),
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          image: _getProfileImageProvider() != null 
+                              ? DecorationImage(image: _getProfileImageProvider()!, fit: BoxFit.cover) 
+                              : null,
                           border: Border.all(color: Colors.white, width: 4),
                           boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 15, offset: const Offset(0, 5))],
                         ),
+                        child: _getProfileImageProvider() == null
+                            ? Center(
+                                child: Text(
+                                  _nameController.text.isNotEmpty ? _nameController.text[0].toUpperCase() : 'U',
+                                  style: const TextStyle(color: AppColors.primary, fontSize: 48, fontWeight: FontWeight.bold),
+                                ),
+                              )
+                            : null,
                       ),
                       Positioned(
                         bottom: 0,
@@ -385,21 +376,20 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     );
   }
 
-  DecorationImage? _buildProfileImage() {
+  ImageProvider? _getProfileImageProvider() {
     if (_imageFile != null) {
-      if (_imageFile!.path.startsWith('http')) {
-        return DecorationImage(image: NetworkImage(_imageFile!.path), fit: BoxFit.cover);
+      if (_imageFile!.path.startsWith('data:image')) {
+        final base64String = _imageFile!.path.split(',').last;
+        return MemoryImage(base64Decode(base64String));
+      } else if (_imageFile!.path.startsWith('http')) {
+        return NetworkImage(_imageFile!.path);
       } else if (kIsWeb) {
-        return DecorationImage(image: NetworkImage(_imageFile!.path), fit: BoxFit.cover);
+        return NetworkImage(_imageFile!.path);
       } else {
-        return DecorationImage(image: FileImage(File(_imageFile!.path)), fit: BoxFit.cover);
+        return FileImage(File(_imageFile!.path));
       }
     }
-    // Default mock image
-    return const DecorationImage(
-      image: NetworkImage('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop'),
-      fit: BoxFit.cover,
-    );
+    return null;
   }
 
   Widget _buildSectionHeader(String title, IconData icon) {

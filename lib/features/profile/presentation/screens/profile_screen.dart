@@ -144,7 +144,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildProfileCard(ref),
+                    _buildProfileCard(ref, scanCount),
                     _buildAchievements(achievements),
                     _buildFarmDetails(ref),
                     _buildSettings(settings),
@@ -184,7 +184,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildProfileCard(WidgetRef ref) {
+  Widget _buildProfileCard(WidgetRef ref, int scanCount) {
     final userData = ref.watch(userProvider);
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
