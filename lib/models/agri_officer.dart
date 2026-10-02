@@ -20,6 +20,34 @@ class AgriOfficer {
     required this.availability,
     required this.specializations,
   });
+
+  factory AgriOfficer.fromJson(Map<String, dynamic> json) {
+    return AgriOfficer(
+      name: json['name'] ?? '',
+      title: json['title'] ?? '',
+      zone: json['zone'] ?? '',
+      phone: json['phone'] ?? '',
+      center: json['center'] ?? '',
+      distanceKm: (json['distance_km'] ?? 0.0).toDouble(),
+      imageUrl: json['image_url'] ?? '',
+      availability: json['availability'] ?? '',
+      specializations: (json['specializations'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'title': title,
+      'zone': zone,
+      'phone': phone,
+      'center': center,
+      'distance_km': distanceKm,
+      'image_url': imageUrl,
+      'availability': availability,
+      'specializations': specializations,
+    };
+  }
 }
 
 // Dynamic Nearest Officer based on location

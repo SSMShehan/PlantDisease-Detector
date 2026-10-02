@@ -307,7 +307,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 style: AppTextStyles.titleSmall.copyWith(fontWeight: FontWeight.normal),
                               ),
                               GestureDetector(
-                                onTap: () => context.go('/signup'),
+                                onTap: () => context.push('/signup'),
                                 child: Text(
                                   context.tr(en: 'Sign Up', si: 'ලියාපදිංචි වන්න', ta: 'பதிவு செய்க'),
                                   style: AppTextStyles.titleSmall.copyWith(

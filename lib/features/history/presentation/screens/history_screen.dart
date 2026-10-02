@@ -38,124 +38,131 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final all = ref.watch(scanHistoryProvider);
-    final filtered = _filteredScans(all);
+    final allAsync = ref.watch(scanHistoryProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+    return allAsync.when(
+      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (err, stack) => Scaffold(body: Center(child: Text('Error loading history: $err'))),
+      data: (all) {
+        final filtered = _filteredScans(all);
+        
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          body: SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Header
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        context.tr(en: 'Scan History', si: 'පරීක්ෂණ ඉතිහාසය', ta: 'ஸ்கேன் வரலாறு'),
-                        style: AppTextStyles.headlineMedium.copyWith(letterSpacing: -0.5, fontSize: 24),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        context.tr(
-                          en: '${all.length} total scans',
-                          si: 'සම්පූර්ණ පරීක්ෂණ ${all.length}ක්',
-                          ta: 'மொத்தம் ${all.length} ஸ்கேன்கள்',
-                        ),
-                        style: AppTextStyles.bodySmall.copyWith(color: AppColors.settingsIcon),
-                      ),
-                    ],
-                  ),
-                  const LanguageSelectorButton(isCompact: true),
-                ],
-              ),
-            ),
-
-            // Filter Chips
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-              child: Row(
-                children: _filters.map((f) {
-                  final isActive = _activeFilter == f;
-                  final rawLabel = f == "None" ? "Healthy" : f;
-                  final label = switch (rawLabel) {
-                    "All" => context.tr(en: 'All', si: 'සියල්ල', ta: 'அனைத்தும்'),
-                    "High" => context.tr(en: 'High', si: 'ඉහළ', ta: 'அதிகம்'),
-                    "Medium" => context.tr(en: 'Medium', si: 'මධ්‍යම', ta: 'நடுத்தரம்'),
-                    "Low" => context.tr(en: 'Low', si: 'අඩු', ta: 'குறைவு'),
-                    "Healthy" => context.tr(en: 'Healthy', si: 'නිරෝගී', ta: 'ஆரோக்கியமானது'),
-                    _ => rawLabel,
-                  };
-                  return GestureDetector(
-                    onTap: () => setState(() => _activeFilter = f),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: isActive ? AppColors.primary : Colors.white,
-                        borderRadius: BorderRadius.circular(50),
-                        boxShadow: [
-                          if (isActive)
-                            BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 4))
-                          else
-                            BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 6, offset: const Offset(0, 2)),
-                        ],
-                      ),
-                      child: Text(
-                        label,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: isActive ? Colors.white : AppColors.settingsIcon,
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-
-            // Summary Bar
-            _buildSummaryBar(),
-
-            // List
-            Expanded(
-              child: filtered.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('🌿', style: TextStyle(fontSize: 40)),
-                          const SizedBox(height: 12),
+                          Text(
+                            context.tr(en: 'Scan History', si: 'පරීක්ෂණ ඉතිහාසය', ta: 'ஸ்கேன் வரலாறு'),
+                            style: AppTextStyles.headlineMedium.copyWith(letterSpacing: -0.5, fontSize: 24),
+                          ),
+                          const SizedBox(height: 2),
                           Text(
                             context.tr(
-                              en: 'No scans matching this filter',
-                              si: 'මෙම පෙරහනට අදාළ පරීක්ෂණ නොමැත',
-                              ta: 'இந்த வடிப்பானுக்கு ஸ்கேன்கள் எதுவும் இல்லை',
+                              en: '${all.length} total scans',
+                              si: 'සම්පූර්ණ පරීක්ෂණ ${all.length}ක්',
+                              ta: 'மொத்தம் ${all.length} ஸ்கேன்கள்',
                             ),
-                            style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w600),
+                            style: AppTextStyles.bodySmall.copyWith(color: AppColors.settingsIcon),
                           ),
                         ],
                       ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(24, 16, 24, 100), // Space for bottom nav
-                      itemCount: filtered.length,
-                      itemBuilder: (context, index) {
-                        return _buildHistoryCard(filtered[index]);
-                      },
-                    ),
+                      const LanguageSelectorButton(isCompact: true),
+                    ],
+                  ),
+                ),
+
+                // Filter Chips
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                  child: Row(
+                    children: _filters.map((f) {
+                      final isActive = _activeFilter == f;
+                      final rawLabel = f == "None" ? "Healthy" : f;
+                      final label = switch (rawLabel) {
+                        "All" => context.tr(en: 'All', si: 'සියල්ල', ta: 'அனைத்தும்'),
+                        "High" => context.tr(en: 'High', si: 'ඉහළ', ta: 'அதிகம்'),
+                        "Medium" => context.tr(en: 'Medium', si: 'මධ්‍යම', ta: 'நடுத்தரம்'),
+                        "Low" => context.tr(en: 'Low', si: 'අඩු', ta: 'குறைவு'),
+                        "Healthy" => context.tr(en: 'Healthy', si: 'නිරෝගී', ta: 'ஆரோக்கியமானது'),
+                        _ => rawLabel,
+                      };
+                      return GestureDetector(
+                        onTap: () => setState(() => _activeFilter = f),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: isActive ? AppColors.primary : Colors.white,
+                            borderRadius: BorderRadius.circular(50),
+                            boxShadow: [
+                              if (isActive)
+                                BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 4))
+                              else
+                                BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 6, offset: const Offset(0, 2)),
+                            ],
+                          ),
+                          child: Text(
+                            label,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: isActive ? Colors.white : AppColors.settingsIcon,
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+
+                // Summary Bar
+                _buildSummaryBar(),
+
+                // List
+                Expanded(
+                  child: filtered.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text('🌿', style: TextStyle(fontSize: 40)),
+                              const SizedBox(height: 12),
+                              Text(
+                                context.tr(
+                                  en: 'No scans matching this filter',
+                                  si: 'මෙම පෙරහනට අදාළ පරීක්ෂණ නොමැත',
+                                  ta: 'இந்த வடிப்பானுக்கு ஸ்கேன்கள் எதுவும் இல்லை',
+                                ),
+                                style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w600),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(24, 16, 24, 100), // Space for bottom nav
+                          itemCount: filtered.length,
+                          itemBuilder: (context, index) {
+                            return _buildHistoryCard(filtered[index]);
+                          },
+                        ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      }
     );
   }
 

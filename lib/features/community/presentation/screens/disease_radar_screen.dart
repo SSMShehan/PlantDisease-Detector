@@ -6,6 +6,7 @@ import 'package:plant_disease_detector/core/localization/app_strings.dart';
 import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'package:plant_disease_detector/core/providers/location_provider.dart';
 import 'package:plant_disease_detector/models/outbreak_report.dart';
+import 'package:plant_disease_detector/core/providers/outbreak_provider.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -24,7 +25,7 @@ class _DiseaseRadarScreenState extends ConsumerState<DiseaseRadarScreen> with Ti
   final MapController _mapController = MapController();
   
   // Local list of outbreaks to allow adding a new one
-  late List<OutbreakReport> _liveOutbreaks;
+  List<OutbreakReport>? _liveOutbreaks;
 
   late AnimationController _pulseCtrl;
   late Animation<double> _pulseAnim;
@@ -32,7 +33,6 @@ class _DiseaseRadarScreenState extends ConsumerState<DiseaseRadarScreen> with Ti
   @override
   void initState() {
     super.initState();
-    _liveOutbreaks = List.from(mockOutbreaks);
     
     _pulseCtrl = AnimationController(vsync: this, duration: const Duration(seconds: 2))
       ..repeat(reverse: true);
@@ -49,9 +49,10 @@ class _DiseaseRadarScreenState extends ConsumerState<DiseaseRadarScreen> with Ti
   }
 
   void _reportOutbreak(LatLng location) {
+    if (_liveOutbreaks == null) return;
     setState(() {
       _reported = true;
-      _liveOutbreaks.add(
+      _liveOutbreaks!.add(
         OutbreakReport(
           id: 'ob_new',
           diseaseName: 'Unknown Disease (Pending)',
@@ -89,6 +90,18 @@ class _DiseaseRadarScreenState extends ConsumerState<DiseaseRadarScreen> with Ti
         ? LatLng(locationState.position!.latitude, locationState.position!.longitude)
         : const LatLng(7.8731, 80.7718); // Dambulla, SL as fallback center
 
+    ref.listen<LocationState>(locationProvider, (previous, next) {
+      if (previous?.position == null && next.position != null) {
+        final loc = LatLng(next.position!.latitude, next.position!.longitude);
+        _mapController.move(loc, 11.0);
+      }
+    });
+
+    final outbreaksAsync = ref.watch(outbreakProvider);
+    if (_liveOutbreaks == null && outbreaksAsync.value != null) {
+      _liveOutbreaks = List.from(outbreaksAsync.value!);
+    }
+
     return Scaffold(
       backgroundColor: AppColors.radarDarkBg,
       body: Stack(
@@ -114,37 +127,38 @@ class _DiseaseRadarScreenState extends ConsumerState<DiseaseRadarScreen> with Ti
               ),
               
               // Disease Outbreak Markers
-              MarkerLayer(
-                markers: _liveOutbreaks.map((outbreak) {
-                  final isSelected = _selectedOutbreak?.id == outbreak.id;
-                  final baseSize = 40.0 + (outbreak.severity * 40.0);
-                  
-                  return Marker(
-                    point: LatLng(outbreak.latitude, outbreak.longitude),
-                    width: baseSize * 2,
-                    height: baseSize * 2,
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() => _selectedOutbreak = isSelected ? null : outbreak);
-                        _mapController.move(LatLng(outbreak.latitude, outbreak.longitude), _mapController.camera.zoom);
-                      },
-                      child: AnimatedBuilder(
-                        animation: _pulseAnim,
-                        builder: (_, _) {
-                          final pulse = isSelected ? _pulseAnim.value : 1.0;
-                          return CustomPaint(
-                            painter: _HeatZonePainter(
-                              color: outbreak.color,
-                              pulse: pulse,
-                              severity: outbreak.severity,
-                            ),
-                          );
+              if (_liveOutbreaks != null)
+                MarkerLayer(
+                  markers: _liveOutbreaks!.map((outbreak) {
+                    final isSelected = _selectedOutbreak?.id == outbreak.id;
+                    final baseSize = 40.0 + (outbreak.severity * 40.0);
+                    
+                    return Marker(
+                      point: LatLng(outbreak.latitude, outbreak.longitude),
+                      width: baseSize * 2,
+                      height: baseSize * 2,
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() => _selectedOutbreak = isSelected ? null : outbreak);
+                          _mapController.move(LatLng(outbreak.latitude, outbreak.longitude), _mapController.camera.zoom);
                         },
+                        child: AnimatedBuilder(
+                          animation: _pulseAnim,
+                          builder: (_, _) {
+                            final pulse = isSelected ? _pulseAnim.value : 1.0;
+                            return CustomPaint(
+                              painter: _HeatZonePainter(
+                                color: outbreak.color,
+                                pulse: pulse,
+                                severity: outbreak.severity,
+                              ),
+                            );
+                          },
+                        ),
                       ),
-                    ),
-                  );
-                }).toList(),
-              ),
+                    );
+                  }).toList(),
+                ),
               
               // User Location Marker
               if (locationState.position != null)
@@ -263,7 +277,7 @@ class _DiseaseRadarScreenState extends ConsumerState<DiseaseRadarScreen> with Ti
           ),
 
           // ── Alert banner (dismissable) ────────────────────────────────────
-          if (!_alertDismissed && _liveOutbreaks.isNotEmpty)
+          if (!_alertDismissed && _liveOutbreaks != null && _liveOutbreaks!.isNotEmpty)
             Positioned(
               top: 110,
               left: 20,
@@ -303,7 +317,7 @@ class _DiseaseRadarScreenState extends ConsumerState<DiseaseRadarScreen> with Ti
                                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13),
                                   ),
                                   Text(
-                                    '${context.trDisease(_liveOutbreaks.first.diseaseName)} ${_liveOutbreaks.first.distanceKm}km. ${context.tr(en: 'Take precautions.', si: 'පූර්වාරක්ෂක පියවර ගන්න.', ta: 'முன்னெச்சரிக்கை எடுக்கவும்.')}',
+                                    '${context.trDisease(_liveOutbreaks!.first.diseaseName)} ${_liveOutbreaks!.first.distanceKm}km. ${context.tr(en: 'Take precautions.', si: 'පූර්වාරක්ෂක පියවර ගන්න.', ta: 'முன்னெச்சரிக்கை எடுக்கவும்.')}',
                                     style: TextStyle(color: Colors.white.withValues(alpha: 0.75), fontSize: 11),
                                   ),
                                 ],
@@ -379,6 +393,22 @@ class _DiseaseRadarScreenState extends ConsumerState<DiseaseRadarScreen> with Ti
                   : _buildBottomBar(userLocation),
             ),
           ),
+
+          // ── My Location Button ────────────────────────────────────────────
+          if (locationState.position != null)
+            Positioned(
+              bottom: _selectedOutbreak != null ? 150 : 120, 
+              right: 20,
+              child: FloatingActionButton(
+                heroTag: 'my_location_btn',
+                backgroundColor: AppColors.primary,
+                mini: true,
+                onPressed: () {
+                  _mapController.move(userLocation, 14.0);
+                },
+                child: const Icon(Icons.my_location_rounded, color: Colors.white),
+              ),
+            ),
         ],
       ),
     );

@@ -70,7 +70,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
     final loc = ref.watch(locationProvider);
     final wx = ref.watch(weatherProvider);
     final user = ref.watch(userProvider);
-    final scans = ref.watch(scanHistoryProvider).take(3).toList();
+    final scansAsync = ref.watch(scanHistoryProvider);
+    final scans = scansAsync.value?.take(3).toList() ?? [];
     final l10n = AppLocalizations.of(context);
 
     final hr = DateTime.now().hour;
@@ -122,7 +123,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
                 const SizedBox(height: 32),
 
                 // ⑤ RECENT SCANS
-                _RecentScans(scans: scans),
+                scansAsync.when(
+                  data: (data) => _RecentScans(scans: data.take(3).toList()),
+                  loading: () => const Center(child: Padding(
+                    padding: EdgeInsets.all(24.0),
+                    child: CircularProgressIndicator(color: _copper),
+                  )),
+                  error: (error, stack) => Center(child: Padding(
+                    padding: EdgeInsets.all(24.0),
+                    child: Text('Error loading scans', style: TextStyle(color: Colors.red)),
+                  )),
+                ),
               ],
             ),
           ),

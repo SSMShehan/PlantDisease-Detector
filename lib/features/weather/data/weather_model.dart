@@ -46,14 +46,4 @@ class WeatherModel {
     );
   }
 
-  // Fallback mock data
-  factory WeatherModel.mock() {
-    return WeatherModel(
-      temperature: 28.5,
-      humidity: 78,
-      windSpeed: 12.0,
-      condition: 'Sunny',
-      iconCode: '01d',
-    );
-  }
 }

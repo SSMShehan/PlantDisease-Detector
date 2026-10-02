@@ -21,8 +21,7 @@ class WeatherApiService {
         throw Exception('Failed to load weather data: ${response.statusCode}');
       }
     } catch (e) {
-      // Fallback to mock data only if network completely fails
-      return WeatherModel.mock();
+      throw Exception('Failed to load weather: $e');
     }
   }
 }

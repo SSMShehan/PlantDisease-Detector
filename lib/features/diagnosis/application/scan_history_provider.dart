@@ -1,37 +1,46 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:plant_disease_detector/models/disease_result.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ScanHistoryNotifier — holds the list of ScanRecords.
-//
-// Currently initialises with mockScanHistory for demo purposes.
-// When Supabase is wired up, replace the initial data with a
-// Supabase query:
-//   final rows = await supabase.from('diagnoses')
-//       .select('*, diseases(*)')
-//       .order('created_at', ascending: false);
-// ─────────────────────────────────────────────────────────────────────────────
-class ScanHistoryNotifier extends Notifier<List<ScanRecord>> {
+class ScanHistoryNotifier extends AsyncNotifier<List<ScanRecord>> {
   @override
-  List<ScanRecord> build() => List.from(mockScanHistory);
-
-  /// Add a new scan at the front of the history list.
-  void addScan(ScanRecord scan) {
-    state = [scan, ...state];
+  Future<List<ScanRecord>> build() async {
+    return _fetchScans();
   }
 
-  /// Remove a scan by id.
-  void removeScan(int id) {
-    state = state.where((s) => s.id != id).toList();
+  Future<List<ScanRecord>> _fetchScans() async {
+    final client = Supabase.instance.client;
+    final user = client.auth.currentUser;
+    if (user == null) return [];
+    
+    final data = await client
+        .from('scans')
+        .select()
+        .eq('user_id', user.id)
+        .order('scanned_at', ascending: false);
+        
+    return (data as List).map((row) => ScanRecord.fromJson(row)).toList();
   }
 
-  /// Replace the full history list (used when loading from Supabase).
-  void setHistory(List<ScanRecord> records) {
-    state = records;
+  Future<void> addScan(ScanRecord scan) async {
+    final previousState = await future;
+    state = AsyncValue.data([scan, ...previousState]);
+  }
+
+  Future<void> removeScan(String id) async {
+    final previousState = await future;
+    state = AsyncValue.data(previousState.where((s) => s.id != id).toList());
+    
+    try {
+      await Supabase.instance.client.from('scans').delete().eq('id', id);
+    } catch (e) {
+      // Revert if delete fails
+      state = AsyncValue.data(previousState);
+    }
   }
 }
 
 final scanHistoryProvider =
-    NotifierProvider<ScanHistoryNotifier, List<ScanRecord>>(
+    AsyncNotifierProvider<ScanHistoryNotifier, List<ScanRecord>>(
   ScanHistoryNotifier.new,
 );

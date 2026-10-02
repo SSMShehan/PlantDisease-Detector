@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'package:plant_disease_detector/features/diagnosis/presentation/screens/diagnostic_result_screen.dart';
@@ -70,7 +70,7 @@ class _ScanningScreenState extends ConsumerState<ScanningScreen>
       ScanRecord scan;
       if (result != null) {
         scan = ScanRecord(
-          id: DateTime.now().millisecondsSinceEpoch,
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
           imageUrl: widget.imagePath,
           diseaseName: result['label'] as String,
           confidenceScore: result['confidence'] as double,
@@ -84,7 +84,7 @@ class _ScanningScreenState extends ConsumerState<ScanningScreen>
       } else {
         // Fallback if model fails
         scan = ScanRecord(
-          id: DateTime.now().millisecondsSinceEpoch,
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
           imageUrl: widget.imagePath,
           diseaseName: 'Unknown',
           confidenceScore: 0.0,

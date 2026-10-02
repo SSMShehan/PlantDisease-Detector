@@ -25,6 +25,40 @@ class OutbreakReport {
     required this.latitude,
     required this.longitude,
   });
+
+  factory OutbreakReport.fromJson(Map<String, dynamic> json) {
+    double sev = (json['severity'] ?? 0.0).toDouble();
+    Color computedColor = AppColors.outbreakLow;
+    if (sev >= 0.7) computedColor = AppColors.outbreakHigh;
+    else if (sev >= 0.4) computedColor = AppColors.outbreakMedium;
+
+    return OutbreakReport(
+      id: json['id']?.toString() ?? '',
+      diseaseName: json['disease_name'] ?? '',
+      cropType: json['crop_type'] ?? '',
+      reportCount: json['report_count'] ?? 0,
+      distanceKm: (json['distance_km'] ?? 0.0).toDouble(),
+      timeAgo: json['time_ago'] ?? '',
+      severity: sev,
+      color: computedColor,
+      latitude: (json['latitude'] ?? 0.0).toDouble(),
+      longitude: (json['longitude'] ?? 0.0).toDouble(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'disease_name': diseaseName,
+      'crop_type': cropType,
+      'report_count': reportCount,
+      'distance_km': distanceKm,
+      'time_ago': timeAgo,
+      'severity': severity,
+      'latitude': latitude,
+      'longitude': longitude,
+    };
+  }
 }
 
 final List<OutbreakReport> mockOutbreaks = [

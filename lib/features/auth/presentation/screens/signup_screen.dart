@@ -51,7 +51,7 @@ class _SignupScreenState extends State<SignupScreen> {
     setState(() => _isLoading = true);
     
     try {
-      await Supabase.instance.client.auth.signUp(
+      final response = await Supabase.instance.client.auth.signUp(
         email: email,
         password: password,
         data: {
@@ -62,10 +62,22 @@ class _SignupScreenState extends State<SignupScreen> {
       
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Account Created Successfully!'), backgroundColor: Colors.green),
-        );
-        context.go('/main');
+        if (response.session == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Registration successful! Please check your email to confirm your account.'),
+              backgroundColor: Colors.blue,
+              duration: Duration(seconds: 5),
+            ),
+          );
+          // Don't navigate to main yet because they aren't authenticated.
+          context.go('/login');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Account Created Successfully!'), backgroundColor: Colors.green),
+          );
+          context.go('/main');
+        }
       }
     } on AuthException catch (e) {
       if (mounted) {
@@ -140,6 +152,8 @@ class _SignupScreenState extends State<SignupScreen> {
                         onPressed: () {
                           if (context.canPop()) {
                             context.pop();
+                          } else {
+                            context.go('/login');
                           }
                         },
                       ),

@@ -12,6 +12,26 @@ class MarketPrice {
     required this.changePercent,
     this.isBestPrice = false,
   });
+
+  factory MarketPrice.fromJson(Map<String, dynamic> json) {
+    return MarketPrice(
+      cropName: json['crop_name'] ?? '',
+      emoji: json['emoji'] ?? '',
+      pricePerKg: (json['price_per_kg'] ?? 0.0).toDouble(),
+      changePercent: (json['change_percent'] ?? 0.0).toDouble(),
+      isBestPrice: json['is_best_price'] ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'crop_name': cropName,
+      'emoji': emoji,
+      'price_per_kg': pricePerKg,
+      'change_percent': changePercent,
+      'is_best_price': isBestPrice,
+    };
+  }
 }
 
 class NearestMarket {
@@ -26,6 +46,27 @@ class NearestMarket {
     required this.prices,
     required this.lastUpdated,
   });
+
+  factory NearestMarket.fromJson(Map<String, dynamic> json) {
+    var pricesList = json['prices'] as List?;
+    return NearestMarket(
+      name: json['name'] ?? '',
+      distanceKm: (json['distance_km'] ?? 0.0).toDouble(),
+      lastUpdated: json['last_updated'] ?? '',
+      prices: pricesList != null
+          ? pricesList.map((e) => MarketPrice.fromJson(e)).toList()
+          : [],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'distance_km': distanceKm,
+      'last_updated': lastUpdated,
+      'prices': prices.map((e) => e.toJson()).toList(),
+    };
+  }
 }
 
 final NearestMarket nearestMarket = NearestMarket(

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/providers/location_provider.dart';
 import 'package:plant_disease_detector/models/disease_result.dart';
+import 'package:plant_disease_detector/core/providers/market_provider.dart';
 import 'package:plant_disease_detector/models/market_price.dart';
 import 'package:plant_disease_detector/features/home/presentation/screens/main_screen.dart';
 import 'package:plant_disease_detector/features/treatment/presentation/screens/treatment_detail_screen.dart';
@@ -1192,7 +1193,8 @@ class _DiagnosticResultScreenState extends ConsumerState<DiagnosticResultScreen>
 
   // ── Market Prices Card ─────────────────────────────────────────────────────
   Widget _buildMarketPricesCard() {
-    final market = nearestMarket;
+    final marketAsync = ref.watch(marketProvider);
+    
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -1201,40 +1203,49 @@ class _DiagnosticResultScreenState extends ConsumerState<DiagnosticResultScreen>
           BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 12, offset: const Offset(0, 4)),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(18, 16, 18, 12),
-            child: Row(
-              children: [
-                const Text('💰', style: TextStyle(fontSize: 20)),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Today\'s Market Prices', style: AppTextStyles.titleSmall),
-                      Text('${market.name} · ${market.distanceKm} km · ${market.lastUpdated}',
-                          style: AppTextStyles.bodySmall.copyWith(fontSize: 10)),
-                    ],
-                  ),
+      child: marketAsync.when(
+        loading: () => const Padding(padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator())),
+        error: (e, st) => const Padding(padding: EdgeInsets.all(24), child: Center(child: Text('Failed to load market prices'))),
+        data: (market) {
+          if (market == null) {
+            return const Padding(padding: EdgeInsets.all(24), child: Center(child: Text('No market data available yet.')));
+          }
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 16, 18, 12),
+                child: Row(
+                  children: [
+                    const Text('💰', style: TextStyle(fontSize: 20)),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Today\'s Market Prices', style: AppTextStyles.titleSmall),
+                          Text('${market.name} · ${market.distanceKm} km · ${market.lastUpdated}',
+                              style: AppTextStyles.bodySmall.copyWith(fontSize: 10)),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.severityDefault.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                      child: const Text('LIVE', style: TextStyle(color: AppColors.severityDefault, fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 0.8)),
+                    ),
+                  ],
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.severityDefault.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(50),
-                  ),
-                  child: const Text('LIVE', style: TextStyle(color: AppColors.severityDefault, fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 0.8)),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1, color: AppColors.dividerSubtle),
-          ...market.prices.map((p) => _buildPriceRow(p)),
-          const SizedBox(height: 8),
-        ],
+              ),
+              const Divider(height: 1, color: AppColors.dividerSubtle),
+              ...market.prices.map((p) => _buildPriceRow(p)),
+              const SizedBox(height: 8),
+            ],
+          );
+        },
       ),
     );
   }

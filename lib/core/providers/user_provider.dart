@@ -14,14 +14,14 @@ class UserData {
   final String? imagePath;
 
   UserData({
-    this.fullName = 'Sunil Perera',
-    this.phoneNumber = '+94 77 123 4567',
-    this.email = 'sunil.p@farmmail.com',
-    this.district = 'Ussapitiya, Sri Lanka',
-    this.farmName = 'Sunil Organic Farm',
-    this.farmSize = '12.5',
-    this.bio = 'Passionate organic farmer with 15 years of experience in sustainable agriculture.',
-    this.primaryCrops = const ['Rice', 'Tomato'],
+    this.fullName = '',
+    this.phoneNumber = '',
+    this.email = '',
+    this.district = '',
+    this.farmName = '',
+    this.farmSize = '',
+    this.bio = '',
+    this.primaryCrops = const [],
     this.imagePath,
   });
 
@@ -63,14 +63,14 @@ class UserNotifier extends StateNotifier<UserData> {
         final data = await client.from('profiles').select().eq('id', user.id).maybeSingle();
         if (data != null) {
           state = UserData(
-            fullName: data['full_name'] ?? 'Sunil Perera',
-            phoneNumber: data['phone'] ?? '+94 77 123 4567',
-            email: data['email'] ?? 'sunil.p@farmmail.com',
-            district: data['district'] ?? 'Ussapitiya, Sri Lanka',
-            farmName: data['farm_name'] ?? 'Sunil Organic Farm',
-            farmSize: data['farm_size'] ?? '12.5',
-            bio: data['bio'] ?? 'Passionate organic farmer with 15 years of experience.',
-            primaryCrops: (data['primary_crops'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? ['Rice', 'Tomato'],
+            fullName: data['full_name'] ?? '',
+            phoneNumber: data['phone'] ?? '',
+            email: data['email'] ?? '',
+            district: data['district'] ?? '',
+            farmName: data['farm_name'] ?? '',
+            farmSize: data['farm_size'] ?? '',
+            bio: data['bio'] ?? '',
+            primaryCrops: (data['primary_crops'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
             imagePath: data['avatar_url'],
           );
           return;

@@ -7,6 +7,28 @@ import 'package:plant_disease_detector/models/agri_officer.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:plant_disease_detector/core/providers/location_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+final nearestOfficerProvider = FutureProvider.family<AgriOfficer?, String>((ref, location) async {
+  final lowerLoc = location.toLowerCase();
+  final response = await Supabase.instance.client
+      .from('agri_officers')
+      .select();
+
+  if (response.isEmpty) return null;
+
+  final officers = (response as List).map((o) => AgriOfficer.fromJson(o)).toList();
+
+  // Try to find one matching location
+  for (var officer in officers) {
+    if (lowerLoc.contains(officer.center.toLowerCase().split(' ').first)) {
+      return officer;
+    }
+  }
+
+  // Fallback to first if no match
+  return officers.first;
+});
 
 class NearestOfficerScreen extends ConsumerStatefulWidget {
   const NearestOfficerScreen({super.key});
@@ -48,10 +70,18 @@ class _NearestOfficerScreenState extends ConsumerState<NearestOfficerScreen>
   @override
   Widget build(BuildContext context) {
     final locationState = ref.watch(locationProvider);
-    final officer = getNearestOfficer(locationState.address);
+    final officerAsync = ref.watch(nearestOfficerProvider(locationState.address));
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Stack(
+      body: officerAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+        error: (err, stack) => Center(child: Text('Error loading officer: $err')),
+        data: (officer) {
+          if (officer == null) {
+            return const Center(child: Text('No agricultural officers found.'));
+          }
+          return Stack(
         children: [
           // ── Hero background
           Positioned(
@@ -326,8 +356,10 @@ class _NearestOfficerScreenState extends ConsumerState<NearestOfficerScreen>
             ),
           ),
         ],
-      ),
-    );
+      );
+    },
+  ),
+);
   }
 
   Widget _buildActionButton(IconData icon, String label, Color color) {

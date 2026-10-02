@@ -30,6 +30,38 @@ class DiseaseResult {
     required this.imagePath,
   });
 
+  factory DiseaseResult.fromJson(Map<String, dynamic> json) {
+    return DiseaseResult(
+      diseaseName: json['disease_name'] ?? 'Unknown',
+      latinName: json['latin_name'] ?? '',
+      confidenceScore: (json['confidence_score'] ?? 0.0).toDouble(),
+      cropType: json['crop_type'] ?? '',
+      symptoms: (json['symptoms'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+      treatments: (json['treatments'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+      severity: json['severity'] ?? 'none',
+      fieldLocation: json['field_location'] ?? '',
+      treatable: json['treatable'] ?? false,
+      scannedAt: json['scanned_at'] != null ? DateTime.parse(json['scanned_at']) : DateTime.now(),
+      imagePath: json['image_url'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'disease_name': diseaseName,
+      'latin_name': latinName,
+      'confidence_score': confidenceScore,
+      'crop_type': cropType,
+      'symptoms': symptoms,
+      'treatments': treatments,
+      'severity': severity,
+      'field_location': fieldLocation,
+      'treatable': treatable,
+      'scanned_at': scannedAt.toIso8601String(),
+      'image_url': imagePath,
+    };
+  }
+
   /// Mock factory – returns a random disease result for demo/HCI purposes.
   /// Replace with real ML response parsing when the model is integrated.
   factory DiseaseResult.mock(String imagePath) {
@@ -171,7 +203,7 @@ class DiseaseResult {
 // ScanRecord — History item (wraps scan metadata + display helpers)
 // ─────────────────────────────────────────────────────────────────────────────
 class ScanRecord {
-  final int id;
+  final String id;
   final String diseaseName;
   final String latinName;
   final String cropType;
@@ -194,6 +226,35 @@ class ScanRecord {
     required this.scannedAt,
     required this.imageUrl,
   });
+
+  factory ScanRecord.fromJson(Map<String, dynamic> json) {
+    return ScanRecord(
+      id: json['id']?.toString() ?? '',
+      diseaseName: json['disease_name'] ?? 'Unknown',
+      latinName: json['latin_name'] ?? '',
+      cropType: json['crop_type'] ?? '',
+      confidenceScore: (json['confidence_score'] ?? 0.0).toDouble(),
+      severity: json['severity'] ?? 'none',
+      fieldLocation: json['field_location'] ?? '',
+      treatable: json['treatable'] ?? false,
+      scannedAt: json['scanned_at'] != null ? DateTime.parse(json['scanned_at']) : DateTime.now(),
+      imageUrl: json['image_url'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'disease_name': diseaseName,
+      'latin_name': latinName,
+      'crop_type': cropType,
+      'confidence_score': confidenceScore,
+      'severity': severity,
+      'field_location': fieldLocation,
+      'treatable': treatable,
+      'scanned_at': scannedAt.toIso8601String(),
+      'image_url': imageUrl,
+    };
+  }
 
   Color get severityColor {
     switch (severity) {
@@ -239,7 +300,7 @@ class ScanRecord {
 // ─────────────────────────────────────────────────────────────────────────────
 final List<ScanRecord> mockScanHistory = [
   ScanRecord(
-    id: 1,
+    id: '1',
     diseaseName: 'Tomato Early Blight',
     latinName: 'Alternaria solani',
     cropType: 'Tomato',
@@ -251,7 +312,7 @@ final List<ScanRecord> mockScanHistory = [
     imageUrl: 'https://images.unsplash.com/photo-1606321620984-201c81c23e69?w=400&h=400&fit=crop&auto=format',
   ),
   ScanRecord(
-    id: 2,
+    id: '2',
     diseaseName: 'Leaf Curl Virus',
     latinName: 'Begomovirus spp.',
     cropType: 'Tomato',
@@ -263,7 +324,7 @@ final List<ScanRecord> mockScanHistory = [
     imageUrl: 'https://images.unsplash.com/photo-1603442506725-80c47a1a3aaf?w=400&h=400&fit=crop&auto=format',
   ),
   ScanRecord(
-    id: 3,
+    id: '3',
     diseaseName: 'Healthy Crop',
     latinName: 'No pathogen detected',
     cropType: 'Cucumber',
@@ -275,7 +336,7 @@ final List<ScanRecord> mockScanHistory = [
     imageUrl: 'https://images.unsplash.com/photo-1690553563186-ea46190f1465?w=400&h=400&fit=crop&auto=format',
   ),
   ScanRecord(
-    id: 4,
+    id: '4',
     diseaseName: 'Powdery Mildew',
     latinName: 'Erysiphe cichoracearum',
     cropType: 'Grape',
@@ -287,7 +348,7 @@ final List<ScanRecord> mockScanHistory = [
     imageUrl: 'https://images.unsplash.com/photo-1621499420841-397ba9372883?w=400&h=400&fit=crop&auto=format',
   ),
   ScanRecord(
-    id: 5,
+    id: '5',
     diseaseName: 'Bacterial Leaf Spot',
     latinName: 'Xanthomonas campestris',
     cropType: 'Bell Pepper',
@@ -299,7 +360,7 @@ final List<ScanRecord> mockScanHistory = [
     imageUrl: 'https://images.unsplash.com/photo-1674337265830-1f87b06dbc0c?w=400&h=400&fit=crop&auto=format',
   ),
   ScanRecord(
-    id: 6,
+    id: '6',
     diseaseName: 'Healthy Crop',
     latinName: 'No pathogen detected',
     cropType: 'Tomato',
