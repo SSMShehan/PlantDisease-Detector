@@ -13,6 +13,8 @@ import 'package:plant_disease_detector/shared/widgets/smart_image.dart';
 import 'package:plant_disease_detector/l10n/app_localizations.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
 import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
+import 'package:plant_disease_detector/features/diagnosis/application/scan_history_provider.dart';
+import 'package:plant_disease_detector/features/diagnosis/presentation/screens/diagnostic_result_screen.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 
@@ -57,6 +59,7 @@ class HomeScreen extends ConsumerWidget {
     final locationState = ref.watch(locationProvider);
     final weatherState = ref.watch(weatherProvider);
     final userData = ref.watch(userProvider);
+    final recentScans = ref.watch(scanHistoryProvider).take(3).toList();
     
     // Dynamic greeting based on time of day
     final hour = DateTime.now().hour;
@@ -290,38 +293,52 @@ class HomeScreen extends ConsumerWidget {
 
               const SizedBox(height: 12),
 
-              // Horizontal Glassmorphic Recent Activity Tiles with Copper Data Viz Rings
+              // Horizontal Glassmorphic Recent Activity Tiles - Real scan data
               SizedBox(
                 height: 180,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  children: [
-                    _buildActivityTile(
-                      cropImage: 'https://images.unsplash.com/photo-1592841200221-a6898f307baa?q=80&w=400&auto=format&fit=crop',
-                      diseaseName: context.trDisease('Tomato Early Blight'),
-                      confidence: context.tr(en: '88% Confirmed', si: '88% තහවුරු කළා', ta: '88% உறுதிப்படுத்தப்பட்டது'),
-                      date: context.tr(en: 'Today', si: 'අද', ta: 'இன்று'),
-                      score: 0.88,
-                    ),
-                    const SizedBox(width: 14),
-                    _buildActivityTileWithRing(
-                      diseaseName: context.tr(en: 'TOMATO DISEASE', si: 'තක්කාලි රෝගය', ta: 'தக்காளி நோய்'),
-                      confidence: context.tr(en: '88% Confirmed', si: '88% තහවුරු කළා', ta: '88% உறுதிப்படுத்தப்பட்டது'),
-                      date: 'Sep 15',
-                      score: 0.88,
-                      isSelected: true,
-                    ),
-                    const SizedBox(width: 14),
-                    _buildActivityTile(
-                      cropImage: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?q=80&w=400&auto=format&fit=crop',
-                      diseaseName: context.tr(en: 'Monstera Disease', si: 'මොන්ස්ටෙරා රෝගය', ta: 'மான்ஸ்டெரா நோய்'),
-                      confidence: context.tr(en: '88% Confirmed', si: '88% තහවුරු කළා', ta: '88% உறுதிப்படுத்தப்பட்டது'),
-                      date: 'Sep 10',
-                      score: 0.88,
-                    ),
-                  ],
-                ),
+                child: recentScans.isEmpty
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Text(
+                            context.tr(
+                              en: 'No scans yet - tap Scan to get started!',
+                              si: 'තවම ස්කෑන් නැත - ස්කෑන් ඔබා ආරම්න කරන්න!',
+                              ta: 'இன்னும் ஸ்கேன் இல்லை - ஸ்கேன் அழுத்தி தொடங்குங்கள்!',
+                            ),
+                            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      )
+                    : ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        itemCount: recentScans.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 14),
+                        itemBuilder: (context, index) {
+                          final scan = recentScans[index];
+                          return GestureDetector(
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => DiagnosticResultScreen(scan: scan),
+                              ),
+                            ),
+                            child: _buildActivityTile(
+                              cropImage: scan.imageUrl,
+                              diseaseName: context.trDisease(scan.diseaseName),
+                              confidence: context.tr(
+                                en: '${(scan.confidenceScore * 100).round()}% Confirmed',
+                                si: '${(scan.confidenceScore * 100).round()}% තහවුරු කලා',
+                                ta: '${(scan.confidenceScore * 100).round()}% உறுதிப்படுத்தப்பட்டது',
+                              ),
+                              date: context.trDate(scan.dateLabel),
+                              score: scan.confidenceScore,
+                            ),
+                          );
+                        },
+                      ),
               ),
 
               const SizedBox(height: 24),

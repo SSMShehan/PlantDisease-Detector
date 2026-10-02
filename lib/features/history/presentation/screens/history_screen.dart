@@ -320,7 +320,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                         children: [
                           Expanded(
                             child: Text(
-                              '${context.trDate(scan.dateLabel)} · 10:42 AM',
+                              '${context.trDate(scan.dateLabel)} · ${scan.timeLabel}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: AppTextStyles.bodySmall.copyWith(fontSize: 11),

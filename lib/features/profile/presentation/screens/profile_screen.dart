@@ -11,6 +11,8 @@ import 'package:plant_disease_detector/core/localization/app_strings.dart';
 import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
+import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ProfileScreen — Matches Figma ProfileScreen.tsx
@@ -143,10 +145,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     _buildFarmDetails(ref),
                     _buildSettings(settings),
                     
-                    // Sign out
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                       child: GestureDetector(
+                        onTap: () async {
+                          try {
+                            await Supabase.instance.client.auth.signOut();
+                          } catch (e) {
+                            debugPrint('Sign out error: $e');
+                          }
+                          if (context.mounted) {
+                            context.go('/login');
+                          }
+                        },
                         child: Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(vertical: 14),

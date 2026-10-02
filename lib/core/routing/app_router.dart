@@ -24,12 +24,13 @@ import 'package:plant_disease_detector/features/profile/presentation/screens/lan
 import 'package:plant_disease_detector/features/profile/presentation/screens/notifications_screen.dart';
 import 'package:plant_disease_detector/features/community/presentation/screens/community_feed_screen.dart';
 import 'package:plant_disease_detector/features/farm_log/presentation/screens/yield_tracker_screen.dart';
+import 'package:plant_disease_detector/models/disease_result.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 final GoRouter appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
-  initialLocation: '/language',
+  initialLocation: '/splash',
   routes: [
     GoRoute(
       path: '/language',
@@ -72,7 +73,10 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/diagnostic_result',
-      builder: (context, state) => const DiagnosticResultScreen(),
+      builder: (context, state) {
+        final scan = state.extra as ScanRecord?;
+        return DiagnosticResultScreen(scan: scan);
+      },
     ),
     GoRoute(
       path: '/treatment_detail',

@@ -23,6 +23,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   // Image State
   XFile? _imageFile;
   final ImagePicker _picker = ImagePicker();
+  bool _isInitialized = false; // BUG-03 guard: prevent didChangeDependencies from overwriting edits
 
   // Controllers
   late TextEditingController _nameController;
@@ -61,6 +62,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    if (_isInitialized) return; // Guard: only initialize once
+    _isInitialized = true;
     final userData = ref.read(userProvider);
     _nameController.text = userData.fullName;
     _phoneController.text = userData.phoneNumber;

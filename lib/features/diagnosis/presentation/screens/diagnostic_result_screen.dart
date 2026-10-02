@@ -490,7 +490,7 @@ class _DiagnosticResultScreenState extends ConsumerState<DiagnosticResultScreen>
                                   '${(_confAnim.value * 100).round()}%',
                                   style: AppTextStyles.headlineLarge.copyWith(letterSpacing: -1),
                                 );
-                              }
+                              },
                             ),
                             Text(
                               context.tr(en: 'Confidence', si: 'විශ්වාසනීයත්වය', ta: 'நம்பகத்தன்மை'),
@@ -616,7 +616,7 @@ class _DiagnosticResultScreenState extends ConsumerState<DiagnosticResultScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${context.trDate(_scan.dateLabel)}, 10:42 AM',
+                          '${context.trDate(_scan.dateLabel)}, ${_scan.timeLabel}',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: AppTextStyles.bodySmall.copyWith(
@@ -762,7 +762,7 @@ class _DiagnosticResultScreenState extends ConsumerState<DiagnosticResultScreen>
   Widget _buildContentList() {
     final locationState = ref.watch(locationProvider);
     if (_isSymptomsTab) {
-      final symptoms = _symptomMap["Tomato Early Blight"] ?? [];
+      final symptoms = _symptomMap[_scan.diseaseName] ?? _symptomMap["Tomato Early Blight"] ?? [];
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         child: Column(
@@ -778,7 +778,7 @@ class _DiagnosticResultScreenState extends ConsumerState<DiagnosticResultScreen>
         ),
       );
     } else {
-      final treatments = _treatmentMap["Tomato Early Blight"] ?? [];
+      final treatments = _treatmentMap[_scan.diseaseName] ?? _treatmentMap["Tomato Early Blight"] ?? [];
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         child: Column(
