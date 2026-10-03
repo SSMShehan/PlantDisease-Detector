@@ -239,7 +239,10 @@ class _HeroSection extends StatelessWidget {
                           Expanded(
                             child: Row(
                               children: [
-                                Image.asset('assets/images/logo.png', width: 24, height: 24),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(6),
+                                  child: Image.asset('assets/images/logo.png', width: 24, height: 24),
+                                ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: RichText(
@@ -247,8 +250,8 @@ class _HeroSection extends StatelessWidget {
                                     overflow: TextOverflow.ellipsis,
                                     text: const TextSpan(
                                       children: [
-                                        TextSpan(text: 'Lumina: ', style: TextStyle(color: _white, fontSize: 13, fontWeight: FontWeight.w800)),
-                                        TextSpan(text: 'AI Disease Identification', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500)),
+                                        TextSpan(text: 'Lumina ', style: TextStyle(color: _white, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                                        TextSpan(text: 'Agri AI', style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500)),
                                       ],
                                     ),
                                   ),

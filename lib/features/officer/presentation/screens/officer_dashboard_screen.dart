@@ -323,7 +323,10 @@ class _OfficerHomeTab extends ConsumerWidget {
                   Expanded(
                     child: Row(
                       children: [
-                        Image.asset('assets/images/logo.png', width: 24, height: 24),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: Image.asset('assets/images/logo.png', width: 24, height: 24),
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: RichText(
@@ -331,8 +334,8 @@ class _OfficerHomeTab extends ConsumerWidget {
                             overflow: TextOverflow.ellipsis,
                             text: const TextSpan(
                               children: [
-                                TextSpan(text: 'Lumina: ', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800)),
-                                TextSpan(text: 'Officer Portal', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500)),
+                                TextSpan(text: 'Lumina ', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                                TextSpan(text: 'Officer', style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500)),
                               ],
                             ),
                           ),

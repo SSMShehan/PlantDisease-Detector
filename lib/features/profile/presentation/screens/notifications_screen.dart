@@ -8,6 +8,59 @@ import 'package:plant_disease_detector/shared/widgets/premium_app_bar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:plant_disease_detector/core/providers/announcements_provider.dart';
 
+import 'dart:ui';
+import 'package:plant_disease_detector/core/providers/announcements_provider.dart';
+
+class _ShimmerSkeleton extends StatefulWidget {
+  final double width;
+  final double height;
+  final double borderRadius;
+  const _ShimmerSkeleton({required this.width, required this.height, this.borderRadius = 8});
+
+  @override
+  State<_ShimmerSkeleton> createState() => _ShimmerSkeletonState();
+}
+
+class _ShimmerSkeletonState extends State<_ShimmerSkeleton> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500))..repeat();
+  }
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Container(
+          width: widget.width,
+          height: widget.height,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(widget.borderRadius),
+            gradient: LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              stops: const [0.1, 0.5, 0.9],
+              colors: [
+                Colors.grey.shade300,
+                Colors.grey.shade100,
+                Colors.grey.shade300,
+              ],
+              transform: GradientRotation(_controller.value * 2 * 3.14159),
+            ),
+          ),
+        );
+      }
+    );
+  }
+}
+
 class NotificationsScreen extends ConsumerWidget {
   const NotificationsScreen({super.key});
 
@@ -32,15 +85,75 @@ class NotificationsScreen extends ConsumerWidget {
           const LanguageSelectorButton(),
         ],
       ),
-      body: announcementsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err')),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.background,
+              AppColors.primary.withValues(alpha: 0.05),
+              AppColors.secondary.withValues(alpha: 0.05),
+            ],
+          ),
+        ),
+        child: announcementsAsync.when(
+          loading: () => ListView.builder(
+            padding: const EdgeInsets.all(24),
+            itemCount: 4,
+            itemBuilder: (context, index) => Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                children: [
+                  const _ShimmerSkeleton(width: 50, height: 50, borderRadius: 25),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        _ShimmerSkeleton(width: 150, height: 16),
+                        SizedBox(height: 8),
+                        _ShimmerSkeleton(width: double.infinity, height: 12),
+                        SizedBox(height: 4),
+                        _ShimmerSkeleton(width: 80, height: 12),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          error: (err, stack) => Center(child: Text('Error: $err')),
         data: (announcements) {
           if (announcements.isEmpty) {
             return Center(
-              child: Text(
-                'No new announcements.',
-                style: AppTextStyles.bodyLarge.copyWith(color: AppColors.textSecondary),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.notifications_none_rounded, size: 64, color: AppColors.primary.withValues(alpha: 0.5)),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    context.tr(en: 'All caught up!', si: 'සියල්ල කියවා ඇත!', ta: 'அனைத்தும் படிக்கப்பட்டது!'),
+                    style: AppTextStyles.titleMedium.copyWith(color: AppColors.textPrimary),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    context.tr(en: 'You have no new notifications.', si: 'නව දැනුම්දීම් නැත.', ta: 'புதிய அறிவிப்புகள் இல்லை.'),
+                    style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+                  ),
+                ],
               ),
             );
           }
@@ -59,6 +172,7 @@ class NotificationsScreen extends ConsumerWidget {
             },
           );
         },
+      ),
       ),
     );
   }
@@ -98,23 +212,36 @@ class NotificationsScreen extends ConsumerWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isUnread ? Colors.white : Colors.white.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isUnread ? AppColors.primary.withValues(alpha: 0.2) : Colors.transparent,
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           if (isUnread)
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 8,
+              color: AppColors.primary.withValues(alpha: 0.15),
+              blurRadius: 15,
+              offset: const Offset(0, 4),
+            ),
+          if (!isUnread)
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
               offset: const Offset(0, 2),
             ),
         ],
       ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: isUnread ? Colors.white.withValues(alpha: 0.95) : Colors.white.withValues(alpha: 0.7),
+              border: Border.all(
+                color: isUnread ? AppColors.primary.withValues(alpha: 0.3) : Colors.white.withValues(alpha: 0.5),
+                width: 1.5,
+              ),
+            ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -167,6 +294,9 @@ class NotificationsScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+      ),
+      ),
       ),
     );
   }
