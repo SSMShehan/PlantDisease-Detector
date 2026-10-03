@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -26,13 +27,19 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
-    Timer(const Duration(milliseconds: 2400), () {
+    Timer(const Duration(milliseconds: 2400), () async {
       if (mounted) {
         final session = Supabase.instance.client.auth.currentSession;
         if (session != null) {
-          context.go('/main');
+          final prefs = await SharedPreferences.getInstance();
+          final role = prefs.getString('user_role');
+          if (role == 'Officer') {
+            if (mounted) context.go('/officer_dashboard');
+          } else {
+            if (mounted) context.go('/main');
+          }
         } else {
-          context.go('/language');
+          if (mounted) context.go('/language');
         }
       }
     });

@@ -16,6 +16,10 @@ import 'package:plant_disease_detector/features/treatment/presentation/screens/d
 import 'package:plant_disease_detector/features/treatment/presentation/screens/nearest_officer_screen.dart';
 import 'package:plant_disease_detector/features/diagnosis/presentation/screens/photo_guide_screen.dart';
 import 'package:plant_disease_detector/features/treatment/data/disease_model.dart';
+import 'package:plant_disease_detector/features/officer/presentation/screens/officer_dashboard_screen.dart';
+import 'package:plant_disease_detector/features/officer/presentation/screens/case_inbox_screen.dart';
+import 'package:plant_disease_detector/features/officer/presentation/screens/case_detail_screen.dart';
+import 'package:plant_disease_detector/features/profile/presentation/screens/profile_screen.dart';
 
 import 'package:plant_disease_detector/features/onboarding/presentation/screens/splash_screen.dart';
 import 'package:plant_disease_detector/features/weather/presentation/screens/weather_forecast_screen.dart';
@@ -141,6 +145,22 @@ final GoRouter appRouter = GoRouter(
         final post = state.extra as CommunityPost;
         return PostDetailScreen(post: post);
       },
+    ),
+    GoRoute(
+      path: '/officer_dashboard',
+      builder: (context, state) => const OfficerDashboardScreen(),
+    ),
+    GoRoute(
+      path: '/case_inbox',
+      builder: (context, state) => const CaseInboxScreen(),
+    ),
+    GoRoute(
+      path: '/case_detail',
+      builder: (context, state) => const CaseDetailScreen(),
+    ),
+    GoRoute(
+      path: '/profile',
+      builder: (context, state) => const ProfileScreen(),
     ),
   ],
 );
