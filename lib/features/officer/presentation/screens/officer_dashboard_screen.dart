@@ -9,7 +9,10 @@ import 'package:plant_disease_detector/features/officer/presentation/screens/cas
 import 'package:plant_disease_detector/features/officer/data/consultation_repository.dart';
 import 'package:plant_disease_detector/features/profile/presentation/screens/profile_screen.dart';
 import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
-
+import 'package:plant_disease_detector/core/providers/location_provider.dart';
+import 'package:plant_disease_detector/features/weather/presentation/providers/weather_provider.dart';
+import 'package:plant_disease_detector/core/providers/user_provider.dart';
+import 'package:plant_disease_detector/l10n/app_localizations.dart';
 // ─────────────────────────────────────────────────────────────────────────────
 // OfficerDashboardScreen — Handles Bottom Navigation & Core Views (Premium UI)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -190,88 +193,253 @@ class _OfficerHomeTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Watch real stats from Supabase
     final statsAsync = ref.watch(officerStatsProvider);
-    return SafeArea(
-      bottom: false, // Nav bar is floating
-      child: Column(
+    final loc = ref.watch(locationProvider);
+    final wx = ref.watch(weatherProvider);
+    final user = ref.watch(userProvider);
+    final l10n = AppLocalizations.of(context);
+    
+    // Notice: Removed SafeArea so the header can go edge-to-edge
+    return Column(
+      children: [
+        _buildHeroSection(context, loc, wx, user, l10n),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(left: 24, right: 24, top: 32, bottom: 100),
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(context.tr(en: 'Analytics Overview', si: 'විශ්ලේෂණ දළ විශ්ලේෂණය', ta: 'பகுப்பாய்வு'), 
+                  style: AppTextStyles.titleMedium.copyWith(fontSize: 20, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 20),
+                statsAsync.when(
+                  loading: () => _buildAnalyticsCards(context, ref, 0, 0, 0),
+                  error: (_, __) => _buildAnalyticsCards(context, ref, 0, 0, 0),
+                  data: (stats) => _buildAnalyticsCards(
+                    context, ref,
+                    stats['pending'] ?? 0,
+                    stats['resolvedToday'] ?? 0,
+                    stats['urgent'] ?? 0,
+                  ),
+                ),
+                const SizedBox(height: 36),
+                
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(context.tr(en: 'Urgent Alerts', si: 'හදිසි අනතුරු ඇඟවීම්', ta: 'அவசர எச்சரிக்கைகள்'), 
+                      style: AppTextStyles.titleMedium.copyWith(fontSize: 20, fontWeight: FontWeight.w800)),
+                    GestureDetector(
+                      onTap: () => context.push('/case_inbox'),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFD9734E).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          context.tr(en: 'View All', si: 'සියල්ල පෙන්වන්න', ta: 'அனைத்தையும் காண்க'),
+                          style: AppTextStyles.titleSmall.copyWith(color: const Color(0xFFD9734E), fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _buildUrgentAlertsList(context),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeroSection(BuildContext context, dynamic loc, dynamic wx, dynamic user, AppLocalizations? l10n) {
+    final hr = DateTime.now().hour;
+    String greet = l10n?.goodEvening ?? 'Good Evening';
+    if (hr < 12) greet = l10n?.goodMorning ?? 'Good Morning';
+    else if (hr < 17) greet = l10n?.goodAfternoon ?? 'Good Afternoon';
+
+    final temp = wx.isLoading ? '--' : '${wx.weather?.temperature.toStringAsFixed(0) ?? 24}';
+    final city = loc.isLoading ? 'Locating...' : (loc.address.isNotEmpty ? loc.address.split(',').first : 'Unknown');
+    final now = DateTime.now();
+    final timeStr = '${now.hour % 12 == 0 ? 12 : now.hour % 12}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'PM' : 'AM'}';
+    final firstName = user.fullName.isNotEmpty ? user.fullName.split(' ').first : 'Officer';
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.fromLTRB(24, MediaQuery.of(context).padding.top + 12, 24, 40),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF0F3820), Color(0xFF16502D)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(36)),
+        boxShadow: [
+          BoxShadow(color: Color(0x1F000000), blurRadius: 20, offset: Offset(0, 10)),
+        ],
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          _buildHeader(context),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.only(left: 24, right: 24, top: 16, bottom: 100),
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          // Abstract Mesh Shapes
+          Positioned(
+            top: -50,
+            right: -50,
+            child: Container(
+              width: 250,
+              height: 250,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [const Color(0xFF2E8B57).withValues(alpha: 0.4), Colors.transparent],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -100,
+            left: -80,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [const Color(0xFFF5C842).withValues(alpha: 0.15), Colors.transparent],
+                ),
+              ),
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header Row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(context.tr(en: 'Analytics Overview', si: 'විශ්ලේෂණ දළ විශ්ලේෂණය', ta: 'பகுப்பாய்வு'), 
-                    style: AppTextStyles.titleMedium.copyWith(fontSize: 20, fontWeight: FontWeight.w800)),
-                  const SizedBox(height: 20),
-                  statsAsync.when(
-                    loading: () => _buildAnalyticsCards(context, ref, 0, 0, 0),
-                    error: (_, __) => _buildAnalyticsCards(context, ref, 0, 0, 0),
-                    data: (stats) => _buildAnalyticsCards(
-                      context, ref,
-                      stats['pending'] ?? 0,
-                      stats['resolvedToday'] ?? 0,
-                      stats['urgent'] ?? 0,
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Image.asset('assets/images/logo.png', width: 24, height: 24),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: RichText(
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            text: const TextSpan(
+                              children: [
+                                TextSpan(text: 'Lumina: ', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800)),
+                                TextSpan(text: 'Officer Portal', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 36),
-                  
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(context.tr(en: 'Urgent Alerts', si: 'හදිසි අනතුරු ඇඟවීම්', ta: 'அவசர எச்சரிக்கைகள்'), 
-                        style: AppTextStyles.titleMedium.copyWith(fontSize: 20, fontWeight: FontWeight.w800)),
-                      GestureDetector(
-                        onTap: () => context.push('/case_inbox'),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFD9734E).withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            context.tr(en: 'View All', si: 'සියල්ල පෙන්වන්න', ta: 'அனைத்தையும் காண்க'),
-                            style: AppTextStyles.titleSmall.copyWith(color: const Color(0xFFD9734E), fontWeight: FontWeight.bold),
-                          ),
+                      const LanguageSelectorButton(isCompact: true),
+                      const SizedBox(width: 12),
+                      // Profile Avatar
+                      Container(
+                        width: 38, height: 38,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: const Color(0xFFE8C97A).withValues(alpha: 0.8), width: 1.5),
+                          boxShadow: [BoxShadow(color: const Color(0xFFE8C97A).withValues(alpha: 0.3), blurRadius: 10)],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: user.imagePath != null && user.imagePath!.isNotEmpty
+                              ? Image.network(user.imagePath!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _fallbackAvatar(firstName))
+                              : _fallbackAvatar(firstName),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  _buildUrgentAlertsList(context),
                 ],
               ),
-            ),
+              
+              const SizedBox(height: 24),
+              
+              // Premium Typography Greeting
+              Text(
+                '${greet.replaceAll(',', '')}, $firstName!',
+                style: const TextStyle(
+                  color: Color(0xFFE8C97A),
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.5,
+                  shadows: [Shadow(color: Colors.black45, blurRadius: 8, offset: Offset(0, 3))],
+                ),
+              ),
+              const SizedBox(height: 12),
+              
+              // PREMIUM INLINE WEATHER PILL & STATUS
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.white.withValues(alpha: 0.15), Colors.white.withValues(alpha: 0.05)],
+                          begin: Alignment.topLeft, end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1.2),
+                        boxShadow: [
+                          BoxShadow(color: const Color(0xFFF5C842).withValues(alpha: 0.15), blurRadius: 15, spreadRadius: 1)
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.location_on_rounded, color: Color(0xFFE8C97A), size: 14),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(city, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: -0.2), overflow: TextOverflow.ellipsis),
+                          ),
+                          const SizedBox(width: 10),
+                          Container(width: 1, height: 12, color: Colors.white30),
+                          const SizedBox(width: 10),
+                          Icon(wx.weather?.isDay != false ? Icons.wb_sunny_rounded : Icons.nights_stay_rounded, color: wx.weather?.isDay != false ? Colors.orangeAccent : Colors.indigo.shade200, size: 14),
+                          const SizedBox(width: 4),
+                          Text('$temp°C', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900)),
+                          const SizedBox(width: 10),
+                          Container(width: 1, height: 12, color: Colors.white30),
+                          const SizedBox(width: 10),
+                          const Icon(Icons.access_time_rounded, color: Colors.white70, size: 14),
+                          const SizedBox(width: 4),
+                          Text(timeStr, style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  _buildStatusToggle(), // Put the officer status toggle right next to it
+                ],
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(context.tr(en: 'Welcome back,', si: 'ආයුබෝවන්,', ta: 'வரவேற்கிறோம்,'), 
-                style: AppTextStyles.bodyLarge.copyWith(color: AppColors.textSecondary, letterSpacing: 0.5)),
-              Text('Officer Sarah', style: AppTextStyles.headlineMedium.copyWith(fontWeight: FontWeight.w800)),
-            ],
-          ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildStatusToggle(),
-              const SizedBox(width: 12),
-              const LanguageSelectorButton(isCompact: true),
-            ],
-          ),
-        ],
+  Widget _fallbackAvatar(String name) {
+    return Container(
+      color: const Color(0xFF134D2E),
+      alignment: Alignment.center,
+      child: Text(
+        name.isNotEmpty ? name[0].toUpperCase() : 'O',
+        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
       ),
     );
   }
@@ -281,31 +449,29 @@ class _OfficerHomeTab extends ConsumerWidget {
       onTap: onToggleStatus,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.7),
+          color: isOnline 
+              ? const Color(0xFF22C55E).withValues(alpha: 0.15) 
+              : Colors.white.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: Colors.white, width: 2),
-          boxShadow: [
-            BoxShadow(
-              color: (isOnline ? const Color(0xFF0F766E) : Colors.grey).withValues(alpha: 0.15),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          border: Border.all(
+            color: isOnline ? const Color(0xFF22C55E).withValues(alpha: 0.5) : Colors.white.withValues(alpha: 0.3), 
+            width: 1.5
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             AnimatedContainer(
               duration: const Duration(milliseconds: 300),
-              width: 10,
-              height: 10,
+              width: 8,
+              height: 8,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: isOnline ? const Color(0xFF22C55E) : Colors.grey.shade400,
                 boxShadow: isOnline ? [
-                  BoxShadow(color: const Color(0xFF22C55E).withValues(alpha: 0.4), blurRadius: 6, spreadRadius: 2)
+                  BoxShadow(color: const Color(0xFF22C55E).withValues(alpha: 0.6), blurRadius: 8, spreadRadius: 2)
                 ] : [],
               ),
             ),
@@ -313,8 +479,8 @@ class _OfficerHomeTab extends ConsumerWidget {
             Text(
               isOnline ? 'Online' : 'Offline',
               style: AppTextStyles.titleSmall.copyWith(
-                fontWeight: FontWeight.w700, 
-                color: isOnline ? const Color(0xFF0F766E) : Colors.grey.shade600
+                fontWeight: FontWeight.w800, 
+                color: isOnline ? const Color(0xFF22C55E) : Colors.white70,
               ),
             ),
           ],

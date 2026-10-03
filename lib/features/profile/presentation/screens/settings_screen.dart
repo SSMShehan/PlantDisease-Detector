@@ -101,7 +101,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           Center(
-            child: Text('CropGuard LK v1.0.0', style: AppTextStyles.bodySmall),
+            child: Text('Lumina LK v1.0.0', style: AppTextStyles.bodySmall),
           ),
         ],
       ),

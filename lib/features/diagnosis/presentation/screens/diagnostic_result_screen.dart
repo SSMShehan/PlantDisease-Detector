@@ -650,7 +650,7 @@ class _DiagnosticResultScreenState extends ConsumerState<DiagnosticResultScreen>
                             ],
                           ),
                           content: const Text(
-                            'CropGuard uses a dual-engine architecture: on-device lightweight TFLite inference + localized Sri Lankan wet-zone climate models for high accuracy.',
+                            'Lumina uses a dual-engine architecture: on-device lightweight TFLite inference + localized Sri Lankan wet-zone climate models for high accuracy.',
                             style: TextStyle(fontSize: 13, height: 1.4),
                           ),
                           actions: [

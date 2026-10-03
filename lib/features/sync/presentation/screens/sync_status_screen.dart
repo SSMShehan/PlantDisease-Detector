@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
 import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
@@ -12,7 +12,7 @@ class SyncStatusScreen extends StatelessWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
-          context.tr(en: 'Offline Sync Status', si: 'නොබැඳි සමමුහුර්තකරණ තත්ත්වය', ta: 'இணைப்பற்ற ஒத்திசைவு நிலை'),
+          context.tr(en: 'Offline Sync Status', si: '?????? ???????????? ???????', ta: '????????? ????????? ????'),
           style: AppTextStyles.titleMedium,
         ),
         actions: const [
@@ -61,12 +61,12 @@ class SyncStatusScreen extends StatelessWidget {
             
             _buildQueueItem(
               title: 'Diagnosis Image Upload',
-              subtitle: 'Scan #102 • 4.2 MB',
+              subtitle: 'Scan #102 � 4.2 MB',
               status: 'Waiting...',
             ),
             _buildQueueItem(
               title: 'New Farm Log Entry',
-              subtitle: 'Fertilizer Applied • 2 KB',
+              subtitle: 'Fertilizer Applied � 2 KB',
               status: 'Waiting...',
             ),
             

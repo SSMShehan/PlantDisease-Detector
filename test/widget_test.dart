@@ -7,7 +7,7 @@ void main() {
   testWidgets('App launches and shows splash screen',
       (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const CropGuardApp());
+    await tester.pumpWidget(const LuminaApp());
     // Splash screen should be visible initially
     expect(find.text('Lumina – Crop Disease Detector'), findsNothing);
     await tester.pump(const Duration(milliseconds: 100));

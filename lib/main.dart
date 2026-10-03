@@ -40,20 +40,20 @@ Future<void> main() async {
   runApp(
     UncontrolledProviderScope(
       container: container,
-      child: const CropGuardApp(),
+      child: const LuminaApp(),
     ),
   );
 }
 
-class CropGuardApp extends ConsumerWidget {
-  const CropGuardApp({super.key});
+class LuminaApp extends ConsumerWidget {
+  const LuminaApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = ref.watch(localeProvider);
 
     return MaterialApp.router(
-      title: 'CropGuard',
+      title: 'Lumina',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       routerConfig: appRouter,

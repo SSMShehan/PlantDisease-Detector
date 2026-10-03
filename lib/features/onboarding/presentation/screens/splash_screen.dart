@@ -102,11 +102,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                             height: 80,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF22C55E), Color(0xFF0B3C2D)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
+                              color: Colors.white,
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withValues(alpha: 0.3),
@@ -115,10 +111,11 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                                 ),
                               ],
                             ),
-                            child: const Icon(
-                              Icons.document_scanner_rounded,
-                              size: 42,
-                              color: Colors.white,
+                            child: ClipOval(
+                              child: Image.asset(
+                                'assets/images/logo.png',
+                                fit: BoxFit.cover,
+                              ),
                             ),
                           ),
                         ),
@@ -126,7 +123,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     ),
                     const SizedBox(height: 28),
                     const Text(
-                      'AgroScan',
+                      'Lumina',
                       style: TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
                         color: Colors.white,

@@ -179,7 +179,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                       Text(
-                        context.tr(en: 'Join CropGuard', si: 'CropGuard වෙත එක්වන්න', ta: 'CropGuard இல் இணையுங்கள்'),
+                        context.tr(en: 'Join Lumina', si: 'Lumina වෙත එක්වන්න', ta: 'Lumina இல் இணையுங்கள்'),
                         style: AppTextStyles.headlineMedium,
                         textAlign: TextAlign.center,
                       ),

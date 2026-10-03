@@ -236,15 +236,23 @@ class _HeroSection extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Expanded(
-                            child: RichText(
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              text: TextSpan(
-                                children: [
-                                  const TextSpan(text: 'CropGuard: ', style: TextStyle(color: _white, fontSize: 13, fontWeight: FontWeight.w800)),
-                                  TextSpan(text: 'AI Disease Identification', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500)),
-                                ],
-                              ),
+                            child: Row(
+                              children: [
+                                Image.asset('assets/images/logo.png', width: 24, height: 24),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: RichText(
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    text: const TextSpan(
+                                      children: [
+                                        TextSpan(text: 'Lumina: ', style: TextStyle(color: _white, fontSize: 13, fontWeight: FontWeight.w800)),
+                                        TextSpan(text: 'AI Disease Identification', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500)),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           Row(
