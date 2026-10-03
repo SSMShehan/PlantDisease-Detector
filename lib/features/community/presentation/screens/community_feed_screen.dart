@@ -9,6 +9,57 @@ import 'package:plant_disease_detector/shared/widgets/premium_app_bar.dart';
 import 'package:plant_disease_detector/features/community/application/community_provider.dart';
 import 'package:plant_disease_detector/features/community/data/community_models.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+class _ShimmerSkeleton extends StatefulWidget {
+  final double width;
+  final double height;
+  final double borderRadius;
+  const _ShimmerSkeleton({required this.width, required this.height, this.borderRadius = 8});
+
+  @override
+  State<_ShimmerSkeleton> createState() => _ShimmerSkeletonState();
+}
+
+class _ShimmerSkeletonState extends State<_ShimmerSkeleton> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500))..repeat();
+  }
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Container(
+          width: widget.width,
+          height: widget.height,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(widget.borderRadius),
+            gradient: LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              stops: const [0.1, 0.5, 0.9],
+              colors: [
+                Colors.grey.shade300,
+                Colors.grey.shade100,
+                Colors.grey.shade300,
+              ],
+              transform: GradientRotation(_controller.value * 2 * 3.14159),
+            ),
+          ),
+        );
+      }
+    );
+  }
+}
 
 class CommunityFeedScreen extends ConsumerStatefulWidget {
   const CommunityFeedScreen({super.key});
@@ -147,9 +198,33 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
                 if (posts.isEmpty)
                   SliverFillRemaining(
                     child: Center(
-                      child: Text(
-                        context.tr(en: 'No posts yet.', si: 'පළකිරීම් කිසිවක් නැත.', ta: 'இடுகைகள் எதுவும் இல்லை.'),
-                        style: AppTextStyles.bodyLarge,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.nature_people_rounded, size: 80, color: AppColors.primary.withOpacity(0.3)),
+                          const SizedBox(height: 16),
+                          Text(
+                            context.tr(en: 'No posts yet', si: 'පළකිරීම් කිසිවක් නැත', ta: 'இடுகைகள் எதுவும் இல்லை'),
+                            style: AppTextStyles.titleMedium.copyWith(color: Colors.grey.shade800),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            context.tr(en: 'Be the first to share something with the community.', si: 'පළමු පණිවිඩය එකතු කරන්න.', ta: 'சமூகத்துடன் எதையாவது முதலில் பகிரவும்.'),
+                            textAlign: TextAlign.center,
+                            style: AppTextStyles.bodyMedium.copyWith(color: Colors.grey.shade500),
+                          ),
+                          const SizedBox(height: 24),
+                          ElevatedButton.icon(
+                            onPressed: () => context.push('/create_post'),
+                            icon: const Icon(Icons.add_rounded, color: Colors.white),
+                            label: Text(context.tr(en: 'Create Post', si: 'පළ කරන්න', ta: 'இடுகையை உருவாக்கு'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   )
@@ -166,7 +241,44 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+        loading: () => ListView.builder(
+          itemCount: 3,
+          padding: const EdgeInsets.only(top: 16),
+          itemBuilder: (context, index) {
+            return Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              color: Colors.white,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const _ShimmerSkeleton(width: 44, height: 44, borderRadius: 22),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          _ShimmerSkeleton(width: 120, height: 16),
+                          SizedBox(height: 8),
+                          _ShimmerSkeleton(width: 80, height: 12),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const _ShimmerSkeleton(width: double.infinity, height: 16),
+                  const SizedBox(height: 8),
+                  const _ShimmerSkeleton(width: double.infinity, height: 16),
+                  const SizedBox(height: 8),
+                  const _ShimmerSkeleton(width: 150, height: 16),
+                  const SizedBox(height: 16),
+                  const _ShimmerSkeleton(width: double.infinity, height: 200, borderRadius: 16),
+                ],
+              ),
+            );
+          },
+        ),
         error: (error, _) => Center(child: Text('Error: \$error')),
       ),
       floatingActionButton: FloatingActionButton(
@@ -239,10 +351,45 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: Icon(Icons.more_horiz, color: Colors.grey.shade600),
-                  onPressed: () {}, // Future post options
-                ),
+                if (post.userId == Supabase.instance.client.auth.currentUser?.id)
+                  PopupMenuButton<String>(
+                    icon: Icon(Icons.more_horiz, color: Colors.grey.shade600),
+                    onSelected: (value) async {
+                      if (value == 'edit') {
+                        // We will navigate to a generic edit screen or just show an alert dialog.
+                        // For simplicity, let's show an alert dialog to edit text.
+                        _showEditPostDialog(post);
+                      } else if (value == 'delete') {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('Delete Post'),
+                            content: const Text('Are you sure you want to delete this post?'),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, true), 
+                                child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirm == true) {
+                          ref.read(communityFeedProvider.notifier).deletePost(post.id);
+                        }
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'edit',
+                        child: Row(children: [Icon(Icons.edit, size: 20, color: Colors.black87), SizedBox(width: 8), Text('Edit Post')]),
+                      ),
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Row(children: [Icon(Icons.delete, size: 20, color: Colors.red), SizedBox(width: 8), Text('Delete Post', style: TextStyle(color: Colors.red))]),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),
@@ -370,6 +517,69 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  void _showEditPostDialog(CommunityPost post) {
+    final titleController = TextEditingController(text: post.title);
+    final contentController = TextEditingController(text: post.content);
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 20, right: 20, top: 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Edit Post', style: AppTextStyles.titleMedium),
+              const SizedBox(height: 16),
+              if (post.title != null) ...[
+                TextField(
+                  controller: titleController,
+                  decoration: const InputDecoration(labelText: 'Title', border: OutlineInputBorder()),
+                ),
+                const SizedBox(height: 12),
+              ],
+              TextField(
+                controller: contentController,
+                maxLines: 5,
+                decoration: const InputDecoration(labelText: 'Content', border: OutlineInputBorder()),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    ref.read(communityFeedProvider.notifier).editPost(
+                      post.id,
+                      contentController.text,
+                      title: post.title != null ? titleController.text : null,
+                      imageUrl: post.imageUrl,
+                      category: post.category,
+                    );
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  child: const Text('Save Changes', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
     );
   }
 }

@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/providers/location_provider.dart';
 import 'package:plant_disease_detector/features/weather/presentation/providers/weather_provider.dart';
@@ -258,6 +259,13 @@ class _HeroSection extends StatelessWidget {
                           Row(
                             children: [
                               const LanguageSelectorButton(isDark: true, isCompact: true),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                onPressed: () => context.push('/notifications'),
+                                icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 24),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                              ),
                               const SizedBox(width: 12),
                               // Profile Avatar
                               Container(

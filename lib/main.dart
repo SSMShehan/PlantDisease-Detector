@@ -9,6 +9,7 @@ import 'package:plant_disease_detector/core/routing/app_router.dart';
 import 'package:plant_disease_detector/core/providers/locale_provider.dart';
 import 'package:plant_disease_detector/l10n/app_localizations.dart';
 import 'package:plant_disease_detector/core/providers/tflite_provider.dart';
+import 'package:plant_disease_detector/core/services/notification_service.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -36,6 +37,9 @@ Future<void> main() async {
   final container = ProviderContainer();
   // Initialize TFLite service
   await container.read(tfliteProvider).initialize();
+
+  // Initialize notifications
+  await NotificationService().init();
 
   runApp(
     UncontrolledProviderScope(

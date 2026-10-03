@@ -130,6 +130,15 @@ class ConsultationRepository {
     }
   }
 
+  // ── Delete consultation ───────────────────────────────────────────────────
+  Future<void> deleteConsultation(String consultationId) async {
+    try {
+      await _client.from('consultations').delete().eq('id', consultationId);
+    } catch (e) {
+      debugPrint('ConsultationRepository.delete error: $e');
+    }
+  }
+
   // ── Dashboard stats for officer ──────────────────────────────────────────
   Future<Map<String, int>> fetchOfficerStats() async {
     try {

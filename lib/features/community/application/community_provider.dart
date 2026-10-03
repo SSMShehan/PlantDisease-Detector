@@ -71,6 +71,36 @@ class CommunityFeedNotifier extends AsyncNotifier<List<CommunityPost>> {
     ref.invalidateSelf();
   }
 
+  Future<void> editPost(String postId, String content, {String? title, String? imageUrl, String category = 'General'}) async {
+    final user = _client.auth.currentUser;
+    if (user == null) throw Exception('Not logged in');
+
+    await _client.from('community_posts').update({
+      'title': title,
+      'content': content,
+      'image_url': imageUrl,
+      'category': category,
+    }).eq('id', postId).eq('user_id', user.id);
+
+    ref.invalidateSelf();
+  }
+
+  Future<void> deletePost(String postId) async {
+    final user = _client.auth.currentUser;
+    if (user == null) throw Exception('Not logged in');
+
+    final currentPosts = state.value;
+    if (currentPosts != null) {
+      state = AsyncValue.data(currentPosts.where((p) => p.id != postId).toList());
+    }
+
+    try {
+      await _client.from('community_posts').delete().eq('id', postId).eq('user_id', user.id);
+    } catch (e) {
+      ref.invalidateSelf();
+    }
+  }
+
   Future<void> toggleLike(String postId) async {
     final user = _client.auth.currentUser;
     if (user == null) return;

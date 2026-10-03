@@ -5,12 +5,16 @@ import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
 import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'package:plant_disease_detector/shared/widgets/premium_app_bar.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:plant_disease_detector/core/providers/announcements_provider.dart';
 
-class NotificationsScreen extends StatelessWidget {
+class NotificationsScreen extends ConsumerWidget {
   const NotificationsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final announcementsAsync = ref.watch(announcementsProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: PremiumAppBar(
@@ -28,43 +32,33 @@ class NotificationsScreen extends StatelessWidget {
           const LanguageSelectorButton(),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
-        children: [
-          Text('Today', style: AppTextStyles.titleSmall.copyWith(color: AppColors.textSecondary)),
-          const SizedBox(height: 16),
-          _buildNotificationCard(
-            type: 'alert',
-            title: 'Heavy Rain Warning',
-            message: 'Expect heavy showers this evening. Delay chemical spraying.',
-            time: '2 hours ago',
-            isUnread: true,
-          ),
-          _buildNotificationCard(
-            type: 'reminder',
-            title: 'Fungicide Spray Due',
-            message: 'It has been 7 days since your last application for Early Blight.',
-            time: '5 hours ago',
-            isUnread: true,
-          ),
-          const SizedBox(height: 24),
-          Text('Yesterday', style: AppTextStyles.titleSmall.copyWith(color: AppColors.textSecondary)),
-          const SizedBox(height: 16),
-          _buildNotificationCard(
-            type: 'success',
-            title: 'Consultation Replied',
-            message: 'Dr. Bandara has answered your query regarding the tomato leaf spots.',
-            time: '1 day ago',
-            isUnread: false,
-          ),
-          _buildNotificationCard(
-            type: 'info',
-            title: 'New Article Published',
-            message: 'Learn the best organic methods to prepare soil for Yala season.',
-            time: '1 day ago',
-            isUnread: false,
-          ),
-        ],
+      body: announcementsAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
+        data: (announcements) {
+          if (announcements.isEmpty) {
+            return Center(
+              child: Text(
+                'No new announcements.',
+                style: AppTextStyles.bodyLarge.copyWith(color: AppColors.textSecondary),
+              ),
+            );
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.all(24),
+            itemCount: announcements.length,
+            itemBuilder: (context, index) {
+              final a = announcements[index];
+              return _buildNotificationCard(
+                type: 'alert',
+                title: a['title'] ?? 'Announcement',
+                message: a['content'] ?? '',
+                time: _timeAgo(DateTime.parse(a['created_at'])),
+                isUnread: true,
+              );
+            },
+          );
+        },
       ),
     );
   }
@@ -176,4 +170,13 @@ class NotificationsScreen extends StatelessWidget {
       ),
     );
   }
+
+  String _timeAgo(DateTime d) {
+    final diff = DateTime.now().difference(d);
+    if (diff.inDays > 0) return '${diff.inDays} days ago';
+    if (diff.inHours > 0) return '${diff.inHours} hours ago';
+    if (diff.inMinutes > 0) return '${diff.inMinutes} mins ago';
+    return 'Just now';
+  }
 }
+
