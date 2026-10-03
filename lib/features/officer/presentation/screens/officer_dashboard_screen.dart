@@ -6,6 +6,7 @@ import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/providers/locale_provider.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
 import 'package:plant_disease_detector/features/officer/presentation/screens/case_inbox_screen.dart';
+import 'package:plant_disease_detector/features/officer/data/consultation_repository.dart';
 import 'package:plant_disease_detector/features/profile/presentation/screens/profile_screen.dart';
 import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 
@@ -177,16 +178,18 @@ class _OfficerDashboardScreenState extends ConsumerState<OfficerDashboardScreen>
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// _OfficerHomeTab — The main analytics view
+// _OfficerHomeTab — The main analytics view (Real Supabase data)
 // ─────────────────────────────────────────────────────────────────────────────
-class _OfficerHomeTab extends StatelessWidget {
+class _OfficerHomeTab extends ConsumerWidget {
   final bool isOnline;
   final VoidCallback onToggleStatus;
 
   const _OfficerHomeTab({super.key, required this.isOnline, required this.onToggleStatus});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Watch real stats from Supabase
+    final statsAsync = ref.watch(officerStatsProvider);
     return SafeArea(
       bottom: false, // Nav bar is floating
       child: Column(
@@ -202,7 +205,16 @@ class _OfficerHomeTab extends StatelessWidget {
                   Text(context.tr(en: 'Analytics Overview', si: 'විශ්ලේෂණ දළ විශ්ලේෂණය', ta: 'பகுப்பாய்வு'), 
                     style: AppTextStyles.titleMedium.copyWith(fontSize: 20, fontWeight: FontWeight.w800)),
                   const SizedBox(height: 20),
-                  _buildAnalyticsCards(context),
+                  statsAsync.when(
+                    loading: () => _buildAnalyticsCards(context, ref, 0, 0, 0),
+                    error: (_, __) => _buildAnalyticsCards(context, ref, 0, 0, 0),
+                    data: (stats) => _buildAnalyticsCards(
+                      context, ref,
+                      stats['pending'] ?? 0,
+                      stats['resolvedToday'] ?? 0,
+                      stats['urgent'] ?? 0,
+                    ),
+                  ),
                   const SizedBox(height: 36),
                   
                   Row(
@@ -311,14 +323,14 @@ class _OfficerHomeTab extends StatelessWidget {
     );
   }
 
-  Widget _buildAnalyticsCards(BuildContext context) {
+  Widget _buildAnalyticsCards(BuildContext context, WidgetRef ref, int pending, int resolvedToday, int urgent) {
     return Row(
       children: [
         Expanded(
           child: _buildGlassCard(
             context: context,
             title: context.tr(en: 'Pending\nCases', si: 'පොරොත්තු\nනඩු', ta: 'நிலுவையில் உள்ளவை'),
-            value: '24',
+            value: pending.toString(),
             icon: Icons.pending_actions_rounded,
             gradientColors: [const Color(0xFF0F766E), const Color(0xFF042F2E)],
             height: 256,
@@ -332,7 +344,7 @@ class _OfficerHomeTab extends StatelessWidget {
               _buildGlassCard(
                 context: context,
                 title: context.tr(en: 'Resolved Today', si: 'අද විසඳූ', ta: 'இன்று தீர்க்கப்பட்டவை'),
-                value: '12',
+                value: resolvedToday.toString(),
                 icon: Icons.check_circle_outline_rounded,
                 gradientColors: [const Color(0xFF10B981), const Color(0xFF047857)],
                 height: 120,
@@ -343,7 +355,7 @@ class _OfficerHomeTab extends StatelessWidget {
               _buildGlassCard(
                 context: context,
                 title: context.tr(en: 'High Priority', si: 'ඉහළ ප්‍රමුඛතා', ta: 'அதிக முன்னுரிமை'),
-                value: '5',
+                value: urgent.toString(),
                 icon: Icons.warning_amber_rounded,
                 gradientColors: [const Color(0xFFF59E0B), const Color(0xFFB45309)],
                 height: 120,
@@ -456,73 +468,150 @@ class _OfficerHomeTab extends StatelessWidget {
   }
 
   Widget _buildUrgentAlertsList(BuildContext context) {
-    return SizedBox(
-      height: 170,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        itemCount: 4,
-        clipBehavior: Clip.none,
-        itemBuilder: (context, index) {
-          return GestureDetector(
-            onTap: () => context.push('/case_detail'),
-            child: Container(
-              width: 280,
-              margin: const EdgeInsets.only(right: 20),
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.7),
-                borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: Colors.white, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFEF4444).withValues(alpha: 0.08),
-                    blurRadius: 24,
-                    offset: const Offset(0, 12),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFEF2F2),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFFECACA)),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.emergency_rounded, color: Color(0xFFDC2626), size: 14),
-                            const SizedBox(width: 4),
-                            Text('URGENT', style: AppTextStyles.bodySmall.copyWith(color: const Color(0xFFDC2626), fontWeight: FontWeight.bold, fontSize: 10)),
-                          ],
-                        ),
-                      ),
-                      const Spacer(),
-                      Text('${(index + 1) * 10}m ago', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
-                    ],
-                  ),
-                  const Spacer(),
-                  Text('Late Blight Detected', style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w800)),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(Icons.location_on_rounded, size: 14, color: AppColors.textSecondary),
-                      const SizedBox(width: 4),
-                      Text('Zone 4 • Farmer John', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
-                    ],
-                  ),
-                ],
+    // Use the urgentAsync from the parent ConsumerWidget
+    final urgentAsync = consultationsProvider(null);
+    
+    return Consumer(
+      builder: (context, ref, _) {
+        final asyncData = ref.watch(urgentAsync);
+        return asyncData.when(
+          loading: () => SizedBox(
+            height: 170,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: 3,
+              itemBuilder: (_, __) => Container(
+                width: 280, height: 170,
+                margin: const EdgeInsets.only(right: 20),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(28),
+                ),
               ),
             ),
-          );
-        },
-      ),
+          ),
+          error: (_, __) => const SizedBox(height: 170,
+            child: Center(child: Text('Failed to load alerts'))),
+          data: (consultations) {
+            final urgent = consultations.where((c) => c.isUrgent && !c.isResolved).toList();
+            if (urgent.isEmpty) {
+              return Container(
+                height: 170,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.check_circle_outline_rounded,
+                          color: Color(0xFF10B981), size: 36),
+                      const SizedBox(height: 8),
+                      Text('No Urgent Alerts',
+                          style: AppTextStyles.titleSmall.copyWith(
+                              fontWeight: FontWeight.w700, color: const Color(0xFF10B981))),
+                    ],
+                  ),
+                ),
+              );
+            }
+            return SizedBox(
+              height: 170,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                itemCount: urgent.length,
+                clipBehavior: Clip.none,
+                itemBuilder: (context, index) {
+                  final c = urgent[index];
+                  return GestureDetector(
+                    onTap: () => context.push('/case_detail', extra: c),
+                    child: Container(
+                      width: 280,
+                      margin: const EdgeInsets.only(right: 20),
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.7),
+                        borderRadius: BorderRadius.circular(28),
+                        border: Border.all(color: const Color(0xFFFECACA), width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFEF4444).withValues(alpha: 0.08),
+                            blurRadius: 24, offset: const Offset(0, 12),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFEF2F2),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: const Color(0xFFFECACA)),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.emergency_rounded,
+                                        color: Color(0xFFDC2626), size: 14),
+                                    const SizedBox(width: 4),
+                                    Text('URGENT',
+                                        style: AppTextStyles.bodySmall.copyWith(
+                                            color: const Color(0xFFDC2626),
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 10)),
+                                  ],
+                                ),
+                              ),
+                              const Spacer(),
+                              Text(c.timeAgo,
+                                  style: AppTextStyles.bodySmall.copyWith(
+                                      color: AppColors.textSecondary,
+                                      fontWeight: FontWeight.w600)),
+                            ],
+                          ),
+                          const Spacer(),
+                          Text(
+                            c.diseaseName ?? 'Unknown Disease',
+                            style: AppTextStyles.titleMedium.copyWith(
+                                fontWeight: FontWeight.w800),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(Icons.location_on_rounded, size: 14,
+                                  color: AppColors.textSecondary),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  '${c.location ?? 'Unknown'} • ${c.farmerName ?? 'Farmer'}',
+                                  style: AppTextStyles.bodyMedium.copyWith(
+                                      color: AppColors.textSecondary),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

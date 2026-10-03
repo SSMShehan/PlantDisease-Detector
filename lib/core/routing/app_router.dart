@@ -20,6 +20,7 @@ import 'package:plant_disease_detector/features/officer/presentation/screens/off
 import 'package:plant_disease_detector/features/officer/presentation/screens/case_inbox_screen.dart';
 import 'package:plant_disease_detector/features/officer/presentation/screens/case_detail_screen.dart';
 import 'package:plant_disease_detector/features/profile/presentation/screens/profile_screen.dart';
+import 'package:plant_disease_detector/models/consultation.dart';
 
 import 'package:plant_disease_detector/features/onboarding/presentation/screens/splash_screen.dart';
 import 'package:plant_disease_detector/features/weather/presentation/screens/weather_forecast_screen.dart';
@@ -156,7 +157,10 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/case_detail',
-      builder: (context, state) => const CaseDetailScreen(),
+      builder: (context, state) {
+        final consultation = state.extra as Consultation?;
+        return CaseDetailScreen(consultation: consultation);
+      },
     ),
     GoRoute(
       path: '/profile',
