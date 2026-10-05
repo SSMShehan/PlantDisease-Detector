@@ -1,24 +1,66 @@
 import 'dart:math';
+import 'package:flutter/material.dart';
+import 'package:plant_disease_detector/core/theme/app_theme.dart';
 
 /// Disease model for holding AI diagnosis result data.
 class DiseaseResult {
   final String diseaseName;
+  final String latinName;
   final double confidenceScore; // 0.0 – 1.0
   final String cropType;
   final List<String> symptoms;
   final List<String> treatments;
-  final String severity; // 'low' | 'medium' | 'high'
+  final String severity; // 'none' | 'low' | 'medium' | 'high'
+  final String fieldLocation;
+  final bool treatable;
+  final DateTime scannedAt;
   final String imagePath;
 
   const DiseaseResult({
     required this.diseaseName,
+    required this.latinName,
     required this.confidenceScore,
     required this.cropType,
     required this.symptoms,
     required this.treatments,
     required this.severity,
+    required this.fieldLocation,
+    required this.treatable,
+    required this.scannedAt,
     required this.imagePath,
   });
+
+  factory DiseaseResult.fromJson(Map<String, dynamic> json) {
+    return DiseaseResult(
+      diseaseName: json['disease_name'] ?? 'Unknown',
+      latinName: json['latin_name'] ?? '',
+      confidenceScore: (json['confidence_score'] ?? 0.0).toDouble(),
+      cropType: json['crop_type'] ?? '',
+      symptoms: (json['symptoms'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+      treatments: (json['treatments'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+      severity: json['severity'] ?? 'none',
+      fieldLocation: json['field_location'] ?? '',
+      treatable: json['treatable'] ?? false,
+      scannedAt: json['scanned_at'] != null ? DateTime.parse(json['scanned_at']) : DateTime.now(),
+      imagePath: json['image_url'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'disease_name': diseaseName,
+      'latin_name': latinName,
+      'confidence_score': confidenceScore,
+      'crop_type': cropType,
+      'symptoms': symptoms,
+      'treatments': treatments,
+      'severity': severity,
+      'field_location': fieldLocation,
+      'treatable': treatable,
+      'scanned_at': scannedAt.toIso8601String(),
+      'image_url': imagePath,
+    };
+  }
 
   /// Mock factory – returns a random disease result for demo/HCI purposes.
   /// Replace with real ML response parsing when the model is integrated.
@@ -30,9 +72,13 @@ class DiseaseResult {
   static List<DiseaseResult> _mockDataset(String imagePath) => [
         DiseaseResult(
           diseaseName: 'Tomato Early Blight',
+          latinName: 'Alternaria solani',
           confidenceScore: 0.85,
           cropType: 'Tomato',
           severity: 'medium',
+          fieldLocation: 'Field Block A · Row 12',
+          treatable: true,
+          scannedAt: DateTime.now().subtract(const Duration(hours: 2)),
           imagePath: imagePath,
           symptoms: [
             'Dark brown circular spots with concentric rings on older leaves',
@@ -52,9 +98,13 @@ class DiseaseResult {
         ),
         DiseaseResult(
           diseaseName: 'Powdery Mildew',
+          latinName: 'Erysiphe cichoracearum',
           confidenceScore: 0.91,
           cropType: 'Cucumber',
           severity: 'low',
+          fieldLocation: 'Field Block B · Row 4',
+          treatable: true,
+          scannedAt: DateTime.now().subtract(const Duration(days: 1)),
           imagePath: imagePath,
           symptoms: [
             'White powdery patches on upper leaf surfaces',
@@ -72,9 +122,13 @@ class DiseaseResult {
         ),
         DiseaseResult(
           diseaseName: 'Bacterial Leaf Blight',
+          latinName: 'Xanthomonas oryzae',
           confidenceScore: 0.78,
           cropType: 'Rice',
           severity: 'high',
+          fieldLocation: 'Field Block C · Row 2',
+          treatable: true,
+          scannedAt: DateTime.now().subtract(const Duration(days: 2)),
           imagePath: imagePath,
           symptoms: [
             'Water-soaked lesions along leaf margins that turn yellow then brown',
@@ -94,9 +148,13 @@ class DiseaseResult {
         ),
         DiseaseResult(
           diseaseName: 'Anthracnose',
+          latinName: 'Colletotrichum gloeosporioides',
           confidenceScore: 0.82,
           cropType: 'Mango',
           severity: 'medium',
+          fieldLocation: 'Field Block D · Row 8',
+          treatable: true,
+          scannedAt: DateTime.now().subtract(const Duration(days: 3)),
           imagePath: imagePath,
           symptoms: [
             'Dark, water-soaked lesions on leaves, flowers, and fruit',
@@ -114,9 +172,13 @@ class DiseaseResult {
         ),
         DiseaseResult(
           diseaseName: 'Downy Mildew',
+          latinName: 'Plasmopara viticola',
           confidenceScore: 0.74,
           cropType: 'Grape',
           severity: 'high',
+          fieldLocation: 'Field Block A · Row 7',
+          treatable: true,
+          scannedAt: DateTime.now().subtract(const Duration(days: 4)),
           imagePath: imagePath,
           symptoms: [
             'Oil-spot-like yellow patches on upper leaf surface',
@@ -136,3 +198,177 @@ class DiseaseResult {
         ),
       ];
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ScanRecord — History item (wraps scan metadata + display helpers)
+// ─────────────────────────────────────────────────────────────────────────────
+class ScanRecord {
+  final String id;
+  final String diseaseName;
+  final String latinName;
+  final String cropType;
+  final double confidenceScore;
+  final String severity; // 'none' | 'low' | 'medium' | 'high'
+  final String fieldLocation;
+  final bool treatable;
+  final DateTime scannedAt;
+  final String imageUrl;
+
+  const ScanRecord({
+    required this.id,
+    required this.diseaseName,
+    required this.latinName,
+    required this.cropType,
+    required this.confidenceScore,
+    required this.severity,
+    required this.fieldLocation,
+    required this.treatable,
+    required this.scannedAt,
+    required this.imageUrl,
+  });
+
+  factory ScanRecord.fromJson(Map<String, dynamic> json) {
+    return ScanRecord(
+      id: json['id']?.toString() ?? '',
+      diseaseName: json['disease_name'] ?? 'Unknown',
+      latinName: json['latin_name'] ?? '',
+      cropType: json['crop_type'] ?? '',
+      confidenceScore: (json['confidence_score'] ?? 0.0).toDouble(),
+      severity: json['severity'] ?? 'none',
+      fieldLocation: json['field_location'] ?? '',
+      treatable: json['treatable'] ?? false,
+      scannedAt: json['scanned_at'] != null ? DateTime.parse(json['scanned_at']) : DateTime.now(),
+      imageUrl: json['image_url'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'disease_name': diseaseName,
+      'latin_name': latinName,
+      'crop_type': cropType,
+      'confidence_score': confidenceScore,
+      'severity': severity,
+      'field_location': fieldLocation,
+      'treatable': treatable,
+      'scanned_at': scannedAt.toIso8601String(),
+      'image_url': imageUrl,
+    };
+  }
+
+  Color get severityColor {
+    switch (severity) {
+      case 'high':   return AppColors.severityHigh;
+      case 'medium': return AppColors.severityMedium;
+      case 'low':    return AppColors.severityLow;
+      default:       return AppColors.severityDefault;
+    }
+  }
+
+  String get severityLabel {
+    switch (severity) {
+      case 'high':   return 'High';
+      case 'medium': return 'Medium';
+      case 'low':    return 'Low';
+      default:       return 'Healthy';
+    }
+  }
+
+  String get dateLabel {
+    final now = DateTime.now();
+    final diff = now.difference(scannedAt).inDays;
+    if (diff == 0) return 'Today';
+    if (diff == 1) return 'Yesterday';
+    const months = [
+      'Jan','Feb','Mar','Apr','May','Jun',
+      'Jul','Aug','Sep','Oct','Nov','Dec'
+    ];
+    return '${scannedAt.day} ${months[scannedAt.month - 1]}';
+  }
+
+  String get timeLabel {
+    final h = scannedAt.hour;
+    final m = scannedAt.minute.toString().padLeft(2, '0');
+    final period = h >= 12 ? 'PM' : 'AM';
+    final hour12 = h > 12 ? h - 12 : (h == 0 ? 12 : h);
+    return '$hour12:$m $period';
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared mock scan history — used by HomeScreen + HistoryScreen
+// ─────────────────────────────────────────────────────────────────────────────
+final List<ScanRecord> mockScanHistory = [
+  ScanRecord(
+    id: '1',
+    diseaseName: 'Tomato Early Blight',
+    latinName: 'Alternaria solani',
+    cropType: 'Tomato',
+    confidenceScore: 0.88,
+    severity: 'high',
+    fieldLocation: 'Field Block A · Row 12',
+    treatable: true,
+    scannedAt: DateTime.now().subtract(const Duration(hours: 2)),
+    imageUrl: 'https://images.unsplash.com/photo-1606321620984-201c81c23e69?w=400&h=400&fit=crop&auto=format',
+  ),
+  ScanRecord(
+    id: '2',
+    diseaseName: 'Leaf Curl Virus',
+    latinName: 'Begomovirus spp.',
+    cropType: 'Tomato',
+    confidenceScore: 0.76,
+    severity: 'medium',
+    fieldLocation: 'Field Block B · Row 4',
+    treatable: true,
+    scannedAt: DateTime.now().subtract(const Duration(days: 1, hours: 8)),
+    imageUrl: 'https://images.unsplash.com/photo-1603442506725-80c47a1a3aaf?w=400&h=400&fit=crop&auto=format',
+  ),
+  ScanRecord(
+    id: '3',
+    diseaseName: 'Healthy Crop',
+    latinName: 'No pathogen detected',
+    cropType: 'Cucumber',
+    confidenceScore: 0.97,
+    severity: 'none',
+    fieldLocation: 'Field Block C · Row 2',
+    treatable: false,
+    scannedAt: DateTime.now().subtract(const Duration(days: 3)),
+    imageUrl: 'https://images.unsplash.com/photo-1690553563186-ea46190f1465?w=400&h=400&fit=crop&auto=format',
+  ),
+  ScanRecord(
+    id: '4',
+    diseaseName: 'Powdery Mildew',
+    latinName: 'Erysiphe cichoracearum',
+    cropType: 'Grape',
+    confidenceScore: 0.82,
+    severity: 'low',
+    fieldLocation: 'Field Block A · Row 7',
+    treatable: true,
+    scannedAt: DateTime.now().subtract(const Duration(days: 5)),
+    imageUrl: 'https://images.unsplash.com/photo-1621499420841-397ba9372883?w=400&h=400&fit=crop&auto=format',
+  ),
+  ScanRecord(
+    id: '5',
+    diseaseName: 'Bacterial Leaf Spot',
+    latinName: 'Xanthomonas campestris',
+    cropType: 'Bell Pepper',
+    confidenceScore: 0.71,
+    severity: 'medium',
+    fieldLocation: 'Field Block D · Row 9',
+    treatable: true,
+    scannedAt: DateTime.now().subtract(const Duration(days: 7)),
+    imageUrl: 'https://images.unsplash.com/photo-1674337265830-1f87b06dbc0c?w=400&h=400&fit=crop&auto=format',
+  ),
+  ScanRecord(
+    id: '6',
+    diseaseName: 'Healthy Crop',
+    latinName: 'No pathogen detected',
+    cropType: 'Tomato',
+    confidenceScore: 0.95,
+    severity: 'none',
+    fieldLocation: 'Field Block B · Row 1',
+    treatable: false,
+    scannedAt: DateTime.now().subtract(const Duration(days: 9)),
+    imageUrl: 'https://images.unsplash.com/photo-1642307321395-b72347cbe944?w=400&h=400&fit=crop&auto=format',
+  ),
+];
