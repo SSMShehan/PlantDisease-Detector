@@ -14,6 +14,7 @@ import 'package:flutter/foundation.dart';
 import 'dart:io';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:plant_disease_detector/core/auth/user_role.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ProfileScreen — Matches Figma ProfileScreen.tsx
@@ -153,6 +154,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                       child: GestureDetector(
                         onTap: () async {
+                          // Clear while the user id is still known.
+                          await clearCachedUserRole();
                           try {
                             await Supabase.instance.client.auth.signOut();
                           } catch (e) {

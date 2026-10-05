@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
 import 'package:plant_disease_detector/features/officer/application/chat_notifier.dart';
+import 'package:plant_disease_detector/features/officer/data/consultation_repository.dart';
 import 'package:plant_disease_detector/models/consultation.dart';
 import 'dart:ui';
 
@@ -125,6 +126,46 @@ class _CaseDetailScreenState extends ConsumerState<CaseDetailScreen> {
     );
   }
 
+  // The officer can reply and resolve only while the case is open and is
+  // unassigned or theirs (the same rule RLS enforces).
+  bool get _canAct {
+    final c = _consultation;
+    if (c == null || c.isClosed) return false;
+    final me = Supabase.instance.client.auth.currentUser?.id;
+    return c.officerId == null || c.officerId == me;
+  }
+
+  String get _lockedReason {
+    final c = _consultation;
+    if (c == null) return '';
+    if (c.isResolved) return 'CASE RESOLVED';
+    if (c.isCancelled) return 'CANCELLED BY FARMER';
+    return 'ASSIGNED TO ${(c.officerName ?? 'ANOTHER OFFICER').toUpperCase()}';
+  }
+
+  // Inbox and dashboard cache their lists; refetch so a resolved case moves
+  // out of "Urgent" / "Pending" straight away.
+  void _refreshCaseLists() {
+    ref.invalidate(consultationsProvider(null));
+    ref.invalidate(officerStatsProvider);
+  }
+
+  // ── Update: close the case; only report success if the row changed ────────
+  Future<void> _resolveCase() async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref.read(chatProvider(_consultation!.id).notifier).markResolved();
+      _refreshCaseLists();
+      messenger.showSnackBar(const SnackBar(content: Text('✅ Case marked as resolved!')));
+      if (mounted && context.canPop()) context.pop();
+    } catch (e) {
+      messenger.showSnackBar(const SnackBar(
+        content: Text('Case could not be resolved. Check your connection and try again.'),
+        backgroundColor: Color(0xFFEF4444),
+      ));
+    }
+  }
+
   Widget _buildHeader(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -178,14 +219,12 @@ class _CaseDetailScreenState extends ConsumerState<CaseDetailScreen> {
               title: const Text('Mark as Resolved'),
               onTap: () async {
                 Navigator.pop(context);
-                if (_consultation != null) {
-                  await ref.read(chatProvider(_consultation!.id).notifier).markResolved();
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Case marked as resolved!')),
-                    );
-                    context.pop();
-                  }
+                if (_canAct) {
+                  await _resolveCase();
+                } else if (mounted) {
+                  ScaffoldMessenger.of(this.context).showSnackBar(SnackBar(
+                    content: Text('This case can no longer be resolved ($_lockedReason).'),
+                  ));
                 }
               },
             ),
@@ -310,11 +349,11 @@ class _CaseDetailScreenState extends ConsumerState<CaseDetailScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: c?.isUrgent == true
+                        color: c?.needsUrgentAttention == true
                             ? const Color(0xFFFEF2F2) : const Color(0xFFF0FDF4),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: c?.isUrgent == true
+                          color: c?.needsUrgentAttention == true
                               ? const Color(0xFFFECACA) : const Color(0xFFBBF7D0),
                         ),
                       ),
@@ -322,18 +361,20 @@ class _CaseDetailScreenState extends ConsumerState<CaseDetailScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            c?.isUrgent == true
+                            c?.needsUrgentAttention == true
                                 ? Icons.emergency_rounded : Icons.pending_rounded,
-                            color: c?.isUrgent == true
+                            color: c?.needsUrgentAttention == true
                                 ? const Color(0xFFDC2626) : const Color(0xFF16A34A),
                             size: 14,
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            c?.isUrgent == true ? 'URGENT'
-                                : (c?.isResolved == true ? 'RESOLVED' : 'PENDING'),
+                            c?.needsUrgentAttention == true ? 'URGENT'
+                                : c?.isResolved == true
+                                    ? 'RESOLVED'
+                                    : c?.isCancelled == true ? 'CANCELLED' : 'PENDING',
                             style: AppTextStyles.bodySmall.copyWith(
-                              color: c?.isUrgent == true
+                              color: c?.needsUrgentAttention == true
                                   ? const Color(0xFFDC2626) : const Color(0xFF16A34A),
                               fontWeight: FontWeight.bold,
                             ),
@@ -428,6 +469,28 @@ class _CaseDetailScreenState extends ConsumerState<CaseDetailScreen> {
                     ],
                   ),
                 ),
+                // Farmer's own description from the Expert Consult request.
+                if (c?.notes != null && c!.notes!.trim().isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.85),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Farmer\'s notes',
+                            style: AppTextStyles.bodySmall.copyWith(
+                                color: AppColors.textSecondary, fontWeight: FontWeight.w700)),
+                        const SizedBox(height: 4),
+                        Text(c.notes!, style: AppTextStyles.bodyMedium),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -614,7 +677,7 @@ class _CaseDetailScreenState extends ConsumerState<CaseDetailScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           // Message input row
-          Row(
+          if (_canAct) Row(
             children: [
               Expanded(
                 child: Container(
@@ -661,20 +724,12 @@ class _CaseDetailScreenState extends ConsumerState<CaseDetailScreen> {
           ),
 
           // Mark as Resolved button
-          if (_consultation != null && !(_consultation?.isResolved ?? false)) ...[
+          if (_canAct) ...[
             const SizedBox(height: 14),
             SizedBox(
               width: double.infinity,
               child: TextButton(
-                onPressed: () async {
-                  await ref.read(chatProvider(_consultation!.id).notifier)
-                      .markResolved();
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('✅ Case marked as resolved!')));
-                    context.pop();
-                  }
-                },
+                onPressed: _resolveCase,
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
@@ -700,25 +755,25 @@ class _CaseDetailScreenState extends ConsumerState<CaseDetailScreen> {
             ),
           ],
 
-          // Already resolved badge
-          if (_consultation?.isResolved == true) ...[
-            const SizedBox(height: 14),
+          // Locked: resolved, cancelled or another officer's case
+          if (_consultation != null && !_canAct) ...[
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
-                color: const Color(0xFFDEF7EC),
+                color: _consultation!.isResolved ? const Color(0xFFDEF7EC) : Colors.grey.shade200,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.check_circle_rounded,
-                      color: Color(0xFF046C4E), size: 22),
+                  Icon(_consultation!.isResolved ? Icons.check_circle_rounded : Icons.lock_outline_rounded,
+                      color: _consultation!.isResolved ? const Color(0xFF046C4E) : Colors.grey.shade700,
+                      size: 22),
                   const SizedBox(width: 8),
-                  Text('CASE RESOLVED',
+                  Text(_lockedReason,
                       style: AppTextStyles.titleMedium.copyWith(
-                          color: const Color(0xFF046C4E),
+                          color: _consultation!.isResolved ? const Color(0xFF046C4E) : Colors.grey.shade700,
                           fontWeight: FontWeight.w800, letterSpacing: 1.2)),
                 ],
               ),

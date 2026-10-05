@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart';
+import 'package:plant_disease_detector/models/agri_officer.dart';
 import 'package:plant_disease_detector/models/consultation.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -54,8 +55,9 @@ class ConsultationRepository {
           .order('created_at', ascending: false);
       return (data as List).map((e) => Consultation.fromJson(e)).toList();
     } catch (e) {
+      // Rethrow so "My Requests" shows an error instead of an empty history.
       debugPrint('ConsultationRepository.fetchFarmer error: $e');
-      return [];
+      rethrow;
     }
   }
 
@@ -79,29 +81,57 @@ class ConsultationRepository {
     }
   }
 
-  // ── Create a new consultation ─────────────────────────────────────────────
-  Future<Consultation?> createConsultation({
+  // ── Create a new consultation (farmer → officer escalation) ───────────────
+  // Throws on failure so the request form can tell the farmer it was not sent.
+  Future<Consultation> createConsultation({
     required String farmerId,
     String? scanId,
     String? diseaseName,
     String? severity,
     String? imageUrl,
     String? location,
+    String? notes,
   }) async {
-    try {
-      final data = await _client.from('consultations').insert({
-        'farmer_id': farmerId,
-        'scan_id': scanId,
-        'disease_name': diseaseName,
-        'severity': severity ?? 'medium',
-        'image_url': imageUrl,
-        'location': location,
-        'status': severity == 'high' ? 'pending' : 'pending',
-      }).select().single();
-      return Consultation.fromJson(data);
-    } catch (e) {
-      debugPrint('ConsultationRepository.create error: $e');
-      return null;
+    final data = await _client.from('consultations').insert({
+      'farmer_id': farmerId,
+      'scan_id': scanId,
+      'disease_name': diseaseName,
+      'severity': severity ?? 'medium',
+      'image_url': imageUrl,
+      'location': location,
+      'notes': notes,
+      'status': 'pending',
+    }).select().single();
+    return Consultation.fromJson(data);
+  }
+
+  // ── Add a message to a consultation thread ────────────────────────────────
+  Future<void> sendMessage({
+    required String consultationId,
+    required String senderId,
+    required String senderRole,
+    required String content,
+  }) async {
+    await _client.from('consultation_messages').insert({
+      'consultation_id': consultationId,
+      'sender_id': senderId,
+      'sender_role': senderRole,
+      'content': content,
+    });
+  }
+
+  // ── Farmer withdraws a request that no officer has picked up yet ──────────
+  // Farmers have UPDATE (not DELETE) rights on their own rows, so a cancel is
+  // a status change; officers still see it in the inbox as "Cancelled".
+  Future<void> cancelConsultation(String consultationId) async {
+    final rows = await _client
+        .from('consultations')
+        .update({'status': 'cancelled'})
+        .eq('id', consultationId)
+        .eq('status', 'pending')
+        .select('id');
+    if ((rows as List).isEmpty) {
+      throw Exception('Request can no longer be cancelled.');
     }
   }
 
@@ -110,7 +140,7 @@ class ConsultationRepository {
     try {
       final updates = <String, dynamic>{'status': status};
       if (status == 'resolved') {
-        updates['resolved_at'] = DateTime.now().toIso8601String();
+        updates['resolved_at'] = DateTime.now().toUtc().toIso8601String();
       }
       await _client.from('consultations').update(updates).eq('id', consultationId);
     } catch (e) {
@@ -119,23 +149,32 @@ class ConsultationRepository {
   }
 
   // ── Assign officer to consultation ────────────────────────────────────────
+  // Throws so the UI can report failure. RLS blocks return 0 rows rather than
+  // an error, so the affected rows are checked explicitly.
+  // Only an unassigned pending case can be taken, so a stale inbox cannot
+  // reopen a cancelled case or take over another officer's case.
   Future<void> assignOfficer(String consultationId, String officerId) async {
-    try {
-      await _client.from('consultations').update({
-        'officer_id': officerId,
-        'status': 'open',
-      }).eq('id', consultationId);
-    } catch (e) {
-      debugPrint('ConsultationRepository.assignOfficer error: $e');
+    final rows = await _client
+        .from('consultations')
+        .update({'officer_id': officerId, 'status': 'open'})
+        .eq('id', consultationId)
+        .eq('status', 'pending')
+        .isFilter('officer_id', null)
+        .select('id');
+    if ((rows as List).isEmpty) {
+      throw Exception('This case was already accepted by another officer or cancelled by the farmer.');
     }
   }
 
   // ── Delete consultation ───────────────────────────────────────────────────
   Future<void> deleteConsultation(String consultationId) async {
-    try {
-      await _client.from('consultations').delete().eq('id', consultationId);
-    } catch (e) {
-      debugPrint('ConsultationRepository.delete error: $e');
+    final rows = await _client
+        .from('consultations')
+        .delete()
+        .eq('id', consultationId)
+        .select('id');
+    if ((rows as List).isEmpty) {
+      throw Exception('Case could not be deleted (no permission or already removed).');
     }
   }
 
@@ -159,9 +198,11 @@ class ConsultationRepository {
           .from('consultations')
           .select('id')
           .eq('status', 'resolved')
-          .gte('resolved_at', DateTime(today.year, today.month, today.day).toIso8601String());
+          .gte('resolved_at', DateTime(today.year, today.month, today.day).toUtc().toIso8601String());
       
-      final urgent = list.where((c) => c['severity'] == 'high' && c['status'] != 'resolved').length;
+      final urgent = list
+          .where((c) => c['severity'] == 'high' && c['status'] != 'resolved' && c['status'] != 'cancelled')
+          .length;
 
       return {
         'pending': pending,
@@ -198,4 +239,49 @@ final officerStatsProvider = FutureProvider<Map<String, int>>((ref) async {
 final consultationDetailProvider = FutureProvider.family<Consultation?, String>((ref, id) async {
   final repo = ref.read(consultationRepositoryProvider);
   return repo.fetchConsultationById(id);
+});
+
+// Logged-in farmer's own requests (Expert Consult → "My Requests")
+final myConsultationsProvider = FutureProvider.autoDispose<List<Consultation>>((ref) async {
+  final userId = Supabase.instance.client.auth.currentUser?.id;
+  if (userId == null) return [];
+  return ref.read(consultationRepositoryProvider).fetchFarmerConsultations(userId);
+});
+
+// Live status of one request. The realtime row has no profile joins, so the
+// joined fields are re-fetched whenever the row changes (e.g. officer accepts).
+final liveConsultationProvider =
+    StreamProvider.autoDispose.family<Consultation?, String>((ref, id) async* {
+  final repo = ref.read(consultationRepositoryProvider);
+  final stream = Supabase.instance.client
+      .from('consultations')
+      .stream(primaryKey: ['id'])
+      .eq('id', id);
+  await for (final rows in stream) {
+    if (rows.isEmpty) {
+      yield null;
+      continue;
+    }
+    yield await repo.fetchConsultationById(id) ?? Consultation.fromJson(rows.first);
+  }
+});
+
+// Live messages for one request (farmer side; officer side uses ChatNotifier)
+final consultationMessagesProvider =
+    StreamProvider.autoDispose.family<List<ConsultationMessage>, String>((ref, id) {
+  return Supabase.instance.client
+      .from('consultation_messages')
+      .stream(primaryKey: ['id'])
+      .eq('consultation_id', id)
+      .order('created_at', ascending: true)
+      .map((rows) => rows.map(ConsultationMessage.fromJson).toList());
+});
+
+// Agricultural officers shown on the Expert Consult screen
+final agriOfficersProvider = FutureProvider.autoDispose<List<AgriOfficer>>((ref) async {
+  final data = await Supabase.instance.client
+      .from('agri_officers')
+      .select()
+      .order('name', ascending: true);
+  return (data as List).map((o) => AgriOfficer.fromJson(o)).toList();
 });

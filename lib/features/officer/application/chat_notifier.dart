@@ -7,7 +7,9 @@ import 'package:plant_disease_detector/models/consultation.dart';
 // ChatNotifier — Real-time chat using Supabase Realtime
 // ─────────────────────────────────────────────────────────────────────────────
 class ChatNotifier extends FamilyAsyncNotifier<List<ConsultationMessage>, String> {
-  late final String _consultationId;
+  // Not final: the family provider is kept alive, so reopening the same case
+  // calls initialize() again on the same notifier.
+  late String _consultationId;
   RealtimeChannel? _channel;
 
   @override
@@ -72,7 +74,6 @@ class ChatNotifier extends FamilyAsyncNotifier<List<ConsultationMessage>, String
 
   void _onNewMessage(Map<String, dynamic> record) {
     final currentMessages = state.valueOrNull ?? [];
-    // Avoid duplicates (if we already added it optimistically)
     final alreadyExists = currentMessages.any((m) => m.id == record['id']);
     if (alreadyExists) return;
 
@@ -80,6 +81,18 @@ class ChatNotifier extends FamilyAsyncNotifier<List<ConsultationMessage>, String
       ...record,
       'sender_profile': null, // Real-time events don't include joins
     });
+
+    // Our own sends were already shown optimistically with a temp_ id; swap
+    // that placeholder for the stored row instead of showing it twice.
+    final tempIndex = currentMessages.indexWhere((m) =>
+        m.id.startsWith('temp_') &&
+        m.senderId == newMessage.senderId &&
+        m.content == newMessage.content);
+    if (tempIndex != -1) {
+      final updated = [...currentMessages]..[tempIndex] = newMessage;
+      state = AsyncValue.data(updated);
+      return;
+    }
     state = AsyncValue.data([...currentMessages, newMessage]);
   }
 
@@ -120,18 +133,25 @@ class ChatNotifier extends FamilyAsyncNotifier<List<ConsultationMessage>, String
     }
   }
 
-  /// Mark consultation as resolved
+  /// Mark consultation as resolved. Throws if nothing was updated so the
+  /// screen does not report success for a case that is still open.
   Future<void> markResolved() async {
-    try {
-      await Supabase.instance.client
-          .from('consultations')
-          .update({
-            'status': 'resolved',
-            'resolved_at': DateTime.now().toIso8601String(),
-          })
-          .eq('id', _consultationId);
-    } catch (e) {
-      debugPrint('ChatNotifier.markResolved error: $e');
+    final client = Supabase.instance.client;
+    final rows = await client
+        .from('consultations')
+        .update({
+          // RLS only lets the assigned officer close a case; resolving an
+          // unaccepted case assigns it to the officer who answered it.
+          'officer_id': client.auth.currentUser?.id,
+          'status': 'resolved',
+          'resolved_at': DateTime.now().toUtc().toIso8601String(),
+        })
+        .eq('id', _consultationId)
+        // A cancelled or already-resolved case must not be reopened as answered.
+        .inFilter('status', ['pending', 'open'])
+        .select('id');
+    if ((rows as List).isEmpty) {
+      throw Exception('Case could not be resolved.');
     }
   }
 }

@@ -6,9 +6,11 @@ import 'package:plant_disease_detector/core/localization/app_strings.dart';
 import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'package:plant_disease_detector/features/officer/data/consultation_repository.dart';
 import 'package:plant_disease_detector/models/consultation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CaseInboxScreen — Real data from Supabase + working filters
+// CRUD: Read (case list) · Update (accept case) · Delete (swipe to delete)
 // ─────────────────────────────────────────────────────────────────────────────
 class CaseInboxScreen extends ConsumerStatefulWidget {
   const CaseInboxScreen({super.key});
@@ -20,10 +22,91 @@ class CaseInboxScreen extends ConsumerStatefulWidget {
 class _CaseInboxScreenState extends ConsumerState<CaseInboxScreen> {
   String _selectedFilter = 'all'; // all | pending | resolved | urgent
 
-  List<Consultation> _applyFilter(List<Consultation> consultations) {
+  // Hidden immediately on swipe so the Dismissible leaves the tree before the
+  // provider finishes refetching.
+  final Set<String> _deletedIds = {};
+  final Set<String> _acceptingIds = {};
+
+  String? get _currentUserId => Supabase.instance.client.auth.currentUser?.id;
+
+  void _refreshCases() {
+    ref.invalidate(consultationsProvider(null));
+    ref.invalidate(officerStatsProvider);
+  }
+
+  void _showResult(String message, {bool isError = false}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: isError ? const Color(0xFFEF4444) : const Color(0xFF0F766E),
+    ));
+  }
+
+  // ── Update: assign this officer to the case and mark it in progress ───────
+  Future<void> _acceptCase(Consultation c) async {
+    final officerId = _currentUserId;
+    if (officerId == null) {
+      _showResult('Please log in again to accept cases.', isError: true);
+      return;
+    }
+    setState(() => _acceptingIds.add(c.id));
+    try {
+      await ref.read(consultationRepositoryProvider).assignOfficer(c.id, officerId);
+      _showResult('Case accepted — ${c.farmerName ?? 'farmer'} has been assigned to you.');
+      _refreshCases();
+    } catch (e) {
+      // Usually the inbox was stale (case cancelled or taken): say so and refresh.
+      _showResult(e.toString().replaceFirst('Exception: ', ''), isError: true);
+      _refreshCases();
+    } finally {
+      if (mounted) setState(() => _acceptingIds.remove(c.id));
+    }
+  }
+
+  Future<bool> _confirmDelete(Consultation c) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Delete this case?'),
+        content: Text(
+          'The case from ${c.farmerName ?? 'this farmer'} and its chat history will be '
+          'permanently removed. This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: const Color(0xFFEF4444)),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return false;
+
+    // ── Delete ──────────────────────────────────────────────────────────────
+    try {
+      await ref.read(consultationRepositoryProvider).deleteConsultation(c.id);
+      setState(() => _deletedIds.add(c.id));
+      _showResult('Case deleted.');
+      _refreshCases();
+      return true;
+    } catch (e) {
+      _showResult('Could not delete case. Please try again.', isError: true);
+      return false;
+    }
+  }
+
+  List<Consultation> _applyFilter(List<Consultation> all) {
+    final consultations = all.where((c) => !_deletedIds.contains(c.id)).toList();
     switch (_selectedFilter) {
       case 'urgent':
-        return consultations.where((c) => c.isUrgent && !c.isResolved).toList();
+        return consultations.where((c) => c.needsUrgentAttention).toList();
       case 'pending':
         return consultations.where((c) => c.isPending || c.isOpen).toList();
       case 'resolved':
@@ -94,7 +177,17 @@ class _CaseInboxScreenState extends ConsumerState<CaseInboxScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 4),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(28, 4, 24, 8),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.swipe_left_rounded, size: 16, color: AppColors.textSecondary),
+                      const SizedBox(width: 6),
+                      Text('Swipe a closed case left to delete it',
+                          style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
+                    ],
+                  ),
+                ),
 
                 // List
                 Expanded(
@@ -109,9 +202,24 @@ class _CaseInboxScreenState extends ConsumerState<CaseInboxScreen> {
                         physics: const BouncingScrollPhysics(),
                         itemCount: filtered.length,
                         itemBuilder: (context, index) {
+                          final c = filtered[index];
+                          final tile = _buildCaseTile(context, c, index);
+                          // RLS: only closed cases that are unassigned or the officer's
+                          // own can be deleted, so an open farmer request is never lost.
+                          final canDelete = c.isClosed &&
+                              (c.officerId == null || c.officerId == _currentUserId);
+                          if (!canDelete) {
+                            return Padding(padding: const EdgeInsets.only(bottom: 16), child: tile);
+                          }
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 16),
-                            child: _buildCaseTile(context, filtered[index], index),
+                            child: Dismissible(
+                              key: ValueKey('case_${c.id}'),
+                              direction: DismissDirection.endToStart,
+                              confirmDismiss: (_) => _confirmDelete(c),
+                              background: _buildDeleteBackground(),
+                              child: tile,
+                            ),
                           );
                         },
                       );
@@ -325,14 +433,14 @@ class _CaseInboxScreenState extends ConsumerState<CaseInboxScreen> {
           color: Colors.white.withValues(alpha: 0.9),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: c.isUrgent
+            color: c.needsUrgentAttention
                 ? const Color(0xFFFECACA)
                 : Colors.white,
-            width: c.isUrgent ? 2 : 1.5,
+            width: c.needsUrgentAttention ? 2 : 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: c.isUrgent
+              color: c.needsUrgentAttention
                   ? const Color(0xFFEF4444).withValues(alpha: 0.08)
                   : Colors.black.withValues(alpha: 0.04),
               blurRadius: 20,
@@ -387,21 +495,35 @@ class _CaseInboxScreenState extends ConsumerState<CaseInboxScreen> {
                         decoration: BoxDecoration(
                           color: c.isResolved
                               ? const Color(0xFFDEF7EC)
-                              : (c.isUrgent
-                                  ? const Color(0xFFFEE2E2)
-                                  : const Color(0xFFFEF3C7)),
+                              : c.isCancelled
+                                  ? Colors.grey.shade200
+                                  : c.isUrgent
+                                      ? const Color(0xFFFEE2E2)
+                                      : c.isOpen
+                                          ? const Color(0xFFDBEAFE)
+                                          : const Color(0xFFFEF3C7),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           c.isResolved
                               ? 'Resolved'
-                              : (c.isUrgent ? 'Urgent' : 'Pending'),
+                              : c.isCancelled
+                                  ? 'Cancelled'
+                                  : c.isUrgent
+                                      ? 'Urgent'
+                                      : c.isOpen
+                                          ? 'In Progress'
+                                          : 'Pending',
                           style: AppTextStyles.bodySmall.copyWith(
                             color: c.isResolved
                                 ? const Color(0xFF046C4E)
-                                : (c.isUrgent
-                                    ? const Color(0xFF991B1B)
-                                    : const Color(0xFF92400E)),
+                                : c.isCancelled
+                                    ? Colors.grey.shade700
+                                    : c.isUrgent
+                                        ? const Color(0xFF991B1B)
+                                        : c.isOpen
+                                            ? const Color(0xFF1E40AF)
+                                            : const Color(0xFF92400E),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -435,11 +557,75 @@ class _CaseInboxScreenState extends ConsumerState<CaseInboxScreen> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  if (!c.isClosed) ...[
+                    const SizedBox(height: 12),
+                    _buildAssignmentAction(c),
+                  ],
                 ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildAssignmentAction(Consultation c) {
+    if (c.officerId != null) {
+      final isMine = c.officerId == _currentUserId;
+      return Row(
+        children: [
+          Icon(Icons.verified_user_rounded, size: 16,
+              color: isMine ? const Color(0xFF0F766E) : AppColors.textSecondary),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              isMine ? 'Assigned to you' : 'Assigned to ${c.officerName ?? 'another officer'}',
+              style: AppTextStyles.bodySmall.copyWith(
+                color: isMine ? const Color(0xFF0F766E) : AppColors.textSecondary,
+                fontWeight: FontWeight.w700,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      );
+    }
+
+    final isLoading = _acceptingIds.contains(c.id);
+    return SizedBox(
+      width: double.infinity,
+      height: 40,
+      child: FilledButton.icon(
+        style: FilledButton.styleFrom(
+          backgroundColor: const Color(0xFF0F766E),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+        onPressed: isLoading ? null : () => _acceptCase(c),
+        icon: isLoading
+            ? const SizedBox(width: 16, height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+            : const Icon(Icons.assignment_turned_in_rounded, size: 18),
+        label: Text(isLoading ? 'Accepting…' : 'Accept Case'),
+      ),
+    );
+  }
+
+  Widget _buildDeleteBackground() {
+    return Container(
+      alignment: Alignment.centerRight,
+      padding: const EdgeInsets.symmetric(horizontal: 28),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEF4444),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: const Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.delete_rounded, color: Colors.white, size: 28),
+          SizedBox(height: 4),
+          Text('Delete', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        ],
       ),
     );
   }
