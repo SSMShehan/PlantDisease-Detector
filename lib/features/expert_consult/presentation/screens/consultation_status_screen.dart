@@ -117,7 +117,7 @@ class _ConsultationStatusScreenState extends ConsumerState<ConsultationStatusScr
                 child: ListView(
                   padding: const EdgeInsets.all(20),
                   children: [
-                    _buildHeader(c),
+                    _buildHeader(c, context),
                     const SizedBox(height: 16),
                     _buildDetails(c),
                     const SizedBox(height: 24),
@@ -153,8 +153,8 @@ class _ConsultationStatusScreenState extends ConsumerState<ConsultationStatusScr
     );
   }
 
-  Widget _buildHeader(Consultation c) {
-    final (label, color) = consultationStatusStyle(c);
+  Widget _buildHeader(Consultation c, BuildContext context) {
+    final (label, color) = consultationStatusStyle(c, context);
     final (icon, title, body) = switch (c.status) {
       'resolved' => (Icons.task_alt_rounded, 'Advice Ready', 'The officer has answered your request. Read the advice below.'),
       'cancelled' => (Icons.cancel_rounded, 'Request Cancelled', 'You cancelled this request.'),

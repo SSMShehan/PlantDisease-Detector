@@ -100,15 +100,21 @@ class SmartImage extends StatelessWidget {
             errorWidget ?? _defaultError(),
       );
     } else if (_isBase64) {
-      final base64String = src.split(',').last;
-      image = Image.memory(
-        base64Decode(base64String),
-        width: width,
-        height: height,
-        fit: fit,
-        errorBuilder: (context, error, stackTrace) =>
-            errorWidget ?? _defaultError(),
-      );
+      try {
+        final base64String = src.split(',').last.replaceAll(RegExp(r'\s+'), '');
+        final bytes = base64Decode(base64String);
+        image = Image.memory(
+          bytes,
+          width: width,
+          height: height,
+          fit: fit,
+          errorBuilder: (context, error, stackTrace) =>
+              errorWidget ?? _defaultError(),
+        );
+      } catch (e) {
+        debugPrint('SmartImage Base64 decoding error: $e');
+        image = errorWidget ?? _defaultError();
+      }
     } else {
       final file = File(src);
       image = Image.file(

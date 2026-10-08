@@ -79,7 +79,7 @@ class _DiseaseCatalogueScreenState extends State<DiseaseCatalogueScreen> {
       symptoms: ['Yellowing along leaf margin', 'Milky bacterial ooze on young lesions', 'Kresek wilt in seedling stage'],
       causes: ['Xanthomonas oryzae pv. oryzae', 'Severe storms and flooding', 'Excess nitrogen fertilization'],
       treatments: ['Drain flooded field temporarily', 'Apply Copper Hydroxide (Rs. 1,350)', 'Balanced split potash application'],
-      imageUrl: 'assets/images/scan_spot.jpg',
+      imageUrl: 'assets/images/scan_bacterial.jpg',
     ),
     Disease(
       id: 'cat_d6',
@@ -90,7 +90,7 @@ class _DiseaseCatalogueScreenState extends State<DiseaseCatalogueScreen> {
       symptoms: ['Diamond-shaped eye lesions on leaves', 'Rotten neck on panicles', 'White empty grains'],
       causes: ['Magnaporthe oryzae fungus', 'High relative humidity >90%', 'Frequent overcast days'],
       treatments: ['Apply Tricyclazole 75% WP (Rs. 1,800)', 'Avoid excessive urea fertilizer', 'Burn stubble after harvest'],
-      imageUrl: 'assets/images/scan_powdery.jpg',
+      imageUrl: 'assets/images/scan_paddy.jpg',
     ),
   ];
 

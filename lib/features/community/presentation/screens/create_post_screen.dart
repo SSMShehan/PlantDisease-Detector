@@ -30,7 +30,12 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
 
   Future<void> _pickImage(ImageSource source) async {
     try {
-      final pickedFile = await _picker.pickImage(source: source, imageQuality: 70);
+      final pickedFile = await _picker.pickImage(
+        source: source, 
+        imageQuality: 70, 
+        maxWidth: 1024, 
+        maxHeight: 1024
+      );
       if (pickedFile != null) {
         setState(() {
           _selectedImage = pickedFile;

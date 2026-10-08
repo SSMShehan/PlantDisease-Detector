@@ -379,8 +379,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   ImageProvider? _getProfileImageProvider() {
     if (_imageFile != null) {
       if (_imageFile!.path.startsWith('data:image')) {
-        final base64String = _imageFile!.path.split(',').last;
-        return MemoryImage(base64Decode(base64String));
+        try {
+          final base64String = _imageFile!.path.split(',').last.replaceAll(RegExp(r'\s+'), '');
+          return MemoryImage(base64Decode(base64String));
+        } catch (e) {
+          debugPrint('Profile image base64 decode error: $e');
+          return null;
+        }
       } else if (_imageFile!.path.startsWith('http')) {
         return NetworkImage(_imageFile!.path);
       } else if (kIsWeb) {
