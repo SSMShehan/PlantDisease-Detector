@@ -66,7 +66,7 @@ class Disease {
       symptoms: (json['symptoms'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
       causes: (json['causes'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
       treatments: (json['treatments'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
-      imageUrl: json['reference_image_url'] as String? ?? 'https://images.unsplash.com/photo-1596541570197-047cf395bc24?q=80&w=800&auto=format&fit=crop',
+      imageUrl: json['reference_image_url'] as String? ?? 'assets/images/scan_tomato.jpg',
     );
   }
 }

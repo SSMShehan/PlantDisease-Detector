@@ -35,7 +35,7 @@ class _DiseaseCatalogueScreenState extends State<DiseaseCatalogueScreen> {
       symptoms: ['Target-like rings', 'Yellow halo surrounding lesions', 'Premature leaf drop'],
       causes: ['Alternaria solani fungal spores', 'High humidity >80%', 'Rain splashes'],
       treatments: ['Prune lower leaves', 'Spray Copper Oxychloride 50% WP (Rs. 950)', 'Space plants 60cm'],
-      imageUrl: 'https://images.unsplash.com/photo-1596541570197-047cf395bc24?q=80&w=800&auto=format&fit=crop',
+      imageUrl: 'assets/images/scan_tomato.jpg',
     ),
     Disease(
       id: 'cat_d2',
@@ -46,7 +46,7 @@ class _DiseaseCatalogueScreenState extends State<DiseaseCatalogueScreen> {
       symptoms: ['Large irregular water-soaked spots', 'White fuzzy mold on underside', 'Rapid stem browning'],
       causes: ['Phytophthora infestans', 'Cool wet weather 15–20°C', 'Wind-blown sporangia'],
       treatments: ['Destroy severely blighted vines', 'Apply Mancozeb 80% WP (Rs. 1,200)', 'Switch to drip irrigation'],
-      imageUrl: 'https://images.unsplash.com/photo-1592424001815-32e6040ea468?q=80&w=800&auto=format&fit=crop',
+      imageUrl: 'assets/images/scan_spot.jpg',
     ),
     Disease(
       id: 'cat_d3',
@@ -57,7 +57,7 @@ class _DiseaseCatalogueScreenState extends State<DiseaseCatalogueScreen> {
       symptoms: ['Upward curling & puckering', 'Stunted bush-like growth', 'Flower and fruit drop'],
       causes: ['Begomovirus complex', 'Bemisia tabaci (whitefly vector)', 'Hot dry spells'],
       treatments: ['Apply yellow sticky traps', 'Neem oil spray (Rs. 750 / 500ml)', 'Imidacloprid for vectors (Rs. 1,600)'],
-      imageUrl: 'https://images.unsplash.com/photo-1592417817098-8f3d6910985b?q=80&w=800&auto=format&fit=crop',
+      imageUrl: 'assets/images/scan_leaf_curl.jpg',
     ),
     Disease(
       id: 'cat_d4',
@@ -68,7 +68,7 @@ class _DiseaseCatalogueScreenState extends State<DiseaseCatalogueScreen> {
       symptoms: ['Black dirt-like specks on tubers', 'Stem cankers below soil line', 'Aerial tubers formation'],
       causes: ['Rhizoctonia solani fungus', 'Cold damp soils at planting', 'Infected seed tubers'],
       treatments: ['Use certified disease-free seed', 'Crop rotation with corn/grasses', 'Tuber treatment with Trichoderma'],
-      imageUrl: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?q=80&w=800&auto=format&fit=crop',
+      imageUrl: 'assets/images/scan_powdery.jpg',
     ),
     Disease(
       id: 'cat_d5',
@@ -79,7 +79,7 @@ class _DiseaseCatalogueScreenState extends State<DiseaseCatalogueScreen> {
       symptoms: ['Yellowing along leaf margin', 'Milky bacterial ooze on young lesions', 'Kresek wilt in seedling stage'],
       causes: ['Xanthomonas oryzae pv. oryzae', 'Severe storms and flooding', 'Excess nitrogen fertilization'],
       treatments: ['Drain flooded field temporarily', 'Apply Copper Hydroxide (Rs. 1,350)', 'Balanced split potash application'],
-      imageUrl: 'https://images.unsplash.com/photo-1536700503339-1e4b06520771?q=80&w=800&auto=format&fit=crop',
+      imageUrl: 'assets/images/scan_spot.jpg',
     ),
     Disease(
       id: 'cat_d6',
@@ -90,7 +90,7 @@ class _DiseaseCatalogueScreenState extends State<DiseaseCatalogueScreen> {
       symptoms: ['Diamond-shaped eye lesions on leaves', 'Rotten neck on panicles', 'White empty grains'],
       causes: ['Magnaporthe oryzae fungus', 'High relative humidity >90%', 'Frequent overcast days'],
       treatments: ['Apply Tricyclazole 75% WP (Rs. 1,800)', 'Avoid excessive urea fertilizer', 'Burn stubble after harvest'],
-      imageUrl: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?q=80&w=800&auto=format&fit=crop',
+      imageUrl: 'assets/images/scan_powdery.jpg',
     ),
   ];
 

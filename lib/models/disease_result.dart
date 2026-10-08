@@ -309,7 +309,7 @@ final List<ScanRecord> mockScanHistory = [
     fieldLocation: 'Field Block A · Row 12',
     treatable: true,
     scannedAt: DateTime.now().subtract(const Duration(hours: 2)),
-    imageUrl: 'https://images.unsplash.com/photo-1606321620984-201c81c23e69?w=400&h=400&fit=crop&auto=format',
+    imageUrl: 'assets/images/scan_tomato.jpg',
   ),
   ScanRecord(
     id: '2',
@@ -321,7 +321,7 @@ final List<ScanRecord> mockScanHistory = [
     fieldLocation: 'Field Block B · Row 4',
     treatable: true,
     scannedAt: DateTime.now().subtract(const Duration(days: 1, hours: 8)),
-    imageUrl: 'https://images.unsplash.com/photo-1603442506725-80c47a1a3aaf?w=400&h=400&fit=crop&auto=format',
+    imageUrl: 'assets/images/scan_leaf_curl.jpg',
   ),
   ScanRecord(
     id: '3',
@@ -333,7 +333,7 @@ final List<ScanRecord> mockScanHistory = [
     fieldLocation: 'Field Block C · Row 2',
     treatable: false,
     scannedAt: DateTime.now().subtract(const Duration(days: 3)),
-    imageUrl: 'https://images.unsplash.com/photo-1690553563186-ea46190f1465?w=400&h=400&fit=crop&auto=format',
+    imageUrl: 'assets/images/scan_healthy.jpg',
   ),
   ScanRecord(
     id: '4',
@@ -345,7 +345,7 @@ final List<ScanRecord> mockScanHistory = [
     fieldLocation: 'Field Block A · Row 7',
     treatable: true,
     scannedAt: DateTime.now().subtract(const Duration(days: 5)),
-    imageUrl: 'https://images.unsplash.com/photo-1621499420841-397ba9372883?w=400&h=400&fit=crop&auto=format',
+    imageUrl: 'assets/images/scan_powdery.jpg',
   ),
   ScanRecord(
     id: '5',
@@ -357,7 +357,7 @@ final List<ScanRecord> mockScanHistory = [
     fieldLocation: 'Field Block D · Row 9',
     treatable: true,
     scannedAt: DateTime.now().subtract(const Duration(days: 7)),
-    imageUrl: 'https://images.unsplash.com/photo-1674337265830-1f87b06dbc0c?w=400&h=400&fit=crop&auto=format',
+    imageUrl: 'assets/images/scan_spot.jpg',
   ),
   ScanRecord(
     id: '6',
@@ -369,6 +369,6 @@ final List<ScanRecord> mockScanHistory = [
     fieldLocation: 'Field Block B · Row 1',
     treatable: false,
     scannedAt: DateTime.now().subtract(const Duration(days: 9)),
-    imageUrl: 'https://images.unsplash.com/photo-1642307321395-b72347cbe944?w=400&h=400&fit=crop&auto=format',
+    imageUrl: 'assets/images/scan_healthy.jpg',
   ),
 ];
