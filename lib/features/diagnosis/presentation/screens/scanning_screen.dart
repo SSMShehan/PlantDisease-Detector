@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'package:plant_disease_detector/features/diagnosis/presentation/screens/diagnostic_result_screen.dart';
+import 'package:plant_disease_detector/core/localization/app_strings.dart';
 
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -26,12 +27,12 @@ class _ScanningScreenState extends ConsumerState<ScanningScreen>
   late AnimationController _lineCtrl;
   late Animation<double> _progressAnim;
 
-  final List<String> _steps = const [
-    "Detecting leaf boundaries...",
-    "Analyzing surface texture...",
-    "Matching disease patterns...",
-    "Calculating confidence score...",
-    "Generating diagnosis...",
+  List<String> get _steps => [
+    context.tr(en: 'Detecting leaf boundaries...', si: 'කොළයේ මායිම් හඳුනා ගනිමින්...', ta: 'இலை எல்லைகளைக் கண்டறிகிறது...'),
+    context.tr(en: 'Analyzing surface texture...', si: 'මතුපිට ස්වභාවය විශ්ලේෂණය කරමින්...', ta: 'மேற்பரப்பு அமைப்பை பகுப்பாய்வு செய்கிறது...'),
+    context.tr(en: 'Matching disease patterns...', si: 'රෝග රටාවන් ගලපමින්...', ta: 'நோய் வடிவங்களை ஒப்பிடுகிறது...'),
+    context.tr(en: 'Calculating confidence score...', si: 'නිශ්චිතභාවය ගණනය කරමින්...', ta: 'நம்பிக்கை மதிப்பெண்ணைக் கணக்கிடுகிறது...'),
+    context.tr(en: 'Generating diagnosis...', si: 'රෝග විනිශ්චය සකසමින්...', ta: 'நோயறிதலை உருவாக்குகிறது...'),
   ];
 
   @override
@@ -142,7 +143,7 @@ class _ScanningScreenState extends ConsumerState<ScanningScreen>
 
               // 2. Title
               Text(
-                'Analyzing Crop...',
+                context.tr(en: 'Analyzing Crop...', si: 'වගාව පරීක්ෂා කරමින්...', ta: 'பயிரை பகுப்பாய்வு செய்கிறது...'),
                 style: AppTextStyles.headlineMedium.copyWith(
                   letterSpacing: -0.4,
                   fontSize: 22,

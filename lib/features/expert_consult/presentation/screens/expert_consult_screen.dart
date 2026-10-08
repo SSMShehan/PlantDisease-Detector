@@ -122,7 +122,7 @@ class _ExpertConsultScreenState extends ConsumerState<ExpertConsultScreen> {
               ),
               error: (_, _) => _buildMessage(
                 Icons.wifi_off_rounded,
-                'Could not load officers. Pull down to retry.',
+                context.tr(en: 'Could not load officers. Pull down to retry.', si: 'නිලධාරීන් පූරණය කළ නොහැක. නැවත උත්සාහ කිරීමට පහළට අදින්න.', ta: 'அதிகாரிகளை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்க கீழே இழுக்கவும்.'),
               ),
               data: (officers) {
                 final specialisations = {
@@ -137,7 +137,7 @@ class _ExpertConsultScreenState extends ConsumerState<ExpertConsultScreen> {
                     _buildFilterRow(filters),
                     const SizedBox(height: 16),
                     if (filtered.isEmpty)
-                      _buildMessage(Icons.person_search_rounded, 'No officers match this filter.')
+                      _buildMessage(Icons.person_search_rounded, context.tr(en: 'No officers match this filter.', si: 'මෙම පෙරහනට ගැලපෙන නිලධාරීන් නොමැත.', ta: 'இந்த வடிப்பானுக்குப் பொருந்தும் அதிகாரிகள் இல்லை.'))
                     else
                       ...filtered.map(_buildOfficerCard),
                   ],
@@ -160,12 +160,12 @@ class _ExpertConsultScreenState extends ConsumerState<ExpertConsultScreen> {
         const SizedBox(height: 12),
         requestsAsync.when(
           loading: () => const LinearProgressIndicator(),
-          error: (_, _) => _buildMessage(Icons.error_outline_rounded, 'Could not load your requests.'),
+          error: (_, _) => _buildMessage(Icons.error_outline_rounded, context.tr(en: 'Could not load your requests.', si: 'ඔබේ ඉල්ලීම් පූරණය කළ නොහැක.', ta: 'உங்கள் கோரிக்கைகளை ஏற்ற முடியவில்லை.')),
           data: (requests) {
             if (requests.isEmpty) {
               return _buildMessage(
                 Icons.forum_outlined,
-                'No requests yet. Ask an officer about a crop problem and track the reply here.',
+                context.tr(en: 'No requests yet. Ask an officer about a crop problem and track the reply here.', si: 'තවම ඉල්ලීම් නැත. වගාවේ ගැටලුවක් ගැන නිලධාරියෙකුගෙන් විමසා පිළිතුර මෙතැනින් ලුහුබඳින්න.', ta: 'இன்னும் கோரிக்கைகள் இல்லை. பயிர் பிரச்சனை பற்றி ஒரு அதிகாரியிடம் கேட்டு பதிலைக் கண்காணிக்கவும்.'),
               );
             }
             return Column(children: requests.map(_buildRequestTile).toList());
@@ -176,7 +176,7 @@ class _ExpertConsultScreenState extends ConsumerState<ExpertConsultScreen> {
   }
 
   Widget _buildRequestTile(Consultation c) {
-    final (label, color) = consultationStatusStyle(c);
+    final (label, color) = consultationStatusStyle(c, context);
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
@@ -191,7 +191,7 @@ class _ExpertConsultScreenState extends ConsumerState<ExpertConsultScreen> {
           backgroundColor: color.withValues(alpha: 0.12),
           child: Icon(Icons.eco_rounded, color: color),
         ),
-        title: Text(c.diseaseName ?? 'Crop problem', style: AppTextStyles.titleSmall),
+        title: Text(c.diseaseName ?? context.tr(en: 'Crop problem', si: 'වගාවේ ගැටලුවක්', ta: 'பயிர் பிரச்சனை'), style: AppTextStyles.titleSmall),
         subtitle: Text(
           c.officerName != null ? '${c.timeAgo} • ${c.officerName}' : c.timeAgo,
           style: AppTextStyles.bodySmall,
@@ -229,7 +229,7 @@ class _ExpertConsultScreenState extends ConsumerState<ExpertConsultScreen> {
                 border: isSelected ? null : Border.all(color: Colors.grey.shade300),
               ),
               child: Text(
-                filter,
+                filter == 'All' ? context.tr(en: 'All', si: 'සියල්ල', ta: 'அனைத்தும்') : filter == 'On Duty' ? context.tr(en: 'On Duty', si: 'රාජකාරියේ', ta: 'பணியில்') : filter,
                 style: AppTextStyles.titleSmall.copyWith(
                   color: isSelected ? Colors.white : AppColors.textPrimary,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
@@ -350,11 +350,11 @@ class _ExpertConsultScreenState extends ConsumerState<ExpertConsultScreen> {
 }
 
 /// Shared label/colour for a consultation's status (farmer-facing wording).
-(String, Color) consultationStatusStyle(Consultation c) {
-  if (c.isResolved) return ('Answered', const Color(0xFF047857));
-  if (c.isCancelled) return ('Cancelled', Colors.grey.shade600);
-  if (c.isOpen) return ('In Review', const Color(0xFF1D4ED8));
-  return ('Waiting', const Color(0xFFB45309));
+(String, Color) consultationStatusStyle(Consultation c, BuildContext context) {
+  if (c.isResolved) return (context.tr(en: 'Answered', si: 'පිළිතුරු දුන්නා', ta: 'பதிலளிக்கப்பட்டது'), const Color(0xFF047857));
+  if (c.isCancelled) return (context.tr(en: 'Cancelled', si: 'අවලංගු කළා', ta: 'ரத்து செய்யப்பட்டது'), Colors.grey.shade600);
+  if (c.isOpen) return (context.tr(en: 'In Review', si: 'සමාලෝචනයේ', ta: 'மதிப்பாய்வில்'), const Color(0xFF1D4ED8));
+  return (context.tr(en: 'Waiting', si: 'බලාපොරොත්තුවෙන්', ta: 'காத்திருக்கிறது'), const Color(0xFFB45309));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -403,7 +403,7 @@ class _RequestConsultSheetState extends ConsumerState<_RequestConsultSheet> {
     if (!_formKey.currentState!.validate()) return;
     final farmerId = Supabase.instance.client.auth.currentUser?.id;
     if (farmerId == null) {
-      _showError('Please log in again to send a request.');
+      _showError(context.tr(en: 'Please log in again to send a request.', si: 'කරුණාකර ඉල්ලීමක් යැවීමට නැවත ලොග් වන්න.', ta: 'கோரிக்கையை அனுப்ப மீண்டும் உள்நுழையவும்.'));
       return;
     }
 
@@ -426,7 +426,7 @@ class _RequestConsultSheetState extends ConsumerState<_RequestConsultSheet> {
           );
       if (mounted) Navigator.pop(context, created);
     } catch (e) {
-      _showError('Request could not be sent. Check your connection and try again.');
+      _showError(context.tr(en: 'Request could not be sent. Check your connection and try again.', si: 'ඉල්ලීම යැවිය නොහැක. ඔබගේ සබැඳුම පරීක්ෂා කර නැවත උත්සාහ කරන්න.', ta: 'கோரிக்கையை அனுப்ப முடியவில்லை. உங்கள் இணைப்பைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.'));
       if (mounted) setState(() => _submitting = false);
     }
   }
@@ -464,23 +464,23 @@ class _RequestConsultSheetState extends ConsumerState<_RequestConsultSheet> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text('Request Expert Consult', style: AppTextStyles.headlineMedium),
+                  Text(context.tr(en: 'Request Expert Consult', si: 'විශේෂඥ උපදෙස් ඉල්ලන්න', ta: 'நிபுணர் ஆலோசனை கோருக'), style: AppTextStyles.headlineMedium),
                   const SizedBox(height: 4),
                   Text(
                     widget.officer != null
-                        ? 'Your request goes to the officer case inbox. ${widget.officer!.name} or the next available officer will reply.'
-                        : 'Your request goes to the officer case inbox. The next available officer will reply.',
+                        ? context.tr(en: 'Your request goes to the officer case inbox. ${widget.officer!.name} or the next available officer will reply.', si: 'ඔබේ ඉල්ලීම නිලධාරීන්ට යැවේ. ${widget.officer!.name} හෝ ඊළඟට සිටින නිලධාරියා පිළිතුරු දෙනු ඇත.', ta: 'உங்கள் கோரிக்கை அதிகாரிகளுக்கு அனுப்பப்படும். ${widget.officer!.name} அல்லது அடுத்த அதிகாரி பதிலளிப்பார்.')
+                        : context.tr(en: 'Your request goes to the officer case inbox. The next available officer will reply.', si: 'ඔබේ ඉල්ලීම නිලධාරීන්ට යැවේ. ඊළඟට සිටින නිලධාරියා පිළිතුරු දෙනු ඇත.', ta: 'உங்கள் கோரிக்கை அதிகாரிகளுக்கு அனுப்பப்படும். அடுத்த அதிகாரி பதிலளிப்பார்.'),
                     style: AppTextStyles.bodyMedium,
                   ),
                   const SizedBox(height: 20),
 
-                  Text('Crop', style: AppTextStyles.titleSmall),
+                  Text(context.tr(en: 'Crop', si: 'වගාව', ta: 'பயிர்'), style: AppTextStyles.titleSmall),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: _crops.map((c) => ChoiceChip(
-                          label: Text(c),
+                          label: Text(context.trCrop(c)),
                           selected: _crop == c,
                           onSelected: (_) => setState(() => _crop = c),
                         )).toList(),
@@ -490,22 +490,22 @@ class _RequestConsultSheetState extends ConsumerState<_RequestConsultSheet> {
                   TextFormField(
                     controller: _problemCtrl,
                     textCapitalization: TextCapitalization.sentences,
-                    decoration: const InputDecoration(
-                      labelText: 'Problem / suspected disease *',
-                      hintText: 'e.g. Brown spots on lower leaves',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: context.tr(en: 'Problem / suspected disease *', si: 'ගැටලුව / සැක සහිත රෝගය *', ta: 'பிரச்சனை / சந்தேகிக்கப்படும் நோய் *'),
+                      hintText: context.tr(en: 'e.g. Brown spots on lower leaves', si: 'උදා: පහළ පත්‍ර වල දුඹුරු ලප', ta: 'உதாரணமாக: கீழ் இலைகளில் பழுப்பு புள்ளிகள்'),
+                      border: const OutlineInputBorder(),
                     ),
                     validator: (v) => (v == null || v.trim().length < 3)
-                        ? 'Describe the problem in a few words'
+                        ? context.tr(en: 'Describe the problem in a few words', si: 'ගැටලුව වචන කිහිපයකින් විස්තර කරන්න', ta: 'பிரச்சனையை சில வார்த்தைகளில் விவரிக்கவும்')
                         : null,
                   ),
                   const SizedBox(height: 16),
 
-                  Text('How serious is it?', style: AppTextStyles.titleSmall),
+                  Text(context.tr(en: 'How serious is it?', si: 'මෙය කොතරම් බරපතලද?', ta: 'இது எவ்வளவு தீவிரமானது?'), style: AppTextStyles.titleSmall),
                   const SizedBox(height: 8),
                   SegmentedButton<String>(
                     segments: _severities.entries
-                        .map((e) => ButtonSegment(value: e.key, label: Text(e.value)))
+                        .map((e) => ButtonSegment(value: e.key, label: Text(context.trSeverity(e.value))))
                         .toList(),
                     selected: {_severity},
                     onSelectionChanged: (s) => setState(() => _severity = s.first),
@@ -514,13 +514,13 @@ class _RequestConsultSheetState extends ConsumerState<_RequestConsultSheet> {
 
                   TextFormField(
                     controller: _locationCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Village / district *',
-                      prefixIcon: Icon(Icons.location_on_outlined),
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: context.tr(en: 'Village / district *', si: 'ගම / දිස්ත්‍රික්කය *', ta: 'கிராமம் / மாவட்டம் *'),
+                      prefixIcon: const Icon(Icons.location_on_outlined),
+                      border: const OutlineInputBorder(),
                     ),
                     validator: (v) => (v == null || v.trim().isEmpty)
-                        ? 'Officers need your location to help'
+                        ? context.tr(en: 'Officers need your location to help', si: 'උදව් කිරීමට නිලධාරීන්ට ඔබගේ ස්ථානය අවශ්‍යයි', ta: 'உதவ அதிகாரிகளுக்கு உங்கள் இருப்பிடம் தேவை')
                         : null,
                   ),
                   const SizedBox(height: 16),
@@ -529,10 +529,10 @@ class _RequestConsultSheetState extends ConsumerState<_RequestConsultSheet> {
                     controller: _detailsCtrl,
                     maxLines: 3,
                     textCapitalization: TextCapitalization.sentences,
-                    decoration: const InputDecoration(
-                      labelText: 'More details (optional)',
-                      hintText: 'When did it start? How much of the field is affected?',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: context.tr(en: 'More details (optional)', si: 'වැඩිදුර විස්තර (අත්‍යවශ්‍ය නොවේ)', ta: 'மேலும் விவரங்கள் (கட்டாயமில்லை)'),
+                      hintText: context.tr(en: 'When did it start? How much of the field is affected?', si: 'මෙය ආරම්භ වූයේ කවදාද? කොපමණ වගාවක් බලපෑමට ලක්වී තිබේද?', ta: 'இது எப்போது தொடங்கியது? வயலின் எவ்வளவு பகுதி பாதிக்கப்பட்டுள்ளது?'),
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -548,7 +548,7 @@ class _RequestConsultSheetState extends ConsumerState<_RequestConsultSheet> {
                         ? const SizedBox(width: 18, height: 18,
                             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                         : const Icon(Icons.send_rounded),
-                    label: Text(_submitting ? 'Sending…' : 'Send Request'),
+                    label: Text(_submitting ? context.tr(en: 'Sending…', si: 'යවමින් පවතී…', ta: 'அனுப்பப்படுகிறது…') : context.tr(en: 'Send Request', si: 'ඉල්ලීම යවන්න', ta: 'கோரிக்கையை அனுப்புக')),
                   ),
                 ],
               ),

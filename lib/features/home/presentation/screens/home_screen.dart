@@ -15,6 +15,7 @@ import 'package:plant_disease_detector/features/community/presentation/screens/d
 import 'package:plant_disease_detector/core/providers/user_provider.dart';
 import 'package:plant_disease_detector/shared/widgets/smart_image.dart';
 import 'package:plant_disease_detector/l10n/app_localizations.dart';
+import 'package:plant_disease_detector/l10n/app_localizations.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
 import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'package:plant_disease_detector/features/diagnosis/application/scan_history_provider.dart';
@@ -284,7 +285,7 @@ class _HeroSection extends StatelessWidget {
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(20),
                                   child: user.imagePath != null
-                                      ? Image.network(user.imagePath!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _fallbackAvatar(firstName))
+                                      ? SmartImage(src: user.imagePath!, fit: BoxFit.cover, errorWidget: _fallbackAvatar(firstName))
                                       : _fallbackAvatar(firstName),
                                 ),
                               ),
@@ -393,8 +394,8 @@ class _HealthCard extends StatelessWidget {
     final pct = (health * 100).round();
     final Color glowC = pct >= 80 ? const Color(0xFF238E50)
         : pct >= 60 ? const Color(0xFFF5C842) : const Color(0xFFFF6B6B);
-    final String lbl  = pct >= 80 ? 'Excellent'
-        : pct >= 60 ? 'Moderate' : 'At Risk';
+    final String lbl  = pct >= 80 ? context.tr(en: 'Excellent', si: 'විශිෂ්ටයි', ta: 'சிறப்பு')
+        : pct >= 60 ? context.tr(en: 'Moderate', si: 'මධ්‍යම', ta: 'நடுத்தரம்') : context.tr(en: 'At Risk', si: 'අවදානම්', ta: 'ஆபத்தில்');
 
     return Container(
       height: 118,
@@ -470,7 +471,7 @@ class _HealthCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('FARM HEALTH SCORE',
+                        Text(context.tr(en: 'FARM HEALTH SCORE', si: 'ගොවිපල සෞඛ්‍ය දර්ශකය', ta: 'பண்ணை ஆரோக்கிய மதிப்பெண்').toUpperCase(),
                           style: const TextStyle(
                             color: Color(0xFFF5C842),
                             fontSize: 9.5, fontWeight: FontWeight.w900,
@@ -492,9 +493,9 @@ class _HealthCard extends StatelessWidget {
                         ]),
                         Row(children: [
                           _Chip(icon: Icons.document_scanner_rounded,
-                              text: '$count Scans'),
+                              text: context.tr(en: '$count Scans', si: 'ස්කෑන් $count', ta: '$count ஸ்கேன்கள்')),
                           const SizedBox(width: 8),
-                          _Chip(icon: Icons.eco_rounded, text: '$cropCount Crops'),
+                          _Chip(icon: Icons.eco_rounded, text: context.tr(en: '$cropCount Crops', si: 'වගාවන් $cropCount', ta: '$cropCount பயிர்கள்')),
                         ]),
                       ],
                     ),
@@ -598,11 +599,11 @@ class _ScanCTA extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text('Scan Your Crop',
-                          style: TextStyle(color: Color(0xFF0A1C11), fontSize: 20,
+                        Text(context.tr(en: 'Scan Your Crop', si: 'ඔබේ වගාව පරීක්ෂා කරන්න', ta: 'உங்கள் பயிரை ஸ்கேன் செய்யவும்'),
+                          style: const TextStyle(color: Color(0xFF0A1C11), fontSize: 20,
                               fontWeight: FontWeight.w900, letterSpacing: -0.4, height: 1.1)),
                         const SizedBox(height: 5),
-                        Text('AI-powered diagnosis in seconds',
+                        Text(context.tr(en: 'AI-powered diagnosis in seconds', si: 'තත්පර කිහිපයකින් AI මඟින් රෝග විනිශ්චය', ta: 'சில வினாடிகளில் AI மூலம் நோய் கண்டறிதல்'),
                           style: TextStyle(color: const Color(0xFF0A1C11).withOpacity(0.55),
                               fontSize: 11.5, fontWeight: FontWeight.w600)),
                       ],
@@ -644,19 +645,19 @@ class _BentoActions extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('QUICK ACTIONS',
+        Text(context.tr(en: 'QUICK ACTIONS', si: 'ඉක්මන් ක්‍රියා', ta: 'விரைவான செயல்கள்'),
             style: TextStyle(color: _textMute, fontSize: 10.5,
                 fontWeight: FontWeight.w800, letterSpacing: 1.6)),
         const SizedBox(height: 14),
         Row(children: [
           Expanded(flex: 5, child: _LuxTile(
-            icon: Icons.radar_rounded, label: 'Disease\nRadar', sub: 'Nearby alerts',
+            icon: Icons.radar_rounded, label: context.tr(en: 'Disease\nRadar', si: 'රෝග\nරේඩාර්', ta: 'நோய்\nரேடார்'), sub: context.tr(en: 'Nearby alerts', si: 'අවට අනතුරු ඇඟවීම්', ta: 'அருகிலுள்ள எச்சரிக்கைகள்'),
             accent: const Color(0xFFD4637A),
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DiseaseRadarScreen())),
           )),
           const SizedBox(width: 13),
           Expanded(flex: 4, child: _LuxTile(
-            icon: Icons.support_agent_rounded, label: 'Expert\nHelp', sub: 'Ask a pro',
+            icon: Icons.support_agent_rounded, label: context.tr(en: 'Expert\nHelp', si: 'විශේෂඥ\nසහය', ta: 'நிபுணர்\nஉதவி'), sub: context.tr(en: 'Ask a pro', si: 'විශේෂඥයෙකුගෙන් විමසන්න', ta: 'ஒரு நிபுணரிடம் கேளுங்கள்'),
             accent: const Color(0xFFD4943A),
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ExpertConsultScreen())),
           )),
@@ -664,13 +665,13 @@ class _BentoActions extends StatelessWidget {
         const SizedBox(height: 13),
         Row(children: [
           Expanded(flex: 4, child: _LuxTile(
-            icon: Icons.menu_book_rounded, label: 'Disease\nLibrary', sub: '200+ entries',
+            icon: Icons.menu_book_rounded, label: context.tr(en: 'Disease\nLibrary', si: 'රෝග\nනාමාවලිය', ta: 'நோய்\nநூலகம்'), sub: context.tr(en: '200+ entries', si: 'රෝග 200+', ta: '200+ உள்ளீடுகள்'),
             accent: const Color(0xFF4A86D4),
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DiseaseCatalogueScreen())),
           )),
           const SizedBox(width: 13),
           Expanded(flex: 5, child: _LuxTile(
-            icon: Icons.people_rounded, label: 'Community\nForum', sub: 'Share & learn',
+            icon: Icons.people_rounded, label: context.tr(en: 'Community\nForum', si: 'ප්‍රජා\nසංසදය', ta: 'சமூக\nமன்றம்'), sub: context.tr(en: 'Share & learn', si: 'බෙදාගන්න සහ ඉගෙන ගන්න', ta: 'பகிரவும் கற்கவும்'),
             accent: const Color(0xFF3CAF70),
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CommunityFeedScreen())),
           )),
@@ -777,10 +778,10 @@ class _RecentScans extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('RECENT SCANS', style: TextStyle(color: _textMute, fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 1.5)),
+              Text(context.tr(en: 'RECENT SCANS', si: 'මෑතකාලීන ස්කෑන්', ta: 'சமீபத்திய ஸ்கேன்கள்'), style: const TextStyle(color: _textMute, fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 1.5)),
               GestureDetector(
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DiseaseCatalogueScreen())),
-                child: const Text('See All', style: TextStyle(color: _copper, fontSize: 13, fontWeight: FontWeight.w800)),
+                child: Text(context.tr(en: 'See All', si: 'සියල්ල බලන්න', ta: 'அனைத்தையும் காண்க'), style: const TextStyle(color: _copper, fontSize: 13, fontWeight: FontWeight.w800)),
               ),
             ],
           ),
@@ -792,7 +793,7 @@ class _RecentScans extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(color: _white, borderRadius: BorderRadius.circular(24)),
-              child: const Center(child: Text('No recent scans found.', style: TextStyle(color: _textMute))),
+              child: Center(child: Text(context.tr(en: 'No recent scans found.', si: 'මෑතකාලීන ස්කෑන් හමුවූයේ නැත.', ta: 'சமீபத்திய ஸ்கேன்கள் எதுவும் காணப்படவில்லை.'), style: const TextStyle(color: _textMute))),
             ),
           )
         else
