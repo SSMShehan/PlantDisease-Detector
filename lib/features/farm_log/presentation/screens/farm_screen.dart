@@ -264,7 +264,33 @@ class _FarmScreenState extends ConsumerState<FarmScreen> {
     final isExpanded = _selectedFieldId == field.id;
     final statusColor = _getStatusColor(field.status);
 
-    return GestureDetector(
+    return Dismissible(
+      key: Key(field.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.only(right: 20),
+        decoration: BoxDecoration(
+          color: AppColors.severityHigh,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        alignment: Alignment.centerRight,
+        child: const Icon(Icons.delete_outline, color: Colors.white),
+      ),
+      onDismissed: (_) async {
+        try {
+          await ref.read(farmApiServiceProvider).deleteFieldBlock(field.id);
+          ref.refresh(fieldBlocksProvider);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Field Block deleted')));
+          }
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete: $e')));
+          }
+        }
+      },
+      child: GestureDetector(
       onTap: () => setState(() => _selectedFieldId = isExpanded ? null : field.id),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -403,6 +429,7 @@ class _FarmScreenState extends ConsumerState<FarmScreen> {
           ],
         ),
       ),
+      ),
     );
   }
 
@@ -430,7 +457,33 @@ class _FarmScreenState extends ConsumerState<FarmScreen> {
 
   Widget _buildTaskCard(FarmTask task) {
     final color = _getTaskColor(task.priority);
-    return GestureDetector(
+    return Dismissible(
+      key: Key(task.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.only(right: 20),
+        decoration: BoxDecoration(
+          color: AppColors.severityHigh,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        alignment: Alignment.centerRight,
+        child: const Icon(Icons.delete_outline, color: Colors.white),
+      ),
+      onDismissed: (_) async {
+        try {
+          await ref.read(farmApiServiceProvider).deleteFarmTask(task.id);
+          ref.read(farmTaskNotifierProvider.notifier).refresh();
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Task deleted')));
+          }
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete: $e')));
+          }
+        }
+      },
+      child: GestureDetector(
       onTap: () {
         ref.read(farmTaskNotifierProvider.notifier).toggleTask(task.id, !task.isDone);
       },
@@ -489,6 +542,7 @@ class _FarmScreenState extends ConsumerState<FarmScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

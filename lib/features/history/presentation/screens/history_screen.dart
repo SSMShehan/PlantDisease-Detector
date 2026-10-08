@@ -236,7 +236,32 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   }
 
   Widget _buildHistoryCard(ScanRecord scan) {
-    return GestureDetector(
+    return Dismissible(
+      key: Key(scan.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.only(right: 20),
+        decoration: BoxDecoration(
+          color: AppColors.severityHigh,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        alignment: Alignment.centerRight,
+        child: const Icon(Icons.delete_outline, color: Colors.white),
+      ),
+      onDismissed: (_) async {
+        try {
+          await ref.read(scanHistoryProvider.notifier).removeScan(scan.id);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Scan deleted')));
+          }
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete: $e')));
+          }
+        }
+      },
+      child: GestureDetector(
       onTap: () => _openScan(scan),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -374,6 +399,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

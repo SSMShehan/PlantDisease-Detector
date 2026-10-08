@@ -3,14 +3,17 @@ import 'package:plant_disease_detector/core/theme/app_theme.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
 import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 
-class AddFarmLogScreen extends StatefulWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:plant_disease_detector/features/farm_log/application/farm_provider.dart';
+
+class AddFarmLogScreen extends ConsumerStatefulWidget {
   const AddFarmLogScreen({super.key});
 
   @override
-  State<AddFarmLogScreen> createState() => _AddFarmLogScreenState();
+  ConsumerState<AddFarmLogScreen> createState() => _AddFarmLogScreenState();
 }
 
-class _AddFarmLogScreenState extends State<AddFarmLogScreen> {
+class _AddFarmLogScreenState extends ConsumerState<AddFarmLogScreen> {
   String _selectedActivity = 'Watering';
   final List<Map<String, dynamic>> _activities = [
     {'name': 'Watering', 'icon': Icons.water_drop_outlined, 'color': Colors.blue},
@@ -154,8 +157,32 @@ class _AddFarmLogScreenState extends State<AddFarmLogScreen> {
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
+                onPressed: () async {
+                  // Save to DB
+                  final priority = _selectedActivity == 'Spraying' ? 'High' : 'Medium';
+                  final dueDate = 'Today';
+                  final data = {
+                    'label': _selectedActivity,
+                    'due_date': dueDate,
+                    'priority': priority,
+                    'is_done': false,
+                  };
+                  try {
+                    await ref.read(farmApiServiceProvider).createFarmTask(data);
+                    if (context.mounted) {
+                      ref.read(farmTaskNotifierProvider.notifier).refresh();
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Farm task saved successfully!')),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Failed to save task: $e')),
+                      );
+                    }
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
