@@ -17,6 +17,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:plant_disease_detector/core/auth/user_role.dart';
 import 'package:plant_disease_detector/features/home/application/saved_items_provider.dart';
 import 'package:plant_disease_detector/features/home/presentation/screens/saved_items_screen.dart';
+import 'package:plant_disease_detector/shared/widgets/smart_image.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ProfileScreen — Matches Figma ProfileScreen.tsx
@@ -242,9 +243,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(13),
                         child: userData.imagePath != null && userData.imagePath!.isNotEmpty
-                            ? ((userData.imagePath!.startsWith('http') || kIsWeb)
-                                ? Image.network(userData.imagePath!, fit: BoxFit.cover)
-                                : Image.file(File(userData.imagePath!), fit: BoxFit.cover))
+                            ? SmartImage(src: userData.imagePath!, fit: BoxFit.cover)
                             : Container(
                                 color: Colors.white.withValues(alpha: 0.2),
                                 child: Center(

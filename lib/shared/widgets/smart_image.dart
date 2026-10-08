@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -26,6 +27,8 @@ class SmartImage extends StatelessWidget {
 
   bool get _isUrl =>
       src.startsWith('http://') || src.startsWith('https://') || src.startsWith('blob:');
+
+  bool get _isBase64 => src.startsWith('data:image');
 
   bool get _isAsset =>
       src.startsWith('assets/') || src.startsWith('packages/');
@@ -93,6 +96,16 @@ class SmartImage extends StatelessWidget {
             ),
           );
         },
+        errorBuilder: (context, error, stackTrace) =>
+            errorWidget ?? _defaultError(),
+      );
+    } else if (_isBase64) {
+      final base64String = src.split(',').last;
+      image = Image.memory(
+        base64Decode(base64String),
+        width: width,
+        height: height,
+        fit: fit,
         errorBuilder: (context, error, stackTrace) =>
             errorWidget ?? _defaultError(),
       );

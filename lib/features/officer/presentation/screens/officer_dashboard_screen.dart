@@ -12,6 +12,7 @@ import 'package:plant_disease_detector/features/officer/presentation/widgets/sch
 import 'package:plant_disease_detector/features/profile/presentation/screens/profile_screen.dart';
 import 'package:plant_disease_detector/core/widgets/language_selector_button.dart';
 import 'package:plant_disease_detector/core/providers/location_provider.dart';
+import 'package:plant_disease_detector/shared/widgets/smart_image.dart';
 import 'package:plant_disease_detector/features/weather/presentation/providers/weather_provider.dart';
 import 'package:plant_disease_detector/core/providers/user_provider.dart';
 import 'package:plant_disease_detector/l10n/app_localizations.dart';
@@ -379,7 +380,7 @@ class _OfficerHomeTab extends ConsumerWidget {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(20),
                           child: user.imagePath != null && user.imagePath!.isNotEmpty
-                              ? Image.network(user.imagePath!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _fallbackAvatar(firstName))
+                              ? SmartImage(src: user.imagePath!, fit: BoxFit.cover, errorWidget: _fallbackAvatar(firstName))
                               : _fallbackAvatar(firstName),
                         ),
                       ),

@@ -10,6 +10,7 @@ import 'package:plant_disease_detector/shared/widgets/premium_app_bar.dart';
 import 'package:plant_disease_detector/features/community/application/community_provider.dart';
 import 'package:plant_disease_detector/core/providers/user_provider.dart';
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
+import 'package:plant_disease_detector/shared/widgets/smart_image.dart';
 
 class CreatePostScreen extends ConsumerStatefulWidget {
   const CreatePostScreen({super.key});
@@ -140,9 +141,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(24),
                           child: userData.imagePath != null && userData.imagePath!.isNotEmpty
-                              ? ((userData.imagePath!.startsWith('http') || kIsWeb)
-                                  ? Image.network(userData.imagePath!, fit: BoxFit.cover)
-                                  : Image.file(File(userData.imagePath!), fit: BoxFit.cover))
+                              ? SmartImage(src: userData.imagePath!, fit: BoxFit.cover)
                               : Center(
                                   child: Text(
                                     displayName[0].toUpperCase(),
