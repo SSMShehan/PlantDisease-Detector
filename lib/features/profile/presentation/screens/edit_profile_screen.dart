@@ -380,7 +380,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     if (_imageFile != null) {
       if (_imageFile!.path.startsWith('data:image')) {
         try {
-          final base64String = _imageFile!.path.split(',').last.replaceAll(RegExp(r'\s+'), '');
+          var base64String = _imageFile!.path.split(',').last.replaceAll(RegExp(r'\s+'), '');
+          final padding = base64String.length % 4;
+          if (padding != 0) {
+            base64String += '=' * (4 - padding);
+          }
           return MemoryImage(base64Decode(base64String));
         } catch (e) {
           debugPrint('Profile image base64 decode error: $e');

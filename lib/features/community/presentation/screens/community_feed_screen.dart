@@ -343,7 +343,7 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
                             Text(post.category, style: TextStyle(color: Colors.grey.shade600, fontSize: 12, fontWeight: FontWeight.w500)),
                             Text(' • ', style: TextStyle(color: Colors.grey.shade400, fontSize: 12)),
                           ],
-                          Text('\$timeAgoStr • \$district', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                          Text('$timeAgoStr • $district', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
                           const SizedBox(width: 4),
                           Icon(Icons.public, size: 12, color: Colors.grey.shade500),
                         ],
