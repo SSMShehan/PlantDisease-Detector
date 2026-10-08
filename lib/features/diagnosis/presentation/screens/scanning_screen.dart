@@ -5,10 +5,18 @@ import 'package:plant_disease_detector/features/diagnosis/presentation/screens/d
 import 'package:plant_disease_detector/core/localization/app_strings.dart';
 
 import 'dart:io';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:plant_disease_detector/core/providers/tflite_provider.dart';
 import 'package:plant_disease_detector/models/disease_result.dart';
+import 'package:plant_disease_detector/core/providers/location_provider.dart';
+import 'package:plant_disease_detector/core/providers/user_provider.dart';
+import 'package:plant_disease_detector/features/diagnosis/domain/disease_catalog.dart';
+import 'package:plant_disease_detector/shared/utils/uuid.dart';
+import 'package:plant_disease_detector/features/diagnosis/domain/leaf_check.dart';
+import 'package:plant_disease_detector/features/diagnosis/presentation/screens/camera_capture_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ScanningScreen — Matches Figma ScanningScreen.tsx
@@ -67,42 +75,93 @@ class _ScanningScreenState extends ConsumerState<ScanningScreen>
     // Give animation at least some time to play
     await Future.delayed(const Duration(milliseconds: 2000));
 
-    if (mounted) {
-      ScanRecord scan;
-      if (result != null) {
-        scan = ScanRecord(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          imageUrl: widget.imagePath,
-          diseaseName: result['label'] as String,
-          confidenceScore: result['confidence'] as double,
-          scannedAt: DateTime.now(),
-          latinName: 'Unknown',
-          cropType: 'Unknown',
-          severity: 'none',
-          fieldLocation: 'Unknown',
-          treatable: false,
-        );
-      } else {
-        // Fallback if model fails
-        scan = ScanRecord(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          imageUrl: widget.imagePath,
-          diseaseName: 'Unknown',
-          confidenceScore: 0.0,
-          scannedAt: DateTime.now(),
-          latinName: 'Unknown',
-          cropType: 'Unknown',
-          severity: 'none',
-          fieldLocation: 'Unknown',
-          treatable: false,
-        );
+    if (!mounted) return;
+    // The model labels any photo as one of its 38 classes, so ask before
+    // showing a diagnosis for a photo that does not look like a leaf.
+    final leafRatio = result?['leaf_ratio'] as double?;
+    if (leafRatio != null && !LeafCheck.looksLikeLeaf(leafRatio)) {
+      final proceed = await _confirmNotLeaf();
+      if (!mounted) return;
+      if (!proceed) {
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const CameraCaptureScreen()));
+        return;
       }
+    }
+
+    if (mounted) {
+      final label = result?['label'] as String?;
+      final info = label == null ? null : DiseaseCatalog.lookup(label);
+      final location = ref.read(locationProvider);
+      final district = ref.read(userProvider).district;
+      final place = !location.isLoading && location.address.isNotEmpty
+          ? location.address.split(',').first.trim()
+          : district;
+
+      // The id is a UUID so the same record can be uploaded to Supabase later
+      // (offline outbox) and then bookmarked or deleted from History.
+      final id = uuidV4();
+      final scan = ScanRecord(
+        id: id,
+        imageUrl: await _keepPhoto(widget.imagePath, id),
+        diseaseName: label ?? 'Unknown',
+        confidenceScore: (result?['confidence'] as double?) ?? 0.0,
+        scannedAt: DateTime.now(),
+        latinName: info?.pathogen ?? 'Unknown',
+        cropType: info?.crop ?? 'Unknown',
+        severity: info?.severity ?? 'medium',
+        fieldLocation: place.isNotEmpty ? place : 'Unknown',
+        treatable: info?.treatable ?? false,
+      );
 
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (_) => DiagnosticResultScreen(scan: scan),
+          builder: (_) => DiagnosticResultScreen(scan: scan, isNewScan: true),
         ),
       );
+    }
+  }
+
+  Future<bool> _confirmNotLeaf() async {
+    final answer = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        icon: const Icon(Icons.eco_outlined, color: AppColors.warning, size: 36),
+        title: Text(context.tr(en: 'Is this a leaf?', si: 'මෙය කොළයක්ද?', ta: 'இது இலையா?')),
+        content: Text(context.tr(
+          en: 'We could not find a plant leaf in this photo. For a correct result, take a close, clear photo of one leaf in daylight.',
+          si: 'මෙම ඡායාරූපයේ ශාක කොළයක් හමු නොවීය. නිවැරදි ප්‍රතිඵලයක් සඳහා, දිවා ආලෝකයේ එක් කොළයක ළඟින් ගත් පැහැදිලි ඡායාරූපයක් ගන්න.',
+          ta: 'இந்தப் புகைப்படத்தில் செடி இலையைக் கண்டறிய முடியவில்லை. சரியான முடிவுக்கு, பகல் வெளிச்சத்தில் ஒரு இலையை அருகில் தெளிவாகப் படம் எடுக்கவும்.',
+        )),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(context.tr(en: 'Continue anyway', si: 'කෙසේ වෙතත් ඉදිරියට', ta: 'இருந்தாலும் தொடரவும்')),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            child: Text(context.tr(en: 'Retake photo', si: 'නැවත ඡායාරූපය ගන්න', ta: 'மீண்டும் படம் எடு'), style: const TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+    return answer ?? false;
+  }
+
+  /// Gallery and camera photos live in temporary cache folders that Android
+  /// may clear. Copy the photo into the app's own folder so it is still there
+  /// when the scan uploads (possibly much later, after being offline).
+  Future<String> _keepPhoto(String path, String id) async {
+    if (kIsWeb || path.isEmpty) return path;
+    try {
+      final dir = Directory(p.join((await getApplicationDocumentsDirectory()).path, 'scans'));
+      await dir.create(recursive: true);
+      final copy = await File(path).copy(p.join(dir.path, '$id.jpg'));
+      return copy.path;
+    } catch (e) {
+      debugPrint('Could not keep scan photo: $e');
+      return path;
     }
   }
 

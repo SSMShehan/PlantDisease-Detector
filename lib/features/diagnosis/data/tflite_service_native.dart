@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
+import 'package:plant_disease_detector/features/diagnosis/domain/leaf_check.dart';
 import 'package:image/image.dart' as img;
 
 class TfLiteService {
@@ -26,7 +27,7 @@ class TfLiteService {
     final image = img.decodeImage(bytes);
     if (image == null) return null;
 
-    final resizedImage = img.copyResize(image, width: 224, height: 224);
+    final resizedImage = img.copyResize(image, width: 224, height: 224, interpolation: img.Interpolation.linear);
     
     // Normalize and prepare input tensor [1, 224, 224, 3]
     var input = List.generate(
@@ -71,6 +72,7 @@ class TfLiteService {
       'label': _labels![maxIndex],
       'confidence': maxProb,
       'top_3': sortedResults.take(3).toList(),
+      'leaf_ratio': LeafCheck.leafPixelRatio(resizedImage),
     };
   }
 }

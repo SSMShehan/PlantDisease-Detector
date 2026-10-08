@@ -1,3 +1,4 @@
+import 'package:plant_disease_detector/core/services/notification_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart';
@@ -187,12 +188,6 @@ class ConsultationRepository {
       final pending = list.where((c) => c['status'] == 'pending' || c['status'] == 'open').length;
       
       final today = DateTime.now();
-      final resolvedToday = list.where((c) {
-        if (c['status'] != 'resolved') return false;
-        // We don't have resolved_at in this query, use created_at as approximation
-        return true; // Will refine later
-      }).length;
-      
       // Fetch resolved today specifically
       final resolvedTodayData = await _client
           .from('consultations')
@@ -223,14 +218,23 @@ final consultationRepositoryProvider = Provider<ConsultationRepository>((ref) {
   return ConsultationRepository(Supabase.instance.client);
 });
 
+/// Reloads the provider whenever a case is created or changes (Realtime).
+void _reloadOnCaseChange(Ref ref) {
+  void reload() => ref.invalidateSelf();
+  NotificationService.caseChanges.addListener(reload);
+  ref.onDispose(() => NotificationService.caseChanges.removeListener(reload));
+}
+
 // All consultations (for officer inbox)
 final consultationsProvider = FutureProvider.family<List<Consultation>, String?>((ref, statusFilter) async {
+  _reloadOnCaseChange(ref);
   final repo = ref.read(consultationRepositoryProvider);
   return repo.fetchAllConsultations(statusFilter: statusFilter);
 });
 
 // Officer dashboard stats
 final officerStatsProvider = FutureProvider<Map<String, int>>((ref) async {
+  _reloadOnCaseChange(ref);
   final repo = ref.read(consultationRepositoryProvider);
   return repo.fetchOfficerStats();
 });
@@ -243,6 +247,7 @@ final consultationDetailProvider = FutureProvider.family<Consultation?, String>(
 
 // Logged-in farmer's own requests (Expert Consult → "My Requests")
 final myConsultationsProvider = FutureProvider.autoDispose<List<Consultation>>((ref) async {
+  _reloadOnCaseChange(ref);
   final userId = Supabase.instance.client.auth.currentUser?.id;
   if (userId == null) return [];
   return ref.read(consultationRepositoryProvider).fetchFarmerConsultations(userId);
@@ -269,6 +274,10 @@ final liveConsultationProvider =
 // Live messages for one request (farmer side; officer side uses ChatNotifier)
 final consultationMessagesProvider =
     StreamProvider.autoDispose.family<List<ConsultationMessage>, String>((ref, id) {
+  NotificationService.openChatId = id;
+  ref.onDispose(() {
+    if (NotificationService.openChatId == id) NotificationService.openChatId = null;
+  });
   return Supabase.instance.client
       .from('consultation_messages')
       .stream(primaryKey: ['id'])
